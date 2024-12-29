@@ -352,6 +352,8 @@
     });
   });
 
+  
+
 
     
   
@@ -569,14 +571,13 @@
 
   //REVISORRRRRRRR-------------------------------------------------------------------------------------------
   app.get('/api/informesRevisados', (req, res) => {
-    const { id_revisor } = req.query;  // Obtener el id_revisor desde la query string
+    const { id_revisor } = req.query;
 
-    // Asegúrate de que el revisor esté autenticado y su rol sea 'revisor'
     if (!id_revisor) {
         return res.status(403).send('Acceso denegado');
     }
 
-    // Consulta SQL para obtener los informes más recientes para cada combinación de id_estudiante e id_asesor
+    // Consulta para obtener los últimos informes revisados
     const query = `
     SELECT
         informe_revisado.id AS id_informe,
@@ -591,11 +592,11 @@
     FROM
         informes_revisados informe_revisado
     WHERE
-        informe_revisado.id_revisor = ?  -- Filtramos por el id_revisor
+        informe_revisado.id_revisor = ? 
         AND informe_revisado.fecha_creacion = (
             SELECT MAX(i.fecha_creacion)
             FROM informes_revisados i
-            WHERE
+            WHERE 
                 i.id_estudiante = informe_revisado.id_estudiante
                 AND i.id_asesor = informe_revisado.id_asesor
                 AND i.id_revisor = informe_revisado.id_revisor
@@ -604,7 +605,6 @@
         informe_revisado.fecha_creacion DESC;
     `;
 
-    // Ejecutar la consulta SQL
     db.query(query, [id_revisor], (err, result) => {
         if (err) {
             console.error('Error al obtener los informes revisados:', err);
@@ -612,7 +612,7 @@
         }
 
         if (result.length > 0) {
-            return res.status(200).json(result); // Enviar los datos de los informes revisados
+            return res.status(200).json(result);
         } else {
             return res.status(404).send('No se encontraron informes revisados');
         }
@@ -749,6 +749,28 @@
         }
     });
   });
+
+  app.put('/api/actualizar_estado_comision', (req, res) => {
+    const { id_estudiante, estado_asesoria, estado_avance, estado_comision, comentario } = req.body;
+  
+    console.log("Datos recibidos:", req.body);  // Ver los datos recibidos en el servidor
+  
+    // Realizar la consulta SQL para actualizar los datos
+    const query = `
+      UPDATE informes_comision
+      SET estado_informe_asesoria = ?, estado_revision_avance = ?, estado_informe_comision = ?, comentario_comision = ?
+      WHERE id_estudiante = ?
+    `;
+  
+    db.query(query, [estado_asesoria, estado_avance, estado_comision, comentario, id_estudiante], (err, results) => {
+      if (err) {
+        console.error("Error en la consulta SQL:", err);  // Mostrar el error detallado
+        return res.status(500).json({ error: 'Error al actualizar el estado' });
+      }
+      res.json({ message: 'Estado y comentario actualizados correctamente' });
+    });
+  });
+  
 
 
 

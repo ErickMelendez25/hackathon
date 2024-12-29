@@ -4,7 +4,7 @@ import axios from 'axios';
 function ProcesoRevisionInformes() {
   const [userRole, setUserRole] = useState(null);
   
-  const [estado, setEstado] = useState({});
+
   const [comentarios, setComentarios] = useState({});
   const [notificaciones, setNotificaciones] = useState([]);  // Para las notificaciones
   const [avanceFile, setAvanceFile] = useState(null);
@@ -38,7 +38,7 @@ function ProcesoRevisionInformes() {
   const [selectedRevisor, setSelectedRevisores] = useState('');
 
   // Estado para los revisoresssssssssssssss informes_revisadoss
-  const [informes, setInformes] = useState([]);
+
   const [estadoInforme, setEstadoInforme] = useState({});
   
  
@@ -49,94 +49,25 @@ function ProcesoRevisionInformes() {
   // Inicializa un estado que tendrá los estados por id_estudiante
   const [estadoComision, setEstadoComision] = useState({});
 
+
+ //CORRECION
+
+   const [informes, setInformes] = useState([]);
+   const [estado, setEstado] = useState({}); // Para manejar los estados de los informes
+
+ //--------------------------------------------------------------------------------------------------------------
+
+
   const user = JSON.parse(localStorage.getItem('usuario'));
+
 
 
   //aqui se cambio..................................
 
-  const handleChangeEstado = (id, tipo, e) => {
-    // Actualiza el estado del informe según el tipo (informe o asesoría)
-    setEstadoInforme(prev => ({
-        ...prev,
-        [id]: {
-            ...prev[id],
-            [tipo]: e.target.value
-        }
-    }));
-  };
-
-
-  //esto se agrego---------------------------------------p
-  const handleValidar = (id) => {
-    const { estado_final_informe, estado_final_asesoria } = estadoInforme[id];
-    axios.put('http://localhost:5000/api/actualizarEstado', {
-        id_informe: id,
-        estado_final_informe,
-        estado_final_asesoria
-    })
-    .then(() => {
-        alert('Informe actualizado correctamente');
-    })
-    .catch((error) => {
-        console.error('Error al actualizar el informe:', error);
-    });
-  };
-  //:................................................
-
-  const handleRevisorValida = (id) => {
-    const estadoFinalInforme = estadoInforme[id] || 'Pendiente';
-    const estadoFinalAsesoria = estadoAsesoria[id] || 'Pendiente';
-
-    axios.put('http://localhost:5000/api/actualizarEstado', {
-      id_informe: id,
-      estado_final_informe: estadoFinalInforme,
-      estado_final_asesoria: estadoFinalAsesoria,
-    })
-      .then(() => {
-        alert('Informe actualizado correctamente');
-        // Actualizar la lista de informes
-        setInformes(informes.map(informe =>
-          informe.id === id
-            ? { ...informe, estado_final_informe: estadoFinalInforme, estado_final_asesoria: estadoFinalAsesoria }
-            : informe
-        ));
-      })
-      .catch((error) => {
-        console.error('Error al actualizar el informe:', error);
-      });
-  };
-
   
-
-  // Asegúrate de que, al cargar los informes, el estado se inicialice con los valores correctos
-  useEffect(() => {
-    if (informesComision.length > 0) {
-      const initialEstado = {};
-      informesComision.forEach(informe => {
-        initialEstado[informe.id_estudiante] = {
-          estadoAsesoria: informe.estado_informe_asesoria,
-          estadoAvance: informe.estado_revision_avance
-        };
-      });
-      // Solo setea el estado si el valor realmente cambió
-      if (JSON.stringify(estadoComision) !== JSON.stringify(initialEstado)) {
-        setEstadoComision(initialEstado);
-      }
-    }
-  }, [informesComision]);  // Dependencia: solo se ejecutará cuando informesComision cambie
-  
-
   // Cambia el estado de la fila individualmente
-  const handleEstadoChange = (idEstudiante, tipo, valor) => {
-  setEstadoComision(prevEstadoComision => {
-    const updatedEstado = { ...prevEstadoComision };
-    if (!updatedEstado[idEstudiante]) {
-      updatedEstado[idEstudiante] = { estadoAsesoria: "", estadoAvance: "" };
-    }
-    updatedEstado[idEstudiante][tipo] = valor;  // Actualiza solo el tipo (estadoAsesoria o estadoAvance)
-    return updatedEstado;
-  });
-  };
+
+
 
    // Obtención de notificaciones
    useEffect(() => {
@@ -167,7 +98,7 @@ function ProcesoRevisionInformes() {
                 timeout: 10000
             })
             .then((response) => {
-                setInformes(response.data);
+            setInformes(response.data);
             
 
              // Inicializa el estado de cada informe en el primer renderizado
@@ -178,7 +109,7 @@ function ProcesoRevisionInformes() {
                      estado_final_asesoria: informe.estado_final_asesoria
                  };
              });
-             setEstadoInforme(initialEstado);
+             setEstado(initialEstado);
             })
 
             
@@ -240,20 +171,27 @@ function ProcesoRevisionInformes() {
       axios.get('http://localhost:5000/api/informes_comision')
         .then(response => {
           setInformesComision(response.data);
-          // Inicializar estado de los informes
-          if (Object.keys(estado).length === 0) {
-            const initialEstado = {};
+    
+          // Inicializar estado de los informes para estadoComision
+          if (Object.keys(estadoComision).length === 0) {  // Solo inicializar si está vacío
+            const initialEstadoComision = {};
             response.data.forEach(informe => {
-              initialEstado[informe.id] = informe.estado;
+              initialEstadoComision[informe.id_estudiante] = {
+                estadoAsesoria: informe.estadoAsesoria || "Pendiente",  // Asegúrate de usar el nombre correcto del estado
+                estadoAvance: informe.estadoAvance || "Pendiente",  // Si tienes otro estado, úsalo aquí
+              };
             });
-            setEstado(initialEstado);
+            setEstadoComision(initialEstadoComision);  // Inicializa el estadoComision con los valores correctos
           }
         })
         .catch(error => {
           console.error('Error al obtener los informes:', error);
         });
     }
-  
+
+    
+
+
     // Solo obtén asesores y estudiantes una vez si no se han obtenido
     if (!asesores.length) {
       axios.get('http://localhost:5000/api/asesores')
@@ -314,9 +252,91 @@ function ProcesoRevisionInformes() {
         });
     }
   
-  }, [user, asesores.length, estudiantes.length,notificaciones.length,revisores.length]);  // Asegúrate de que las dependencias sean las correctas
+  }, [asesores.length, estudiantes.length,notificaciones.length,revisores.length]);  // Asegúrate de que las dependencias sean las correctas
   
 
+    // Manejo del cambio de estado
+// Este método debe actualizar correctamente el estado
+  const handleEstadoChange = (id_estudiante, tipo, e) => {
+    console.log("Cambio Estado:", id_estudiante, tipo, e.target.value);
+    setEstadoComision((prevEstado) => ({
+      ...prevEstado,
+      [id_estudiante]: {
+        ...prevEstado[id_estudiante],
+        [tipo]: e.target.value,
+      },
+    }));
+  };
+
+    
+    
+  
+
+
+
+
+  //esto se agrego---------------------------------------p
+  const handleValidar = (id) => {
+    const { estado_final_informe, estado_final_asesoria } = estadoInforme[id];
+    axios.put('http://localhost:5000/api/actualizarEstado', {
+        id_informe: id,
+        estado_final_informe,
+        estado_final_asesoria
+    })
+    .then(() => {
+        alert('Informe actualizado correctamente');
+    })
+    .catch((error) => {
+        console.error('Error al actualizar el informe:', error);
+    });
+  };
+  //:................................................
+
+  const handleRevisorValida = (id) => {
+    const estadoFinalInforme = estadoInforme[id] || 'Pendiente';
+    const estadoFinalAsesoria = estadoAsesoria[id] || 'Pendiente';
+
+    axios.put('http://localhost:5000/api/actualizarEstado', {
+      id_informe: id,
+      estado_final_informe: estadoFinalInforme,
+      estado_final_asesoria: estadoFinalAsesoria,
+    })
+      .then(() => {
+        alert('Informe actualizado correctamente');
+        // Actualizar la lista de informes
+        setInformes(informes.map(informe =>
+          informe.id === id
+            ? { ...informe, estado_final_informe: estadoFinalInforme, estado_final_asesoria: estadoFinalAsesoria }
+            : informe
+        ));
+      })
+      .catch((error) => {
+        console.error('Error al actualizar el informe:', error);
+      });
+  };
+
+  
+
+  // Asegúrate de que, al cargar los informes, el estado se inicialice con los valores correctos
+  useEffect(() => {
+    if (informesComision.length > 0) {
+      const initialEstado = {};
+      informesComision.forEach(informe => {
+        initialEstado[informe.id_estudiante] = {
+          estadoAsesoria: informe.estado_informe_asesoria,
+          estadoAvance: informe.estado_revision_avance
+        };
+      });
+  
+      console.log("Estado Comision Inicial:", initialEstado);  // Verifica el estado inicial
+  
+      // Solo setea el estado si el valor realmente cambió
+      if (JSON.stringify(estadoComision) !== JSON.stringify(initialEstado)) {
+        setEstadoComision(initialEstado);
+      }
+    }
+  }, [informesComision]);  // Dependencia: solo se ejecutará cuando informesComision cambie
+  
 
   //INFORME FINAL HABILITADO PARA VISTA DE Estudiante
 
@@ -513,13 +533,17 @@ function ProcesoRevisionInformes() {
 
   //REPLICAAAAAAAAA---------------------------------OOOOOOO-OO-O-O-O-O-O-O-O-O-O--O-O-O-O-O-O-O--OO-O-O-O
   const handleUpdateState = async (idEstudiante, estadoAsesoria, estadoAvance, idAsesor) => {
+    console.log("ID Estudiante:", idEstudiante);  // Verifica si el id_estudiante está correctamente recibido
+    console.log("Estado Asesoría:", estadoAsesoria);
+    console.log("Estado Avance:", estadoAvance);
+    console.log("ID Asesor:", idAsesor);
+  
     if (!estadoAsesoria || !estadoAvance || !idAsesor) {
       alert('Faltan datos necesarios para actualizar el estado');
       return;
     }
   
     try {
-      // Enviar la solicitud PUT para actualizar el estado
       const response = await axios.put('http://localhost:5000/api/actualizacion_informe', {
         id_estudiante: idEstudiante,
         estado_informe_asesoria: estadoAsesoria,
@@ -527,14 +551,12 @@ function ProcesoRevisionInformes() {
         id_asesor: idAsesor
       });
   
-      // Mostrar mensaje de éxito si la respuesta es exitosa
       if (response.status === 200) {
         alert('Estado actualizado correctamente');
       } else {
         alert('Hubo un problema al actualizar el estado. Intente de nuevo');
       }
   
-      // Notificar a los estudiantes y asesores
       const notificationData = {
         id_estudiante: idEstudiante,
         estado_asesoria: estadoAsesoria,
@@ -544,22 +566,22 @@ function ProcesoRevisionInformes() {
   
       await axios.post('http://localhost:5000/api/notificar', notificationData);
   
-      // Actualizar el estado de los informes en la interfaz
-      setEstado(prevEstado => {
+      setEstadoComision(prevEstado => {
         const updatedEstado = { ...prevEstado };
         updatedEstado[idEstudiante] = {
           ...updatedEstado[idEstudiante],
-          estado_informe_asesoria: estadoAsesoria,
-          estado_informe_avance: estadoAvance
+          estadoAsesoria: estadoAsesoria,
+          estadoAvance: estadoAvance
         };
         return updatedEstado;
       });
   
     } catch (error) {
-      // Si ocurre un error, mostrar un mensaje de error
       alert('Error al actualizar el estado: ' + (error.response ? error.response.data.error : error.message));
     }
   };
+  
+  
 
   
 
@@ -740,20 +762,20 @@ function ProcesoRevisionInformes() {
                 <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Estado Avance</th>
                 <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Informe Asesoría</th>
                 <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Informe Avance</th>
-                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Revisor</th> {/* Nueva columna */}
-                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Asignar</th> {/* Nueva columna */}
+                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Revisor</th>
+                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Asignar</th>
                 <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Acción</th>
               </tr>
             </thead>
             <tbody>
-              {informesComision.map((informe, index) => (
-                <tr key={`${informe.id_estudiante}-${index}`}> {/* Usando una combinación única de id_estudiante e índice */}
+              {informesComision.map((informe) => (
+                <tr key={informe.id_estudiante}>
                   <td style={{ padding: '8px', border: '1px solid #ddd' }}>{informe.id_estudiante}</td>
                   <td style={{ padding: '8px', border: '1px solid #ddd' }}>{informe.id_asesor}</td>
                   <td style={{ padding: '8px', border: '1px solid #ddd' }}>
                     <select
-                      value={estadoAsesoria}
-                      onChange={(e) => setEstadoAsesoria(e.target.value)} // Actualiza el estado de asesoría
+                      value={estadoComision[informe.id_estudiante]?.estadoAsesoria || "Pendiente"}
+                      onChange={(e) => handleEstadoChange(informe.id_estudiante, 'estadoAsesoria', e)}
                     >
                       <option value="Aprobado">Aprobado</option>
                       <option value="Rechazado">Rechazado</option>
@@ -762,8 +784,8 @@ function ProcesoRevisionInformes() {
                   </td>
                   <td style={{ padding: '8px', border: '1px solid #ddd' }}>
                     <select
-                      value={estadoAvance}
-                      onChange={(e) => setEstadoAvance(e.target.value)} // Actualiza el estado de avance
+                      value={estadoComision[informe.id_estudiante]?.estadoAvance || "Pendiente"}
+                      onChange={(e) => handleEstadoChange(informe.id_estudiante, 'estadoAvance', e)}
                     >
                       <option value="Aprobado">Aprobado</option>
                       <option value="Rechazado">Rechazado</option>
@@ -795,7 +817,7 @@ function ProcesoRevisionInformes() {
                       <option value="">Seleccionar Revisor</option>
                       {revisores.map((revisor) => (
                         <option key={revisor.id} value={revisor.id}>
-                          {revisor.dni} 
+                          {revisor.dni}
                         </option>
                       ))}
                     </select>
@@ -812,11 +834,23 @@ function ProcesoRevisionInformes() {
                     </button>
                   </td>
 
+                  {/* Botón de actualización */}
                   <td style={{ padding: '8px', border: '1px solid #ddd' }}>
                     <button
-                      onClick={() =>
-                        handleUpdateState(informe.id_estudiante, estadoAsesoria, estadoAvance, informe.id_asesor)
-                      }
+                      onClick={() => {
+                        const estudiante = estadoComision[informe.id_estudiante];
+                        console.log("Estado Comision:", estadoComision);  // Verifica que `id_estudiante` esté presente en `estadoComision`
+                        if (!estudiante) {
+                          console.log("No se encontró el estudiante con id:", informe.id_estudiante);
+                          alert("No se encontraron datos para el estudiante.");
+                          return;
+                        }
+
+                        // Si todo está bien, proceder con la actualización
+                        const estadoAsesoria = estudiante.estadoAsesoria;
+                        const estadoAvance = estudiante.estadoAvance;
+                        handleUpdateState(informe.id_estudiante, estadoAsesoria, estadoAvance, informe.id_asesor);
+                      }}
                     >
                       Actualizar
                     </button>
