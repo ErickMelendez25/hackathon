@@ -3,6 +3,9 @@ import axios from 'axios';
 
 function ProcesoRevisionInformes() {
   const [userRole, setUserRole] = useState(null);
+
+  //PARA LA VISTA DE ESTUDAINTE
+  const [selectedAsesor, setSelectedAsesor] = useState('');
   
 
   const [comentarios, setComentarios] = useState({});
@@ -15,7 +18,9 @@ function ProcesoRevisionInformes() {
   const [docenteComentarios, setDocenteComentarios] = useState({});
   const [asesores, setAsesores] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
-  const [selectedAsesor, setSelectedAsesor] = useState('');
+
+  const [selectedRevisores, setSelectedRevisores] = useState({});
+
   const [selectedEstudiante, setSelectedEstudiante] = useState('');
   const [informesComision, setInformesComision] = useState([]);  // Para los informes de la comisión
 
@@ -35,7 +40,7 @@ function ProcesoRevisionInformes() {
 
   // Estado para los revisoressssssssssssssssssssssssssssssssssssss
   const [revisores, setRevisores] = useState([]);
-  const [selectedRevisor, setSelectedRevisores] = useState('');
+
 
   // Estado para los revisoresssssssssssssss informes_revisadoss
 
@@ -64,7 +69,7 @@ function ProcesoRevisionInformes() {
 
   //aqui se cambio..................................
 
-  
+
   // Cambia el estado de la fila individualmente
 
 
@@ -91,44 +96,64 @@ function ProcesoRevisionInformes() {
   
 
   useEffect(() => {
-    if (user && userRole === 'revisor') {
-        const idRevisor = user.id_revisor; // Asegúrate de que esta propiedad exista
-        if (idRevisor) {
-            axios.get(`http://localhost:5000/api/informesRevisados?id_revisor=${idRevisor}`, {
-                timeout: 10000
-            })
-            .then((response) => {
-            setInformes(response.data);
-            
+    if (user && user.rol === 'revisor') {
+      const idRevisor = user.id_revisor;
+      
+      // Función para obtener los informes
+      const fetchInformesRevisados = () => {
+        axios.get(`http://localhost:5000/api/informesRevisados?id_revisor=${idRevisor}`)
+          .then((response) => {
+            const informesData = response.data;
 
-             // Inicializa el estado de cada informe en el primer renderizado
-             const initialEstado = {};
-             response.data.forEach(informe => {
-                 initialEstado[informe.id] = {
-                     estado_final_informe: informe.estado_final_informe,
-                     estado_final_asesoria: informe.estado_final_asesoria
-                 };
-             });
-             setEstado(initialEstado);
-            })
+            // Actualizamos solo los informes si es necesario (sin tocar el estado actual de los informes)
+            setInformes((prevInformes) => {
+              // Comparar los nuevos informes con los anteriores para actualizar solo los necesarios
+              const informesMap = new Map();
+              prevInformes.forEach((informe) => informesMap.set(informe.id_informe, informe));
 
-            
-
-
-            .catch((error) => {
-                console.error('Error al obtener los informes:', error);
-                if (error.response && error.response.status === 403) {
-                    alert('Acceso denegado. Verifique su rol de usuario.');
-                } else if (error.response && error.response.status === 404) {
-                    alert('No se encontraron informes para el revisor.');
+              informesData.forEach((informe) => {
+                // Solo actualizamos si el informe no está en el estado anterior
+                if (!informesMap.has(informe.id_informe)) {
+                  informesMap.set(informe.id_informe, informe);
                 }
+              });
+
+              return Array.from(informesMap.values());
             });
-        } else {
-            console.error('ID de revisor no definido.');
-            alert('No se pudo obtener el ID del revisor.');
-        }
+
+            // Inicializar el estado de cada informe (si es necesario)
+            const initialEstado = {};
+            informesData.forEach(informe => {
+              if (!estadoInforme[informe.id_informe]) {
+                initialEstado[informe.id_informe] = {
+                  estado_final_informe: informe.estado_final_informe || 'Pendiente',
+                  estado_final_asesoria: informe.estado_final_asesoria || 'Pendiente',
+                };
+              }
+            });
+            // Solo actualizamos estadoInforme si es necesario
+            setEstadoInforme((prevEstadoInforme) => ({
+              ...prevEstadoInforme,
+              ...initialEstado,
+            }));
+
+            console.log('Informes cargados:', informesData);
+          })
+          .catch((error) => {
+            console.error('Error al obtener los informes:', error);
+          });
+      };
+
+      // Llamada inicial a la función para obtener los informes
+      fetchInformesRevisados();
+
+      // Realizar la solicitud de nuevos informes cada cierto tiempo (ejemplo: cada 5 segundos)
+      const intervalId = setInterval(fetchInformesRevisados, 5000);  // Actualiza cada 5 segundos
+
+      // Limpiar el intervalo cuando el componente se desmonte o cambien las dependencias
+      return () => clearInterval(intervalId);
     }
-  }, [user, userRole]);
+  }, [user]);
 
 
   // Obtención de notificaciones
@@ -150,6 +175,8 @@ function ProcesoRevisionInformes() {
     }
   }, [user]);
 
+
+
   useEffect(() => {
     if (user) {
       setUserRole(user.rol);
@@ -168,25 +195,48 @@ function ProcesoRevisionInformes() {
   
     // Aquí es importante que no se actualice el estado si no es necesario
     if (user && (user.rol === 'secretaria' || user.rol === 'comision' || user.rol === 'docente')) {
-      axios.get('http://localhost:5000/api/informes_comision')
-        .then(response => {
-          setInformesComision(response.data);
-    
-          // Inicializar estado de los informes para estadoComision
-          if (Object.keys(estadoComision).length === 0) {  // Solo inicializar si está vacío
-            const initialEstadoComision = {};
-            response.data.forEach(informe => {
-              initialEstadoComision[informe.id_estudiante] = {
-                estadoAsesoria: informe.estadoAsesoria || "Pendiente",  // Asegúrate de usar el nombre correcto del estado
-                estadoAvance: informe.estadoAvance || "Pendiente",  // Si tienes otro estado, úsalo aquí
-              };
-            });
-            setEstadoComision(initialEstadoComision);  // Inicializa el estadoComision con los valores correctos
-          }
-        })
-        .catch(error => {
-          console.error('Error al obtener los informes:', error);
-        });
+      const fetchInformesComision = () => {
+            axios.get('http://localhost:5000/api/informes_comision')
+                .then(response => {
+                    const informes = response.data;
+
+                    // Filtrar duplicados por combinación de id_estudiante y id_asesor
+                    const informesUnicos = informes.reduce((acc, informe) => {
+                        const clave = `${informe.id_estudiante}-${informe.id_asesor}`;
+                        if (!acc[clave]) {
+                            acc[clave] = informe;
+                        }
+                        return acc;
+                    }, {});
+
+                    // Convertir el objeto de regreso a un array de informes únicos
+                    const informesFiltrados = Object.values(informesUnicos);
+
+                    // Actualizar el estado con los informes filtrados
+                    setInformesComision(informesFiltrados);
+
+                    // Inicializar estadoComision solo si está vacío
+                    if (Object.keys(estadoComision).length === 0) {
+                        const initialEstadoComision = {};
+                        informesFiltrados.forEach(informe => {
+                            initialEstadoComision[informe.id_estudiante] = {
+                                estadoAsesoria: informe.estado_informe_asesoria || "Pendiente",
+                                estadoAvance: informe.estado_revision_avance || "Pendiente",
+                            };
+                        });
+                        setEstadoComision(initialEstadoComision);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener los informes:', error);
+                });
+        };
+
+        fetchInformesComision(); // Llamada inicial
+
+        const intervalId = setInterval(fetchInformesComision, 10); // Cada 5 segundos
+
+        return () => clearInterval(intervalId); // Limpiar el intervalo al desmontar el componente
     }
 
     
@@ -252,7 +302,7 @@ function ProcesoRevisionInformes() {
         });
     }
   
-  }, [asesores.length, estudiantes.length,notificaciones.length,revisores.length]);  // Asegúrate de que las dependencias sean las correctas
+  }, [user,asesores.length,notificaciones.length,revisores.length]);  // Asegúrate de que las dependencias sean las correctas
   
 
     // Manejo del cambio de estado
@@ -268,6 +318,30 @@ function ProcesoRevisionInformes() {
     }));
   };
 
+
+  //CAMBIO DE ESTADOS EN LA VISTA DE REVISOR:
+
+    // Manejo del cambio de estado
+    const handleEstadoChangeRevisor = (id_informe, campo, e) => {
+      setEstadoInforme(prevState => ({
+        ...prevState,
+        [id_informe]: {
+          ...prevState[id_informe],
+          [campo]: e.target.value
+        }
+      }));
+    };
+
+  const handleRevisorChange = (idEstudiante, e) => {
+    setSelectedRevisores((prev) => ({
+        ...prev,
+        [idEstudiante]: e.target.value,
+    }));
+  };
+
+
+  
+
     
     
   
@@ -276,66 +350,60 @@ function ProcesoRevisionInformes() {
 
 
   //esto se agrego---------------------------------------p
-  const handleValidar = (id) => {
-    const { estado_final_informe, estado_final_asesoria } = estadoInforme[id];
-    axios.put('http://localhost:5000/api/actualizarEstado', {
-        id_informe: id,
-        estado_final_informe,
-        estado_final_asesoria
-    })
-    .then(() => {
-        alert('Informe actualizado correctamente');
-    })
-    .catch((error) => {
-        console.error('Error al actualizar el informe:', error);
-    });
-  };
+
   //:................................................
 
-  const handleRevisorValida = (id) => {
-    const estadoFinalInforme = estadoInforme[id] || 'Pendiente';
-    const estadoFinalAsesoria = estadoAsesoria[id] || 'Pendiente';
+  const handleRevisorValida = (id_informe) => {
+    const { estado_final_informe, estado_final_asesoria } = estadoInforme[id_informe];
+    const informeActual = informes.find(informe => informe.id_informe === id_informe);
+    
+    if (informeActual) {
+        // Enviar los datos al backend para actualizar el estado
+        axios.put('http://localhost:5000/api/actualizarEstado', {
+            id_estudiante: informeActual.id_estudiante,
+            id_asesor: informeActual.id_asesor,
+            id_revisor: user.id_revisor,
+            estado_final_informe,
+            estado_final_asesoria,
+            // Añadir el estado de "A comisión"
+            estado_comision: "A Comisión"
+        })
+        .then(() => {
+            alert('Informe actualizado correctamente y enviado a comisión');
+            
+            // Actualizar la lista de informes localmente
+            setInformes(prevInformes => 
+                prevInformes.map(informe => 
+                    informe.id_informe === id_informe ? { ...informe, estado_comision: "A Comisión" } : informe
+                )
+            );
 
-    axios.put('http://localhost:5000/api/actualizarEstado', {
-      id_informe: id,
-      estado_final_informe: estadoFinalInforme,
-      estado_final_asesoria: estadoFinalAsesoria,
-    })
-      .then(() => {
-        alert('Informe actualizado correctamente');
-        // Actualizar la lista de informes
-        setInformes(informes.map(informe =>
-          informe.id === id
-            ? { ...informe, estado_final_informe: estadoFinalInforme, estado_final_asesoria: estadoFinalAsesoria }
-            : informe
-        ));
-      })
-      .catch((error) => {
-        console.error('Error al actualizar el informe:', error);
-      });
+            // Actualizar estadoComision aquí
+            setEstadoComision(prevEstado => ({
+                ...prevEstado,
+                [informeActual.id_estudiante]: {
+                    ...prevEstado[informeActual.id_estudiante],
+                    estadoComision: "A Comisión"
+                }
+            }));
+        })
+        .catch((error) => {
+            console.error('Error al actualizar el informe:', error);
+        });
+    } else {
+        console.error("Informe no encontrado para ID:", id_informe);
+    }
   };
+
+
+      // Reportar a comisión (acción pendiente)
+
 
   
 
   // Asegúrate de que, al cargar los informes, el estado se inicialice con los valores correctos
-  useEffect(() => {
-    if (informesComision.length > 0) {
-      const initialEstado = {};
-      informesComision.forEach(informe => {
-        initialEstado[informe.id_estudiante] = {
-          estadoAsesoria: informe.estado_informe_asesoria,
-          estadoAvance: informe.estado_revision_avance
-        };
-      });
-  
-      console.log("Estado Comision Inicial:", initialEstado);  // Verifica el estado inicial
-  
-      // Solo setea el estado si el valor realmente cambió
-      if (JSON.stringify(estadoComision) !== JSON.stringify(initialEstado)) {
-        setEstadoComision(initialEstado);
-      }
-    }
-  }, [informesComision]);  // Dependencia: solo se ejecutará cuando informesComision cambie
+
+  // Dependencia: solo se ejecutará cuando informesComision cambie
   
 
   //INFORME FINAL HABILITADO PARA VISTA DE Estudiante
@@ -590,7 +658,7 @@ function ProcesoRevisionInformes() {
 
   //DAR CLICK EN EL BOTON DE ASIGNAR
 
-  const handleAssignUpdate = async (idEstudiante, idAsesor) => {
+  const handleAssignUpdate = async (idEstudiante, idAsesor,selectedRevisor) => {
     // Verificar si se han proporcionado todos los datos necesarios
     
 
@@ -620,12 +688,13 @@ function ProcesoRevisionInformes() {
 
         // Enviar la solicitud PUT con los datos obtenidos
         const response = await axios.put('http://localhost:5000/api/asignar_actualizar', {
-            id_estudiante: idEstudiante,         // ID del estudiante
-            id_asesor: idAsesor,                 // ID del asesor
-            informe_final:  infi, // Informe final (archivo o el obtenido)
-            informe_final_asesoria: infias, // Informe de asesoría (archivo o el obtenido)
-            id_revisor: selectedRevisor         // ID del revisor
+          id_estudiante: idEstudiante,
+          id_asesor: idAsesor,
+          informe_final: infi,
+          informe_final_asesoria: infias,
+          id_revisor: selectedRevisor // Ahora se usa correctamente
         });
+      
 
         // Verificar si la respuesta fue exitosa
         if (response.status === 200) {
@@ -635,6 +704,7 @@ function ProcesoRevisionInformes() {
             alert('Hubo un problema al actualizar el informe. Intente nuevamente.');
         }
     } catch (error) {
+        console.error('Error details:', error);
         console.error('Error al obtener los informes o asignar el revisor:', error);
         alert('Error al obtener los informes o asignar el revisor. ' + (error.response ? error.response.data : error.message));
     }
@@ -751,199 +821,192 @@ function ProcesoRevisionInformes() {
       )}
       {/* Vista Comisión */}
       {userRole === 'comision' && (
-        <div>
-          <h3>Revisión de Informes</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    <div>
+        <h3>Revisión de Informes</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr>
-                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>ID Estudiante</th>
-                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>ID Asesor</th>
-                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Estado Asesoría</th>
-                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Estado Avance</th>
-                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Informe Asesoría</th>
-                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Informe Avance</th>
-                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Revisor</th>
-                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Asignar</th>
-                <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Acción</th>
-              </tr>
+                <tr>
+                    <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>ID Estudiante</th>
+                    <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>ID Asesor</th>
+                    <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Estado Asesoría</th>
+                    <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Estado Avance</th>
+                    <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Informe Asesoría</th>
+                    <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Informe Avance</th>
+                    <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Revisor</th>
+                    <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Asignar</th>
+                    <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Acción</th>
+                    <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Estado Comisión</th> {/* Nueva columna */}
+                    <th style={{ textAlign: 'left', padding: '8px', border: '1px solid #ddd' }}>Notificar</th> {/* Columna para el botón Notificar */}
+                </tr>
             </thead>
             <tbody>
-              {informesComision.map((informe) => (
-                <tr key={informe.id_estudiante}>
-                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>{informe.id_estudiante}</td>
-                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>{informe.id_asesor}</td>
-                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                    <select
-                      value={estadoComision[informe.id_estudiante]?.estadoAsesoria || "Pendiente"}
-                      onChange={(e) => handleEstadoChange(informe.id_estudiante, 'estadoAsesoria', e)}
-                    >
-                      <option value="Aprobado">Aprobado</option>
-                      <option value="Rechazado">Rechazado</option>
-                      <option value="Pendiente">Pendiente</option>
-                    </select>
-                  </td>
-                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                    <select
-                      value={estadoComision[informe.id_estudiante]?.estadoAvance || "Pendiente"}
-                      onChange={(e) => handleEstadoChange(informe.id_estudiante, 'estadoAvance', e)}
-                    >
-                      <option value="Aprobado">Aprobado</option>
-                      <option value="Rechazado">Rechazado</option>
-                      <option value="Pendiente">Pendiente</option>
-                    </select>
-                  </td>
-                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                    {informe.informe_asesoria && (
-                      <a href={`http://localhost:5000/api/descargar/${informe.informe_asesoria}`} target="_blank" rel="noopener noreferrer">
-                        Ver Informe Asesoría
-                      </a>
-                    )}
-                  </td>
-                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                    {informe.informe_avance && (
-                      <a href={`http://localhost:5000/api/descargar/${informe.informe_avance}`} target="_blank" rel="noopener noreferrer">
-                        Ver Informe Avance
-                      </a>
-                    )}
-                  </td>
+                {informesComision.map((informe) => (
+                    <tr key={informe.id_estudiante}>
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{informe.id_estudiante}</td>
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{informe.id_asesor}</td>
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                            <select
+                                value={estadoComision[informe.id_estudiante]?.estadoAsesoria || "Pendiente"}
+                                onChange={(e) => handleEstadoChange(informe.id_estudiante, 'estadoAsesoria', e)}
+                            >
+                                <option value="Aprobado">Aprobado</option>
+                                <option value="Rechazado">Rechazado</option>
+                                <option value="Pendiente">Pendiente</option>
+                            </select>
+                        </td>
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                            <select
+                                value={estadoComision[informe.id_estudiante]?.estadoAvance || "Pendiente"}
+                                onChange={(e) => handleEstadoChange(informe.id_estudiante, 'estadoAvance', e)}
+                            >
+                                <option value="Aprobado">Aprobado</option>
+                                <option value="Rechazado">Rechazado</option>
+                                <option value="Pendiente">Pendiente</option>
+                            </select>
+                        </td>
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                            {informe.informe_asesoria && (
+                                <a href={`http://localhost:5000/api/descargar/${informe.informe_asesoria}`} target="_blank" rel="noopener noreferrer">
+                                    Ver Informe Asesoría
+                                </a>
+                            )}
+                        </td>
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                            {informe.informe_avance && (
+                                <a href={`http://localhost:5000/api/descargar/${informe.informe_avance}`} target="_blank" rel="noopener noreferrer">
+                                    Ver Informe Avance
+                                </a>
+                            )}
+                        </td>
 
-                  {/* Columna para seleccionar el revisor */}
-                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                    <select
-                      value={selectedRevisor}
-                      onChange={(e) => setSelectedRevisores(e.target.value)}
-                      required
-                    >
-                      <option value="">Seleccionar Revisor</option>
-                      {revisores.map((revisor) => (
-                        <option key={revisor.id} value={revisor.id}>
-                          {revisor.dni}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
+                        {/* Columna para seleccionar el revisor */}
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                            <select
+                                value={selectedRevisores[informe.id_estudiante] || ""}
+                                onChange={(e) => handleRevisorChange(informe.id_estudiante, e)}
+                                required
+                            >
+                                <option value="">Seleccionar Revisor</option>
+                                {revisores.map((revisor) => (
+                                    <option key={revisor.id} value={revisor.id}>
+                                        {revisor.dni}
+                                    </option>
+                                ))}
+                            </select>
+                        </td>
 
-                  {/* Columna para el botón de asignar */}
-                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                    <button
-                      onClick={() =>
-                        handleAssignUpdate(informe.id_estudiante, informe.id_asesor, informe.informe_avance, informe.informe_asesoria, selectedRevisor)
-                      }
-                    >
-                      Asignar
-                    </button>
-                  </td>
+                        {/* Columna para el botón de asignar */}
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                            <button
+                                onClick={() =>
+                                    handleAssignUpdate(
+                                        informe.id_estudiante,
+                                        informe.id_asesor,
+                                        selectedRevisores[informe.id_estudiante]
+                                    )
+                                }
+                            >
+                                Asignar
+                            </button>
+                        </td>
 
-                  {/* Botón de actualización */}
-                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                    <button
-                      onClick={() => {
-                        const estudiante = estadoComision[informe.id_estudiante];
-                        console.log("Estado Comision:", estadoComision);  // Verifica que `id_estudiante` esté presente en `estadoComision`
-                        if (!estudiante) {
-                          console.log("No se encontró el estudiante con id:", informe.id_estudiante);
-                          alert("No se encontraron datos para el estudiante.");
-                          return;
-                        }
+                        {/* Botón de actualización */}
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                            <button
+                                onClick={() => {
+                                    const estudiante = estadoComision[informe.id_estudiante];
+                                    console.log("Estado Comision:", estadoComision);
+                                    if (!estudiante) {
+                                        console.log("No se encontró el estudiante con id:", informe.id_estudiante);
+                                        alert("No se encontraron datos para el estudiante.");
+                                        return;
+                                    }
 
-                        // Si todo está bien, proceder con la actualización
-                        const estadoAsesoria = estudiante.estadoAsesoria;
-                        const estadoAvance = estudiante.estadoAvance;
-                        handleUpdateState(informe.id_estudiante, estadoAsesoria, estadoAvance, informe.id_asesor);
-                      }}
-                    >
-                      Actualizar
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                                    const estadoAsesoria = estudiante.estadoAsesoria;
+                                    const estadoAvance = estudiante.estadoAvance;
+                                    handleUpdateState(informe.id_estudiante, estadoAsesoria, estadoAvance, informe.id_asesor);
+                                }}
+                            >
+                                Actualizar
+                            </button>
+                        </td>
+
+                        {/* Columna para Estado Comisión */}
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                            {informe.estado_comision === "A Comisión" ? (
+                                <span style={{ color: 'green' }}>En Comisión</span>
+                            ) : (
+                                <span style={{ color: 'red' }}>Pendiente</span>
+                            )}
+                        </td>
+
+                        {/* Mostrar el botón Notificar solo si estado_comision es "A Comisión" */}
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                            {informe.estado_comision === "A Comisión" && (
+                                <button
+                                    onClick={() => handleNotificar(informe.id_estudiante, informe.id_asesor)}
+                                >
+                                    Notificar
+                                </button>
+                            )}
+                        </td>
+                    </tr>
+                ))}
             </tbody>
-          </table>
+        </table>
         </div>
       )}
 
 
 
-      {userRole === 'revisor' && (
-        <div>
+  {userRole === 'revisor' && (
+    <div>
         <h3>Informes Revisados</h3>
         {informes.length === 0 ? (
-          <p>No hay informes para revisar.</p>
+            <p>No hay informes para revisar.</p>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th>ID Estudiante</th>
-                <th>ID Asesor</th>
-                <th>Informe Final</th>
-                <th>Informe de Asesoría</th>
-                <th>Estado Informe Final</th>
-                <th>Estado Asesoría</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {informes
-                .sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion)) // Ordenar por fecha_creacion (de más reciente a más antiguo)
-                .map(informe => (
-                  <tr key={informe.id} style={{ borderBottom: '1px solid #ddd' }}>
-                    <td>{informe.id_estudiante}</td>
-                    <td>{informe.id_asesor}</td>
-
-                    {/* Enlaces a los archivos de Informe Final y Informe de Asesoría */}
-                    <td>
-                      <a href={`http://localhost:5000/uploads/${informe.informe_final}`} target="_blank" rel="noopener noreferrer">
-                        Ver archivo
-                      </a>
-                    </td>
-                    <td>
-                      <a href={`http://localhost:5000/uploads/${informe.informe_final_asesoria}`} target="_blank" rel="noopener noreferrer">
-                        Ver archivo
-                      </a>
-                    </td>
-
-                    {/* Select para estado del informe final */}
-                    <td>
-                      <select
-                        value={estadoInforme[informe.id]?.estado_final_informe || 'Pendiente'}
-                        onChange={(e) => handleChangeEstado(informe.id, 'estado_final_informe', e)}
-                      >
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Aprobado">Aprobado</option>
-                        <option value="Rechazado">Rechazado</option>
-                      </select>
-                    </td>
-
-                    {/* Select para estado de asesoría */}
-                    <td>
-                      <select
-                        value={estadoInforme[informe.id]?.estado_final_asesoria || 'Pendiente'}
-                        onChange={(e) => handleChangeEstado(informe.id, 'estado_final_asesoria', e)}
-                      >
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Aprobado">Aprobado</option>
-                        <option value="Rechazado">Rechazado</option>
-                      </select>
-                    </td>
-
-                    {/* Botón para reportar a comisión */}
-                    <td>
-                      {estadoInforme[informe.id]?.estado_final_informe !== informe.estado_final_informe || 
-                        estadoInforme[informe.id]?.estado_final_asesoria !== informe.estado_final_asesoria ? (
-                          <button onClick={() => handleReportarComision(informe.id)}>
-                            Reportar a Comisión
-                          </button>
-                      ) : null}
-                      {/* Botón para validar */}
-                      <button onClick={() => handleRevisorValida(informe.id)}>
-                        A comision
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                    <tr>
+                        <th>ID Estudiante</th>
+                        <th>ID Asesor</th>
+                        <th>Informe Final</th>
+                        <th>Informe de Asesoría</th>
+                        <th>Estado Informe Final</th>
+                        <th>Estado Asesoría</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {informes.sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion)).map(informe => (
+                        <tr key={informe.id_informe} style={{ borderBottom: '1px solid #ddd' }}>
+                            <td>{informe.id_estudiante}</td>
+                            <td>{informe.id_asesor}</td>
+                            {/* Enlaces a los archivos */}
+                            <td><a href={`http://localhost:5000/uploads/${informe.informe_final}`} target="_blank" rel="noopener noreferrer">Ver archivo</a></td>
+                            <td><a href={`http://localhost:5000/uploads/${informe.informe_final_asesoria}`} target="_blank" rel="noopener noreferrer">Ver archivo</a></td>
+                            {/* Select para estado del informe final */}
+                            <td>
+                                <select value={estadoInforme[informe.id_informe]?.estado_final_informe || 'Pendiente'} onChange={(e) => handleEstadoChangeRevisor(informe.id_informe, 'estado_final_informe', e)}>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Aprobado">Aprobado</option>
+                                    <option value="Rechazado">Rechazado</option>
+                                </select>
+                            </td>
+                            {/* Select para estado de asesoría */}
+                            <td>
+                                <select value={estadoInforme[informe.id_informe]?.estado_final_asesoria || "Pendiente"} onChange={(e) => handleEstadoChangeRevisor(informe.id_informe, 'estado_final_asesoria', e)}>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Aprobado">Aprobado</option>
+                                    <option value="F">Rechazado</option>
+                                </select>
+                            </td>
+                            {/* Botón para reportar a comisión */}
+                            <td><button onClick={() => handleRevisorValida(informe.id_informe)}>A comisión</button></td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
           )}
         </div>
       )}

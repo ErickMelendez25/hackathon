@@ -7,11 +7,18 @@
   import fs from 'fs';
   import jwt from 'jsonwebtoken';
 
+
+
+
+
   // Obtener la ruta del directorio actual (corregido para Windows)
   const __dirname = path.resolve();
 
   const app = express();
   const port = 5000;
+
+
+
 
   
 
@@ -573,13 +580,14 @@
   app.get('/api/informesRevisados', (req, res) => {
     const { id_revisor } = req.query;
 
+    console.log('ID Revisor recibido:', id_revisor); // Verifica si el ID está llegando correctamente
+
     if (!id_revisor) {
-        return res.status(403).send('Acceso denegado');
+        return res.status(400).send('ID Revisor es requerido');
     }
 
-    // Consulta para obtener los últimos informes revisados
     const query = `
-    SELECT
+    SELECT 
         informe_revisado.id AS id_informe,
         informe_revisado.id_estudiante,
         informe_revisado.id_asesor,
@@ -589,19 +597,24 @@
         informe_revisado.estado_final_asesoria,
         informe_revisado.id_revisor,
         informe_revisado.fecha_creacion
-    FROM
+    FROM 
         informes_revisados informe_revisado
-    WHERE
-        informe_revisado.id_revisor = ? 
-        AND informe_revisado.fecha_creacion = (
-            SELECT MAX(i.fecha_creacion)
-            FROM informes_revisados i
-            WHERE 
-                i.id_estudiante = informe_revisado.id_estudiante
-                AND i.id_asesor = informe_revisado.id_asesor
-                AND i.id_revisor = informe_revisado.id_revisor
-        )
-    ORDER BY
+    INNER JOIN (
+        SELECT 
+            id_estudiante,
+            id_asesor,
+            MAX(fecha_creacion) AS ultima_fecha
+        FROM 
+            informes_revisados
+        GROUP BY 
+            id_estudiante, id_asesor
+    ) AS subquery ON 
+        informe_revisado.id_estudiante = subquery.id_estudiante
+        AND informe_revisado.id_asesor = subquery.id_asesor
+        AND informe_revisado.fecha_creacion = subquery.ultima_fecha
+    WHERE 
+        informe_revisado.id_revisor = ?
+    ORDER BY 
         informe_revisado.fecha_creacion DESC;
     `;
 
@@ -610,6 +623,8 @@
             console.error('Error al obtener los informes revisados:', err);
             return res.status(500).send('Error al obtener los informes revisados');
         }
+
+        console.log('Resultado de la consulta:', result); // Verifica el resultado de la consulta
 
         if (result.length > 0) {
             return res.status(200).json(result);
@@ -621,26 +636,35 @@
 
 
 
+
+/////VISTA DE REVISORRRRRRRRRRRRR---------------------------------------------------------------------------
   
 
-  // Ruta PUT para actualizar los estados del informe
   app.put('/api/actualizarEstado', (req, res) => {
-    const { id_informe, estado_final_informe, estado_final_asesoria } = req.body;
+    const { id_estudiante, id_asesor, estado_final_informe, estado_final_asesoria, estado_comision } = req.body;
+
+    // Verificamos que los datos necesarios estén presentes
+    if (!estado_comision) {
+      return res.status(400).send('Falta el estado de comisión');
+    }
 
     const query = `
       UPDATE informes_revisados
-      SET estado_final_informe = ?, estado_final_asesoria = ?
-      WHERE id = ?
+      SET estado_final_informe = ?, estado_final_asesoria = ?, estado_comision = ?
+      WHERE id_estudiante = ? AND id_asesor = ?
     `;
 
-    db.query(query, [estado_final_informe, estado_final_asesoria, id_informe], (err, result) => {
+    db.query(query, [estado_final_informe, estado_final_asesoria, estado_comision, id_estudiante, id_asesor], (err, result) => {
       if (err) {
         console.error('Error al actualizar el informe:', err);
         return res.status(500).send('Error al actualizar el informe');
       }
+      
       res.status(200).send('Informe actualizado correctamente');
     });
   });
+
+
 
 
 
@@ -923,48 +947,62 @@
     });
   
 
-  // Obtener informes relacionados de asesoria y avance para la comisión
-  app.get('/api/informes_comision', (req, res) => {
-    // Consulta SQL para obtener los informes de asesoría y avance más recientes relacionados
-    const query = `
-      SELECT 
-        a.id_estudiante,
-        a.id_asesor,
-        a.informe_asesoria,
-        a.fecha_creacion AS fecha_creacion_asesoria,
-        a.estado_informe_asesoria,
-        b.informe_avance,
-        b.fecha_creacion AS fecha_creacion_avance,
-        b.estado_revision_avance
-      FROM 
-        (SELECT * 
-         FROM informes_asesoria 
-         WHERE (id_estudiante, id_asesor, fecha_creacion) IN 
-               (SELECT id_estudiante, id_asesor, MAX(fecha_creacion)
-                FROM informes_asesoria
-                GROUP BY id_estudiante, id_asesor)) a
-      JOIN 
-        (SELECT * 
-         FROM informes_avance 
-         WHERE (id_estudiante, id_asesor, fecha_creacion) IN 
-               (SELECT id_estudiante, id_asesor, MAX(fecha_creacion)
-                FROM informes_avance
-                GROUP BY id_estudiante, id_asesor)) b
-      ON a.id_estudiante = b.id_estudiante 
-      AND a.id_asesor = b.id_asesor;
-    `;
-  
-    // Ejecutar la consulta en la base de datos
-    db.query(query, (err, results) => {
-      if (err) {
-        // Si hay un error en la consulta, respondemos con un error 500
-        return res.status(500).json({ error: 'Error al obtener los informes de la comisión.' });
-      }
-  
-      // Si la consulta fue exitosa, respondemos con los resultados en formato JSON
-      res.json(results);
-    });
+    app.get('/api/informes_comision', (req, res) => {
+      // Consulta SQL optimizada para obtener solo los registros más recientes y evitar duplicados
+      const query = `
+          SELECT 
+              a.id_estudiante,
+              a.id_asesor,
+              a.informe_asesoria,
+              a.fecha_creacion AS fecha_creacion_asesoria,
+              a.estado_informe_asesoria,
+              b.informe_avance,
+              b.fecha_creacion AS fecha_creacion_avance,
+              b.estado_revision_avance,
+              ir.estado_comision  -- Obtener el estado_comision de la tabla informes_revisados
+          FROM 
+              (
+                  SELECT id_estudiante, id_asesor, informe_asesoria, fecha_creacion, estado_informe_asesoria
+                  FROM informes_asesoria
+                  WHERE (id_estudiante, id_asesor, fecha_creacion) IN 
+                        (
+                            SELECT id_estudiante, id_asesor, MAX(fecha_creacion)
+                            FROM informes_asesoria
+                            GROUP BY id_estudiante, id_asesor
+                        )
+              ) a
+          JOIN 
+              (
+                  SELECT id_estudiante, id_asesor, informe_avance, fecha_creacion, estado_revision_avance
+                  FROM informes_avance
+                  WHERE (id_estudiante, id_asesor, fecha_creacion) IN 
+                        (
+                            SELECT id_estudiante, id_asesor, MAX(fecha_creacion)
+                            FROM informes_avance
+                            GROUP BY id_estudiante, id_asesor
+                        )
+              ) b
+          ON a.id_estudiante = b.id_estudiante 
+          AND a.id_asesor = b.id_asesor
+          LEFT JOIN informes_revisados ir
+          ON a.id_estudiante = ir.id_estudiante
+          AND a.id_asesor = ir.id_asesor
+      `;
+      
+      // Ejecutar la consulta en la base de datos
+      db.query(query, (err, results) => {
+          if (err) {
+              // Si hay un error en la consulta, respondemos con un error 500
+              return res.status(500).json({ error: 'Error al obtener los informes de la comisión.' });
+          }
+      
+          // Si la consulta fue exitosa, respondemos con los resultados en formato JSON
+          res.json(results);
+      });
   });
+  
+    
+    
 
   // Cambia la ruta de actualización de estado a actualización de informe
 
