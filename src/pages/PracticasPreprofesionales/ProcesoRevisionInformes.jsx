@@ -755,8 +755,9 @@ function ProcesoRevisionInformes() {
               <p>No tienes notificaciones.</p>
             )}
           </div>
-          {/* Mostrar formulario para enviar informe final solo si está aprobado el informe de avance */}
-          {notificaciones.length > 0 && notificaciones[0].mensaje.includes('Aprobado') &&  (
+        {/* Mostrar formulario para enviar informe final solo si el estado de informe de avance es aprobado */}
+        {notificaciones.length > 0 && 
+          notificaciones[0].mensaje.includes('El estado de su informe de avance es: Aprobado') && (
             <div>
               <h3>Informe Final</h3>
               <form onSubmit={handleSubmitInformeFinal}>
@@ -806,16 +807,16 @@ function ProcesoRevisionInformes() {
     <p>No tienes notificaciones.</p>
             )}
           </div>
-          {/* Mostrar formulario para enviar informe final solo si está aprobado el informe de avance */}
-          {notificaciones.length > 0 && notificaciones[0].mensaje.includes('Aprobado') &&  (
-            <div>
-              <h3>Informe Final</h3>
-              <form onSubmit={handleSubmitInformeFinalAsesoria}>
-                <label>Informe Final:</label>
-                <input type="file" name="finalAsesoria" onChange={handleFileChange} required />
-                <button type="submit">Enviar Informe Final</button>
-              </form>
-            </div>
+    {/* Verificar solo si el estado del informe de asesoría es "Aprobado" */}
+    {notificaciones.length > 0 && notificaciones[0].mensaje.includes('Aprobado') && notificaciones[0].mensaje.includes('asesoría es: Aprobado') && (
+      <div>
+        <h3>Informe Final</h3>
+        <form onSubmit={handleSubmitInformeFinalAsesoria}>
+          <label>Informe Final:</label>
+          <input type="file" name="finalAsesoria" onChange={handleFileChange} required />
+          <button type="submit">Enviar Informe Final</button>
+        </form>
+      </div>
           )}
         </div>
       )}

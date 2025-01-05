@@ -161,16 +161,31 @@ function ProcesoInscripcion() {
           </form>
 
           <h3>Notificaciones</h3>
-          {notificaciones.length > 0 ? (
-            <ul>
-              {notificaciones.map((noti, index) => (
-                <li key={index}>{noti.mensaje}</li>
-              ))}
-            </ul>
-          ) : (
-            <p>No tienes notificaciones.</p>
-          )}
-        </div>
+      {notificaciones.length > 0 ? (
+        <ul>
+          {/* Filtramos las notificaciones más recientes para cada tipo */}
+          {['El estado de tu práctica ha cambiado a:', 'El estado de tu inscripción ha cambiado a:'].map((mensajeType) => {
+            // Filtramos las notificaciones por tipo
+            const filteredNoti = notificaciones
+              .filter((noti) => noti.mensaje.includes(mensajeType))
+              .sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordenamos por fecha de forma descendente
+
+            // Si hay alguna notificación para este tipo, mostramos solo la más reciente
+            if (filteredNoti.length > 0) {
+              return (
+                <li key={mensajeType}>
+                  {filteredNoti[0].mensaje} <em>({new Date(filteredNoti[0].fecha).toLocaleString()})</em>
+                </li>
+              );
+            }
+
+            return null; // Si no hay notificación para este tipo, no mostramos nada
+          })}
+        </ul>
+      ) : (
+        <p>No tienes notificaciones.</p>
+      )}
+    </div>
       )}
 
       {/* Vista Secretaria */}
