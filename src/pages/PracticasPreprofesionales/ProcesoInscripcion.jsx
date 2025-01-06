@@ -188,32 +188,45 @@ function ProcesoInscripcion() {
     </div>
       )}
 
-      {/* Vista Secretaria */}
-      {userRole === 'secretaria' && (
-        <div>
-          <h3>Lista de Prácticas</h3>
-          {practicas.length > 0 ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>ID Estudiante</th>
-                  <th>Correo Estudiante</th>
-                  <th>Solicitud Inscripción</th>
-                  <th>Plan de Prácticas</th>
-                  <th>Estado Proceso</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {practicas.map((practica) => (
+    {/* Vista Secretaria */}
+    {userRole === 'secretaria' && (
+      <div>
+        <h3>Lista de Prácticas</h3>
+        {practicas.length > 0 ? (
+          <table>
+            <thead>
+              <tr>
+                <th>ID Estudiante</th>
+                <th>Correo Estudiante</th>
+                <th>Solicitud Inscripción</th>
+                <th>Plan de Prácticas</th>
+                <th>Estado Proceso</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {practicas
+                .sort((a, b) => new Date(b.fecha_inscripcion) - new Date(a.fecha_inscripcion)) // Ordenar por fecha más reciente
+                .filter((practica, index, self) => 
+                  index === self.findIndex((t) => t.id_estudiante === practica.id_estudiante) // Filtrar duplicados de id_estudiante
+                )
+                .map((practica) => (
                   <tr key={practica.id}>
                     <td>{practica.id_estudiante}</td>
                     <td>{practica.correo}</td>
-                    <td><a href={`http://localhost:5000/uploads/${practica.solicitud_inscripcion}`} target="_blank">Ver archivo</a></td>
-                    <td><a href={`http://localhost:5000/uploads/${practica.plan_practicas}`} target="_blank">Ver archivo</a></td>
+                    <td>
+                      <a href={`http://localhost:5000/uploads/${practica.solicitud_inscripcion}`} target="_blank" rel="noopener noreferrer">
+                        Ver archivo
+                      </a>
+                    </td>
+                    <td>
+                      <a href={`http://localhost:5000/uploads/${practica.plan_practicas}`} target="_blank" rel="noopener noreferrer">
+                        Ver archivo
+                      </a>
+                    </td>
                     <td>
                       <select
-                        value={estado[practica.id] || 'Pendiente'} // Mantener el estado en el componente
+                        value={estado[practica.id] || 'Pendiente'}
                         onChange={(e) => handleEstadoChange(practica.id, e)}
                       >
                         <option value="Pendiente">Pendiente</option>
@@ -227,10 +240,10 @@ function ProcesoInscripcion() {
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>No hay prácticas registradas.</p>
+            </tbody>
+          </table>
+        ) : (
+          <p>No hay prácticas registradas.</p>
           )}
         </div>
       )}

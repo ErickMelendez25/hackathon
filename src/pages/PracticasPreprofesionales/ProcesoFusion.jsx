@@ -234,201 +234,222 @@ function ProcesoFusion() {
     };
 
     return (
-        <div style={{ padding: '20px', overflowX: 'auto' }}>
-            {/* Vista Estudiante */}
-                {userRole === 'estudiante' && (
-                    <div>
-                        <h3>Formulario de Inscripción</h3>
-                        <form onSubmit={handleSubmitEstudiante}>
-                            <label>
-                                Solicitud de Inscripción:
-                                <input type="file" name="solicitud" onChange={handleFileChange} required />
-                            </label>
-                            <br />
-                            <label>
-                                Ficha de Revisión Aprobada:
-                                <input type="file" name="ficha" onChange={handleFileChange} required />
-                            </label>
-                            <br />
-                            <label>
-                                Informe Final Empastado:
-                                <input type="file" name="informe" onChange={handleFileChange} required />
-                            </label>
-                            <br />
-                            <button type="submit">Enviar</button>
-                        </form>
-                        <h3>Notificaciones</h3>
-                        {notificaciones.length > 0 ? (
-                            <ul>
-                            {/* Mostrar solo la más reciente de Secretaria */}
-                            {filtradasSecretaria.length > 0 && (
-                                <li>
-                                <h4>{filtradasSecretaria[0].mensaje} <small>{filtradasSecretaria[0].fecha}</small></h4>
-                                </li>
-                            )}
+<div style={{ padding: '20px', overflowX: 'auto' }}>
+    {/* Vista Estudiante */}
+    {userRole === 'estudiante' && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px' }}>
+            
+            {/* Formulario de Inscripción */}
+            <div style={{ flex: 1, backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+                <h3>Formulario de Inscripción</h3>
+                <form onSubmit={handleSubmitEstudiante}>
+                    <label>
+                        Solicitud de Inscripción:
+                        <input type="file" name="solicitud" onChange={handleFileChange} required />
+                    </label>
+                    <br />
+                    <label>
+                        Ficha de Revisión Aprobada:
+                        <input type="file" name="ficha" onChange={handleFileChange} required />
+                    </label>
+                    <br />
+                    <label>
+                        Informe Final Empastado:
+                        <input type="file" name="informe" onChange={handleFileChange} required />
+                    </label>
+                    <br />
+                    <button type="submit">Enviar</button>
+                </form>
+            </div>
 
-                            {/* Mostrar solo la más reciente de Comisión */}
-                            {filtradasComision.length > 0 && (
-                                <li>
-                                <h4>{filtradasComision[0].mensaje} <small> {filtradasComision[0].fecha}</small></h4>
-                                </li>
-                            )}
-
-                            </ul>
-                        ) : (
-                            <p>No tienes notificaciones.</p>
+            {/* Contenedor con Notificaciones y Certificado */}
+            <div style={{ flex: '0 0 300px', backgroundColor: '#f4f4f9', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+                
+                {/* Sección de Notificaciones */}
+                <h3>Notificaciones</h3>
+                {notificaciones.length > 0 ? (
+                    <ul style={{ listStyleType: 'none', padding: '0' }}>
+                        {/* Mostrar solo la más reciente de Secretaria */}
+                        {filtradasSecretaria.length > 0 && (
+                            <li style={{ backgroundColor: '#e0f7fa', padding: '10px', marginBottom: '10px', borderRadius: '5px' }}>
+                                <h4>{filtradasSecretaria[0].mensaje}</h4>
+                                <small>{filtradasSecretaria[0].fecha}</small>
+                            </li>
                         )}
-                        {/* Mostrar el certificado si las condiciones se cumplen */}
-                        {certificado && (
-                        <div>
-                            <h3>Certificado de Prácticas</h3>
-                            {/* Usamos el endpoint para servir el archivo y permitir su descarga */}
-                            <a href={`http://localhost:5000/api/descargar/${certificado}`} download>
+
+                        {/* Mostrar solo la más reciente de Comisión */}
+                        {filtradasComision.length > 0 && (
+                            <li style={{ backgroundColor: '#e0f7fa', padding: '10px', marginBottom: '10px', borderRadius: '5px' }}>
+                                <h4>{filtradasComision[0].mensaje}</h4>
+                                <small>{filtradasComision[0].fecha}</small>
+                            </li>
+                        )}
+                    </ul>
+                ) : (
+                    <p>No tienes notificaciones.</p>
+                )}
+
+                {/* Sección de Certificado */}
+                {certificado && (
+                    <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <i className="fas fa-file-pdf" style={{ fontSize: '40px', color: '#ff4c4c' }}></i>
+                        <a 
+                            href={`http://localhost:5000/api/descargar/${certificado}`} 
+                            download 
+                            style={{
+                                fontSize: '18px', 
+                                color: '#007bff', 
+                                fontWeight: 'bold',
+                                textDecoration: 'none'
+                            }}
+                        >
                             Descargar Certificado
-                            </a>
-                        </div>
-                        )}
-                </div>
-            )}
+                        </a>
+                    </div>
+                )}
+            </div>
+
+        </div>
+    )}
 
             {/* Vista Secretaria */}
             {userRole === 'secretaria' && (
-    <div>
-    <h3 style={{ textAlign: 'center', fontSize: '24px', marginBottom: '20px' }}>Lista de Inscripciones</h3>
-    {inscripciones.length > 0 ? (
-    <div style={{ overflowX: 'auto', width: '100%' }}>
-        <table style={{
-        width: '100%',
-        borderCollapse: 'collapse',
-        fontFamily: 'Arial, sans-serif',
-        backgroundColor: '#f9f9f9',
-        tableLayout: 'auto',
-        }}>
-        <thead style={{ backgroundColor: '#007bff', color: '#fff' }}>
-            <tr>
-            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>ID Estudiante</th>
-            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Correo Estudiante</th>
-            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Solicitud Inscripción</th>
-            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Ficha de Revisión</th>
-            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Informe Final</th>
-            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Estado Proceso</th>
-            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Acciones</th>
-            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Respuesta Comisión</th>
-            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Subir Certificado</th>
-            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Enviar Certificado</th>
-            </tr>
-        </thead>
-        <tbody>
-            {inscripciones.map((inscripcion) => (
-            <tr key={inscripcion.id}>
-                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>{inscripcion.id_estudiante}</td>
-                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
-                {inscripcion.correo}
-                </td>
-                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
-                <a href={`http://localhost:5000/uploads/${inscripcion.solicitud_inscripcion_emision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
-                </td>
-                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
-                <a href={`http://localhost:5000/uploads/${inscripcion.ficha_revision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
-                </td>
-                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
-                <a href={`http://localhost:5000/uploads/${inscripcion.informe_final}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
-                </td>
+            <div>
+            <h3 style={{ textAlign: 'center', fontSize: '24px', marginBottom: '20px' }}>Lista de Inscripciones</h3>
+            {inscripciones.length > 0 ? (
+            <div style={{ overflowX: 'auto', width: '100%' }}>
+                <table style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                fontFamily: 'Arial, sans-serif',
+                backgroundColor: '#f9f9f9',
+                tableLayout: 'auto',
+                }}>
+                <thead style={{ backgroundColor: '#007bff', color: '#fff' }}>
+                    <tr>
+                    <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>ID Estudiante</th>
+                    <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Correo Estudiante</th>
+                    <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Solicitud Inscripción</th>
+                    <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Ficha de Revisión</th>
+                    <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Informe Final</th>
+                    <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Estado Proceso</th>
+                    <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Acciones</th>
+                    <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Respuesta Comisión</th>
+                    <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Subir Certificado</th>
+                    <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Enviar Certificado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {inscripciones.map((inscripcion) => (
+                    <tr key={inscripcion.id}>
+                        <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>{inscripcion.id_estudiante}</td>
+                        <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                        {inscripcion.correo}
+                        </td>
+                        <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                        <a href={`http://localhost:5000/uploads/${inscripcion.solicitud_inscripcion_emision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
+                        </td>
+                        <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                        <a href={`http://localhost:5000/uploads/${inscripcion.ficha_revision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
+                        </td>
+                        <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                        <a href={`http://localhost:5000/uploads/${inscripcion.informe_final}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
+                        </td>
 
-                {/* Estado Proceso - Reducción de tamaño y mejora en legibilidad */}
-                <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd', fontSize: '14px', width: '150px' }}>
-                <select 
-                    value={estado[inscripcion.id] || inscripcion.estado_proceso} 
-                    onChange={(e) => handleEstadoChange(inscripcion.id, e)}
-                    style={{
-                    width: '100%',
-                    padding: '6px',
-                    fontSize: '14px',  // Tamaño de fuente incrementado para mejorar la legibilidad
-                    border: '1px solid #ddd',
-                    boxSizing: 'border-box',
-                    }}
-                >
-+
-                    
-                    <option value="Derivada a Comisión">Derivada a Comisión</option>
-                    <option value="Rechazada">Rechazada</option>
-                </select>
-                </td>
+                        {/* Estado Proceso - Reducción de tamaño y mejora en legibilidad */}
+                        <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd', fontSize: '14px', width: '150px' }}>
+                        <select 
+                            value={estado[inscripcion.id] || inscripcion.estado_proceso} 
+                            onChange={(e) => handleEstadoChange(inscripcion.id, e)}
+                            style={{
+                            width: '100%',
+                            padding: '6px',
+                            fontSize: '14px',  // Tamaño de fuente incrementado para mejorar la legibilidad
+                            border: '1px solid #ddd',
+                            boxSizing: 'border-box',
+                            }}
+                        >
+        +
+                            <option value="Rechazada">Pendiente</option>
+                            <option value="Derivada a Comisión">Derivada a Comisión</option>
+                            
+                        </select>
+                        </td>
 
-                <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
-                <button
-                    onClick={() => handleUpdateState(inscripcion.id, estado[inscripcion.id])}
-                    style={{
-                    cursor: 'pointer',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    padding: '6px 12px',
-                    borderRadius: '5px',
-                    fontSize: '12px',
-                    border: 'none',
-                    }}
-                >
-                    Actualizar
-                </button>
-                </td>
+                        <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
+                        <button
+                            onClick={() => handleUpdateState(inscripcion.id, estado[inscripcion.id])}
+                            style={{
+                            cursor: 'pointer',
+                            backgroundColor: '#28a745',
+                            color: 'white',
+                            padding: '6px 12px',
+                            borderRadius: '5px',
+                            fontSize: '12px',
+                            border: 'none',
+                            }}
+                        >
+                            Actualizar
+                        </button>
+                        </td>
 
-                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
-                {inscripcion.respuesta_comision || 'No disponible'}
-                </td>
+                        <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                        {inscripcion.respuesta_comision || 'No disponible'}
+                        </td>
 
-                {inscripcion.respuesta_comision === 'Aprobada' && (
-                <>
-                    <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
-                    <input 
-                        type="file" 
-                        name="certificado" 
-                        onChange={handleFileChange}
-                        style={{ display: 'none' }} 
-                        id={`certificadoInput-${inscripcion.id}`}
-                    />
-                    <label 
-                        htmlFor={`certificadoInput-${inscripcion.id}`} 
-                        style={{
-                        cursor: 'pointer', 
-                        backgroundColor: '#f0ad4e', 
-                        color: 'white', 
-                        padding: '6px 12px', 
-                        borderRadius: '5px', 
-                        textAlign: 'center',
-                        display: 'inline-block',
-                        fontSize: '12px',
-                        }}
-                    >
-                        {certificadoFile ? certificadoFile.name : 'Seleccionar archivo'}
-                    </label>
-                    </td>
-                    <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
-                    <button
-                        onClick={() => handleSubmitCertificado(inscripcion.id_estudiante, inscripcion.correo)}
-                        style={{
-                        cursor: 'pointer',
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        padding: '6px 12px',
-                        borderRadius: '5px',
-                        fontSize: '12px',
-                        border: 'none',
-                        }}
-                    >
-                        Enviar Certificado
-                    </button>
-                    </td>
-                </>
-                )}
-            </tr>
-            ))}
-        </tbody>
-        </table>
-    </div>
-    ) : (
-    <p style={{ textAlign: 'center', fontSize: '18px' }}>No hay inscripciones registradas.</p>
-    )}
-    </div>
+                        {inscripcion.respuesta_comision === 'Aprobada' && (
+                        <>
+                            <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
+                            <input 
+                                type="file" 
+                                name="certificado" 
+                                onChange={handleFileChange}
+                                style={{ display: 'none' }} 
+                                id={`certificadoInput-${inscripcion.id}`}
+                            />
+                            <label 
+                                htmlFor={`certificadoInput-${inscripcion.id}`} 
+                                style={{
+                                cursor: 'pointer', 
+                                backgroundColor: '#f0ad4e', 
+                                color: 'white', 
+                                padding: '6px 12px', 
+                                borderRadius: '5px', 
+                                textAlign: 'center',
+                                display: 'inline-block',
+                                fontSize: '12px',
+                                }}
+                            >
+                                {certificadoFile ? certificadoFile.name : 'Seleccionar archivo'}
+                            </label>
+                            </td>
+                            <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
+                            <button
+                                onClick={() => handleSubmitCertificado(inscripcion.id_estudiante, inscripcion.correo)}
+                                style={{
+                                cursor: 'pointer',
+                                backgroundColor: '#007bff',
+                                color: 'white',
+                                padding: '6px 12px',
+                                borderRadius: '5px',
+                                fontSize: '12px',
+                                border: 'none',
+                                }}
+                            >
+                                Enviar Certificado
+                            </button>
+                            </td>
+                        </>
+                        )}
+                    </tr>
+                    ))}
+                </tbody>
+                </table>
+            </div>
+            ) : (
+            <p style={{ textAlign: 'center', fontSize: '18px' }}>No hay inscripciones registradas.</p>
+            )}
+            </div>
 
 
             )}
