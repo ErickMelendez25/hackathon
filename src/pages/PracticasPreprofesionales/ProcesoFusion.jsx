@@ -8,12 +8,58 @@ function ProcesoFusion() {
     const [comentarios, setComentarios] = useState({});
     const [notificaciones, setNotificaciones] = useState([]);
     const [certificadoFile, setCertificadoFile] = useState(null);
+
+
+    const [certificado, setCertificado] = useState(null);
+    const [mostrarFormularioFinal, setMostrarFormularioFinal] = useState(false);
+
     const [files, setFiles] = useState({
         solicitud: null,
         ficha: null,
         informe: null,
     });
     const user = JSON.parse(localStorage.getItem('usuario'));
+
+    useEffect(() => {
+        if (user && user.rol === 'estudiante') {
+          // Obtener las notificaciones
+          axios.get(`http://localhost:5000/api/notificaciones_incripciones?id_estudiante=${user.id_estudiante}`)
+            .then(response => {
+              setNotificaciones(response.data);
+              
+              // Verifica si la última notificación indica que el informe de avance está aprobado
+              if (response.data.length > 0 && 
+                  (response.data[0].mensaje.includes('Aprobada') || response.data[0].mensaje.includes('Derivada a Comisión'))) {
+                // Obtener el certificado más reciente si la notificación es válida
+                axios.get(`http://localhost:5000/api/certificados_practicas?id_estudiante=${user.id_estudiante}`)
+                  .then(certResponse => {
+                    // Si la API devuelve un certificado, se lo asignamos al estado
+                    if (certResponse.data && certResponse.data.certificado_practicas) {
+                      setCertificado(certResponse.data.certificado_practicas);
+                    }
+                  })
+                  .catch(error => {
+                    console.error('Error al obtener el certificado:', error);
+                  });
+              }
+            })
+            .catch(error => {
+              console.error('Error al obtener notificaciones:', error);
+            });
+        }
+      }, [user]);
+      
+      
+    // Filtrar y ordenar las notificaciones
+    const filtradasSecretaria = notificaciones
+        .filter(noti => noti.mensaje.includes('Secretaria cambió el estado a:'))
+        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    const filtradasComision = notificaciones
+        .filter(noti => noti.mensaje.includes('Comisión cambió el estado a:'))
+        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    
 
     useEffect(() => {
         if (user) {
@@ -23,10 +69,32 @@ function ProcesoFusion() {
             // Obtener las inscripciones solo una vez
             axios.get('http://localhost:5000/api/inscripciones') // Asegúrate de que esta URL sea correcta
                 .then((response) => {
-                    setInscripciones(response.data);
+                    const inscripcionesData = response.data;
+    
+                    // Agrupar las inscripciones por id_estudiante
+                    const uniqueInscripciones = {};
+    
+                    inscripcionesData.forEach((inscripcion) => {
+                        const existingInscripcion = uniqueInscripciones[inscripcion.id_estudiante];
+    
+                        // Si ya existe una inscripción para este estudiante, seleccionamos la más reciente
+                        if (!existingInscripcion || new Date(existingInscripcion.fecha) < new Date(inscripcion.fecha)) {
+                            uniqueInscripciones[inscripcion.id_estudiante] = inscripcion;
+                        }
+                    });
+    
+                    // Convertir el objeto a un array
+                    const filteredInscripciones = Object.values(uniqueInscripciones);
+    
+                    // Ordenar las inscripciones por fecha descendente (más reciente primero)
+                    filteredInscripciones.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    
+                    // Actualizar el estado con las inscripciones filtradas
+                    setInscripciones(filteredInscripciones);
+    
                     if (Object.keys(estado).length === 0) {
                         const initialEstado = {};
-                        response.data.forEach(inscripcion => {
+                        filteredInscripciones.forEach((inscripcion) => {
                             initialEstado[inscripcion.id] = inscripcion.estado_proceso;
                         });
                         setEstado(initialEstado);
@@ -34,16 +102,6 @@ function ProcesoFusion() {
                 })
                 .catch((error) => {
                     console.error('Error al obtener las inscripciones:', error);
-                });
-        }
-        if (user && user.rol === 'estudiante') {
-            // Obtener notificaciones para el estudiante
-            axios.get(`http://localhost:5000/api/notificaciones?id_estudiante=${user.id_estudiante}`)
-                .then((response) => {
-                    setNotificaciones(response.data);
-                })
-                .catch((error) => {
-                    console.error('Error al obtener notificaciones', error);
                 });
         }
     }, [user, estado]);
@@ -90,19 +148,53 @@ function ProcesoFusion() {
         setComentarios((prevComentarios) => ({ ...prevComentarios, [id]: e.target.value }));
     };
 
+    // En la vista de Comisión
+
     const handleUpdateState = (idInscripcion, estadoSeleccionado) => {
+        // Enviar tanto el estado como la respuesta_comision
         axios.put('http://localhost:5000/api/actualizar_inscripcion', {
             id_inscripcion: idInscripcion,
-            estado: estadoSeleccionado
+            estado: estadoSeleccionado,
+            respuesta_comision: estadoSeleccionado // Usamos el mismo valor para respuesta_comision
         })
         .then(() => {
             alert('Estado actualizado');
             setEstado((prevEstado) => ({ ...prevEstado, [idInscripcion]: estadoSeleccionado }));
+    
+            // Determinar quién está cambiando el estado (secretaria o comision)
+            const usuario = userRole === 'secretaria' ? 'Secretaria' : 'Comisión';
+    
+            // Crear el mensaje de la notificación
+            const mensaje = `${usuario} cambió el estado a: ${estadoSeleccionado}`;
+
+            // Convertir la fecha a formato compatible con MySQL
+            const fechaMySQL = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    
+            // Preparar los datos de la notificación
+            const notificationData = {
+                id_estudiante: idInscripcion,
+                mensaje: mensaje,
+                leida: false,
+                fecha: fechaMySQL, // Fecha convertida
+            };
+    
+            // Verificar los datos antes de enviarlos
+            console.log('Datos de la notificación que se enviarán:', notificationData);
+    
+            // Hacer el POST para notificar
+            axios.post('http://localhost:5000/api/notificar_inscripciones', notificationData)
+                .then((response) => {
+                    console.log('Notificación enviada');
+                })
+                .catch((error) => {
+                    console.error('Error al enviar la notificación:', error);
+                });
         })
         .catch((error) => {
             alert('Error al actualizar el estado');
         });
     };
+    
 
     const handleComentarioSubmit = (idInscripcion, comentario) => {
         if (!comentario.trim()) {
@@ -144,153 +236,304 @@ function ProcesoFusion() {
     return (
         <div style={{ padding: '20px', overflowX: 'auto' }}>
             {/* Vista Estudiante */}
-            {userRole === 'estudiante' && (
-                <div>
-                    <h3>Formulario de Inscripción</h3>
-                    <form onSubmit={handleSubmitEstudiante}>
-                        <label>
-                            Solicitud de Inscripción:
-                            <input type="file" name="solicitud" onChange={handleFileChange} required />
-                        </label>
-                        <br />
-                        <label>
-                            Ficha de Revisión Aprobada:
-                            <input type="file" name="ficha" onChange={handleFileChange} required />
-                        </label>
-                        <br />
-                        <label>
-                            Informe Final Empastado:
-                            <input type="file" name="informe" onChange={handleFileChange} required />
-                        </label>
-                        <br />
-                        <button type="submit">Enviar</button>
-                    </form>
-                    <h3>Notificaciones</h3>
-                    {notificaciones.length > 0 ? (
-                        <ul>
-                            {notificaciones.map((noti, index) => (
-                                <li key={index}>{noti.mensaje}</li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p>No tienes notificaciones.</p>
-                    )}
+                {userRole === 'estudiante' && (
+                    <div>
+                        <h3>Formulario de Inscripción</h3>
+                        <form onSubmit={handleSubmitEstudiante}>
+                            <label>
+                                Solicitud de Inscripción:
+                                <input type="file" name="solicitud" onChange={handleFileChange} required />
+                            </label>
+                            <br />
+                            <label>
+                                Ficha de Revisión Aprobada:
+                                <input type="file" name="ficha" onChange={handleFileChange} required />
+                            </label>
+                            <br />
+                            <label>
+                                Informe Final Empastado:
+                                <input type="file" name="informe" onChange={handleFileChange} required />
+                            </label>
+                            <br />
+                            <button type="submit">Enviar</button>
+                        </form>
+                        <h3>Notificaciones</h3>
+                        {notificaciones.length > 0 ? (
+                            <ul>
+                            {/* Mostrar solo la más reciente de Secretaria */}
+                            {filtradasSecretaria.length > 0 && (
+                                <li>
+                                <h4>{filtradasSecretaria[0].mensaje} <small>{filtradasSecretaria[0].fecha}</small></h4>
+                                </li>
+                            )}
+
+                            {/* Mostrar solo la más reciente de Comisión */}
+                            {filtradasComision.length > 0 && (
+                                <li>
+                                <h4>{filtradasComision[0].mensaje} <small> {filtradasComision[0].fecha}</small></h4>
+                                </li>
+                            )}
+
+                            </ul>
+                        ) : (
+                            <p>No tienes notificaciones.</p>
+                        )}
+                        {/* Mostrar el certificado si las condiciones se cumplen */}
+                        {certificado && (
+                        <div>
+                            <h3>Certificado de Prácticas</h3>
+                            {/* Usamos el endpoint para servir el archivo y permitir su descarga */}
+                            <a href={`http://localhost:5000/api/descargar/${certificado}`} download>
+                            Descargar Certificado
+                            </a>
+                        </div>
+                        )}
                 </div>
             )}
 
             {/* Vista Secretaria */}
             {userRole === 'secretaria' && (
-                <div>
-                    <h3>Lista de Inscripciones</h3>
-                    {inscripciones.length > 0 ? (
-                        <table style={{ width: '100%', borderCollapse: 'collapse', overflowX: 'auto' }}>
-                            <thead>
-                                <tr>
-                                    <th>ID Estudiante</th>
-                                    <th>Correo Estudiante</th>
-                                    <th>Solicitud Inscripción</th>
-                                    <th>Ficha de Revisión</th>
-                                    <th>Informe Final</th>
-                                    <th>Estado Proceso</th>
-                                    <th>Acciones</th>
-                                    <th>Subir Certificado</th>
-                                    <th>Enviar Certificado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {inscripciones.map((inscripcion) => (
-                                    <tr key={inscripcion.id}>
-                                        <td>{inscripcion.id_estudiante}</td>
-                                        <td>{inscripcion.correo}</td>
-                                        <td><a href={`http://localhost:5000/uploads/${inscripcion.solicitud_inscripcion_emision}`} target="_blank">Ver archivo</a></td>
-                                        <td><a href={`http://localhost:5000/uploads/${inscripcion.ficha_revision}`} target="_blank">Ver archivo</a></td>
-                                        <td><a href={`http://localhost:5000/uploads/${inscripcion.informe_final}`} target="_blank">Ver archivo</a></td>
+    <div>
+    <h3 style={{ textAlign: 'center', fontSize: '24px', marginBottom: '20px' }}>Lista de Inscripciones</h3>
+    {inscripciones.length > 0 ? (
+    <div style={{ overflowX: 'auto', width: '100%' }}>
+        <table style={{
+        width: '100%',
+        borderCollapse: 'collapse',
+        fontFamily: 'Arial, sans-serif',
+        backgroundColor: '#f9f9f9',
+        tableLayout: 'auto',
+        }}>
+        <thead style={{ backgroundColor: '#007bff', color: '#fff' }}>
+            <tr>
+            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>ID Estudiante</th>
+            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Correo Estudiante</th>
+            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Solicitud Inscripción</th>
+            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Ficha de Revisión</th>
+            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Informe Final</th>
+            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Estado Proceso</th>
+            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Acciones</th>
+            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Respuesta Comisión</th>
+            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Subir Certificado</th>
+            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Enviar Certificado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {inscripciones.map((inscripcion) => (
+            <tr key={inscripcion.id}>
+                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>{inscripcion.id_estudiante}</td>
+                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                {inscripcion.correo}
+                </td>
+                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                <a href={`http://localhost:5000/uploads/${inscripcion.solicitud_inscripcion_emision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
+                </td>
+                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                <a href={`http://localhost:5000/uploads/${inscripcion.ficha_revision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
+                </td>
+                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                <a href={`http://localhost:5000/uploads/${inscripcion.informe_final}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
+                </td>
 
-                                        {/* Estado y acciones */}
-                                        <td>
-                                            <select value={estado[inscripcion.id] || 'Pendiente'} onChange={(e) => handleEstadoChange(inscripcion.id, e)}>
-                                                <option value="Pendiente">Pendiente</option>
-                                                <option value="Aprobada">Aprobada</option>
-                                                <option value="Derivada a Comisión">Derivada a Comisión</option>
-                                                <option value="Rechazada">Rechazada</option>
-                                            </select>
-                                        </td>
+                {/* Estado Proceso - Reducción de tamaño y mejora en legibilidad */}
+                <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd', fontSize: '14px', width: '150px' }}>
+                <select 
+                    value={estado[inscripcion.id] || inscripcion.estado_proceso} 
+                    onChange={(e) => handleEstadoChange(inscripcion.id, e)}
+                    style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '14px',  // Tamaño de fuente incrementado para mejorar la legibilidad
+                    border: '1px solid #ddd',
+                    boxSizing: 'border-box',
+                    }}
+                >
++
+                    
+                    <option value="Derivada a Comisión">Derivada a Comisión</option>
+                    <option value="Rechazada">Rechazada</option>
+                </select>
+                </td>
 
-                                        {/* Botón para actualizar el estado */}
-                                        <td><button onClick={() => handleUpdateState(inscripcion.id, estado[inscripcion.id])}>Actualizar</button></td>
+                <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
+                <button
+                    onClick={() => handleUpdateState(inscripcion.id, estado[inscripcion.id])}
+                    style={{
+                    cursor: 'pointer',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    padding: '6px 12px',
+                    borderRadius: '5px',
+                    fontSize: '12px',
+                    border: 'none',
+                    }}
+                >
+                    Actualizar
+                </button>
+                </td>
 
-                                        {/* Solo si el estado es Aprobada, agregar columnas para subir el certificado */}
-                                        {estado[inscripcion.id] === 'Aprobada' && (
-                                            <>
-                                                <td>
-                                                    <input type="file" name="certificado" onChange={handleFileChange} />
-                                                </td>
-                                                <td>
-                                                    <button onClick={() => handleSubmitCertificado(inscripcion.id_estudiante, inscripcion.correo)}>
-                                                        Enviar Certificado
-                                                    </button>
-                                                </td>
-                                            </>
-                                        )}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p>No hay inscripciones registradas.</p>
-                    )}
-                </div>
+                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                {inscripcion.respuesta_comision || 'No disponible'}
+                </td>
+
+                {inscripcion.respuesta_comision === 'Aprobada' && (
+                <>
+                    <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
+                    <input 
+                        type="file" 
+                        name="certificado" 
+                        onChange={handleFileChange}
+                        style={{ display: 'none' }} 
+                        id={`certificadoInput-${inscripcion.id}`}
+                    />
+                    <label 
+                        htmlFor={`certificadoInput-${inscripcion.id}`} 
+                        style={{
+                        cursor: 'pointer', 
+                        backgroundColor: '#f0ad4e', 
+                        color: 'white', 
+                        padding: '6px 12px', 
+                        borderRadius: '5px', 
+                        textAlign: 'center',
+                        display: 'inline-block',
+                        fontSize: '12px',
+                        }}
+                    >
+                        {certificadoFile ? certificadoFile.name : 'Seleccionar archivo'}
+                    </label>
+                    </td>
+                    <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
+                    <button
+                        onClick={() => handleSubmitCertificado(inscripcion.id_estudiante, inscripcion.correo)}
+                        style={{
+                        cursor: 'pointer',
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        padding: '6px 12px',
+                        borderRadius: '5px',
+                        fontSize: '12px',
+                        border: 'none',
+                        }}
+                    >
+                        Enviar Certificado
+                    </button>
+                    </td>
+                </>
+                )}
+            </tr>
+            ))}
+        </tbody>
+        </table>
+    </div>
+    ) : (
+    <p style={{ textAlign: 'center', fontSize: '18px' }}>No hay inscripciones registradas.</p>
+    )}
+    </div>
+
+
             )}
 
-            {/* Vista Comisión */}
-            {userRole === 'comision' && (
-                <div>
-                    <h3>Prácticas Derivadas a Comisión</h3>
-                    {inscripciones.filter(inscripcion => inscripcion.estado_proceso === 'Derivada a Comisión').length > 0 ? (
-                        <table style={{ width: '100%', borderCollapse: 'collapse', overflowX: 'auto' }}>
-                            <thead>
-                                <tr>
-                                    <th>ID Estudiante</th>
-                                    <th>Correo Estudiante</th>
-                                    <th>Solicitud Inscripción</th>
-                                    <th>Ficha de Revisión</th>
-                                    <th>Informe Final</th>
-                                    <th>Comentario Comisión</th>
-                                    <th>Estado</th>
-                                    <th>Actualizar Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {inscripciones.filter(inscripcion => inscripcion.estado_proceso === 'Derivada a Comisión').map((inscripcion) => (
-                                    <tr key={inscripcion.id}>
-                                        <td>{inscripcion.id_estudiante}</td>
-                                        <td>{inscripcion.correo}</td>
-                                        <td><a href={`http://localhost:5000/uploads/${inscripcion.solicitud_inscripcion_emision}`} target="_blank">Ver archivo</a></td>
-                                        <td><a href={`http://localhost:5000/uploads/${inscripcion.ficha_revision}`} target="_blank">Ver archivo</a></td>
-                                        <td><a href={`http://localhost:5000/uploads/${inscripcion.informe_final}`} target="_blank">Ver archivo</a></td>
-                                        <td>
-                                            <textarea value={comentarios[inscripcion.id] || ''} onChange={(e) => handleComentarioChange(inscripcion.id, e)} placeholder="Agregar comentario" />
-                                        </td>
-                                        <td>
-                                            <select value={estado[inscripcion.id] || 'Pendiente'} onChange={(e) => handleEstadoChange(inscripcion.id, e)}>
-                                                <option value="Pendiente">Pendiente</option>
-                                                <option value="Aprobada">Aprobada</option>
-                                                <option value="Rechazada">Rechazada</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <button onClick={() => handleComentarioSubmit(inscripcion.id, comentarios[inscripcion.id])}>Enviar Comentario</button>
-                                            <button onClick={() => handleUpdateState(inscripcion.id, estado[inscripcion.id])}>Actualizar</button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p>No hay prácticas derivadas a la Comisión.</p>
-                    )}
-                </div>
-            )}
+{/* Vista Comisión */}
+{/* Vista Comisión */}
+{userRole === 'comision' && (
+    <div>
+        <h3 style={{ textAlign: 'center', fontSize: '24px', marginBottom: '20px' }}>Prácticas Derivadas a Comisión</h3>
+        {inscripciones.filter(inscripcion => inscripcion.estado_proceso === 'Derivada a Comisión').length > 0 ? (
+            <div style={{ overflowX: 'auto', width: '100%' }}>
+                <table style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    fontFamily: 'Arial, sans-serif',
+                    backgroundColor: '#f9f9f9',
+                    tableLayout: 'auto',
+                }}>
+                    <thead style={{ backgroundColor: '#007bff', color: '#fff' }}>
+                        <tr>
+                            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px', width: '1%' }}>ID</th>
+                            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Correo Estudiante</th>
+                            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Solicitud Inscripción</th>
+                            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Ficha de Revisión</th>
+                            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Informe Final</th>
+                            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Comentario Comisión</th>
+                            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Estado</th>
+                            <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>Actualizar Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {inscripciones.filter(inscripcion => inscripcion.estado_proceso === 'Derivada a Comisión').map((inscripcion) => (
+                            <tr key={inscripcion.id}>
+                                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px', width: '80px' }}>{inscripcion.id_estudiante}</td>
+                                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>{inscripcion.correo}</td>
+                                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                                    <a href={`http://localhost:5000/uploads/${inscripcion.solicitud_inscripcion_emision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver archivo</a>
+                                </td>
+                                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                                    <a href={`http://localhost:5000/uploads/${inscripcion.ficha_revision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver archivo</a>
+                                </td>
+                                <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
+                                    <a href={`http://localhost:5000/uploads/${inscripcion.informe_final}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver archivo</a>
+                                </td>
+                                <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
+                                    <textarea value={comentarios[inscripcion.id] || ''} onChange={(e) => handleComentarioChange(inscripcion.id, e)} placeholder="Agregar comentario" style={{
+                                        width: '100%',
+                                        padding: '6px',
+                                        fontSize: '14px',
+                                        border: '1px solid #ddd',
+                                        boxSizing: 'border-box',
+                                        height: '40px', // Alineación vertical
+                                    }} />
+                                </td>
+                                <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
+                                    <select value={estado[inscripcion.id] || 'Pendiente'} onChange={(e) => handleEstadoChange(inscripcion.id, e)} style={{
+                                        width: '100%', // Hace que el select ocupe todo el espacio disponible
+                                        padding: '6px',
+                                        fontSize: '14px',
+                                        border: '1px solid #ddd',
+                                        boxSizing: 'border-box',
+                                    }}>
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="Aprobada">Aprobada</option>
+                                        <option value="Rechazada">Rechazada</option>
+                                    </select>
+                                </td>
+                                <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                                        <button onClick={() => handleComentarioSubmit(inscripcion.id, comentarios[inscripcion.id])} style={{
+                                            cursor: 'pointer',
+                                            backgroundColor: '#28a745',
+                                            color: 'white',
+                                            padding: '6px 12px',
+                                            borderRadius: '5px',
+                                            fontSize: '12px',
+                                            border: 'none',
+                                        }}>
+                                            Enviar Comentario
+                                        </button>
+                                        <button onClick={() => handleUpdateState(inscripcion.id, estado[inscripcion.id])} style={{
+                                            cursor: 'pointer',
+                                            backgroundColor: '#007bff',
+                                            color: 'white',
+                                            padding: '6px 12px',
+                                            borderRadius: '5px',
+                                            fontSize: '12px',
+                                            border: 'none',
+                                        }}>
+                                            Actualizar
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        ) : (
+            <p style={{ textAlign: 'center', fontSize: '18px' }}>No hay prácticas derivadas a la Comisión.</p>
+        )}
+    </div>
+)}
+
+
         </div>
     );
 }

@@ -289,7 +289,7 @@
 
   // Ruta para actualizar el estado de la inscripción
   app.put('/api/actualizar_inscripcion', (req, res) => {
-    const { id_inscripcion, estado } = req.body;
+    const { id_inscripcion, estado, respuesta_comision } = req.body;
 
     if (!id_inscripcion || !estado) {
         return res.status(400).json({ message: 'El ID de la inscripción y el estado son requeridos' });
@@ -297,10 +297,10 @@
 
     try {
         // Actualizar el estado de la inscripción en la base de datos
-        db.query('UPDATE inscripciones_emisiones SET estado_proceso = ? WHERE id = ?', [estado, id_inscripcion], async (err, result) => {
+        db.query('UPDATE inscripciones_emisiones SET estado_proceso = ?, respuesta_comision = ? WHERE id = ?', [estado, respuesta_comision, id_inscripcion], async (err, result) => {
             if (err) {
-                console.error('Error al actualizar el estado:', err);
-                return res.status(500).json({ message: 'Error al actualizar el estado' });
+                console.error('Error al actualizar el estado y respuesta:', err);
+                return res.status(500).json({ message: 'Error al actualizar el estado o respuesta' });
             }
 
             // Verificar si se actualizó alguna fila
@@ -316,13 +316,14 @@
             const mensaje = `El estado de tu inscripción ha cambiado a: ${estado}`;
             await db.promise().query('INSERT INTO notificaciones (id_estudiante, mensaje) VALUES (?, ?)', [id_estudiante, mensaje]);
 
-            res.status(200).json({ message: 'Estado actualizado y notificación enviada' });
+            res.status(200).json({ message: 'Estado y respuesta actualizados correctamente, y notificación enviada' });
         });
     } catch (error) {
-        console.error('Error al actualizar el estado:', error);
-        res.status(500).json({ message: 'Error al actualizar el estado', error: error.message });
+        console.error('Error al actualizar el estado y respuesta:', error);
+        res.status(500).json({ message: 'Error al actualizar el estado o respuesta', error: error.message });
     }
   });
+
 
 
   // Endpoint para subir el certificado
@@ -336,9 +337,9 @@
         return res.status(400).json({ error: 'Faltan parámetros: id_estudiante, correo, o el archivo.' });
     }
 
-    // Obtener la ruta del archivo subido
-    const certificadoPath = certificadoFile.path;  // Ruta del archivo subido
-    console.log('Certificado subido con éxito:', certificadoPath);
+    // Obtener el nombre del archivo subido
+    const certificadoFileName = certificadoFile.filename;  // Usamos el nombre del archivo
+    console.log('Certificado subido con éxito:', certificadoFileName);
 
     // Crear la consulta SQL para insertar el certificado en la base de datos
     const query = `
@@ -347,7 +348,7 @@
     `;
 
     // Ejecutar la consulta SQL
-    db.query(query, [id_estudiante, correo, certificadoPath], (err, results) => {
+    db.query(query, [id_estudiante, correo, certificadoFileName], (err, results) => {
         if (err) {
             console.error('Error al insertar el certificado:', err);
             return res.status(500).json({ error: 'Error al insertar el certificado en la base de datos.', details: err.message });
@@ -1373,6 +1374,73 @@ app.put('/api/actualizacion_informe', (req, res) => {
       res.json(results);
     });
   });
+
+/////PROCESO 3  ------------------------------------------------------------------------------------------------------------------
+  // Función para agregar una notificación
+
+  // API para enviar una notificación
+  app.post('/api/notificar_inscripciones', (req, res) => {
+    const { id_estudiante, mensaje, leida, fecha } = req.body;
+
+    const query = `
+        INSERT INTO notificaciones_inscripciones (id_estudiante, mensaje, leida, fecha)
+        VALUES (?, ?, ?, ?);
+    `;
+
+    db.execute(query, [id_estudiante, mensaje, leida, fecha], (err, result) => {
+        if (err) {
+            console.error('Error al insertar la notificación:', err);
+            return res.status(500).json({ error: 'Error al insertar la notificación' });
+        }
+        res.status(200).json({ message: 'Notificación enviada correctamente' });
+    });
+  });
+
+// API para obtener las notificaciones de un estudiante
+  app.get('/api/notificaciones_incripciones', (req, res) => {
+      const { id_estudiante } = req.query;
+
+      const query = `
+          SELECT * FROM notificaciones_inscripciones
+          WHERE id_estudiante = ?
+          ORDER BY fecha DESC;
+      `;
+
+      db.execute(query, [id_estudiante], (err, results) => {
+          if (err) {
+              console.error('Error al obtener notificaciones:', err);
+              return res.status(500).json({ error: 'Error al obtener notificaciones' });
+          }
+          res.status(200).json(results);
+      });
+  });
+
+  // API para obtener certificados de prácticas de un estudiante
+  app.get('/api/certificados_practicas', (req, res) => {
+    const { id_estudiante } = req.query;
+  
+    const query = `
+      SELECT * FROM certificados_practicas
+      WHERE id_estudiante = ?
+      ORDER BY fecha_creacion DESC
+      LIMIT 1;  -- Esto asegura que solo obtienes el certificado más reciente
+    `;
+  
+    db.execute(query, [id_estudiante], (err, results) => {
+      if (err) {
+        console.error('Error al obtener certificado:', err);
+        return res.status(500).json({ error: 'Error al obtener certificado' });
+      }
+      if (results.length > 0) {
+        res.status(200).json(results[0]); // Devolvemos solo el primer resultado, que es el más reciente
+      } else {
+        res.status(404).json({ message: 'No se encontró el certificado.' }); // Si no hay certificado
+      }
+    });
+  });
+  
+
+ 
 
 
   app.listen(port, () => {
