@@ -1170,7 +1170,7 @@ app.put('/api/actualizacion_informe', (req, res) => {
 
   app.get('/api/estudiantes', (req, res) => {
     // Consulta SQL para obtener los asesores
-    const query = 'SELECT id, nombres, apellido_paterno, apellido_materno,dni FROM estudiantes';
+    const query = 'SELECT id, nombres, apellido_paterno, apellido_materno,dni,correo,celular FROM estudiantes';
 
     // Ejecuta la consulta a la base de datos
     db.query(query, (err, results) => {
@@ -1438,7 +1438,205 @@ app.put('/api/actualizacion_informe', (req, res) => {
       }
     });
   });
+
+
+  ////ADMINISTRADO VISTA DEL ADMIN------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
+
+  // Obtener todos los usuarios
+  app.get('/api/usuarios', (req, res) => {
+    const query = 'SELECT id, correo, rol, fecha_creacion FROM usuarios';
+    db.query(query, (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error al obtener los usuarios' });
+      }
+      res.json(results);
+    });
+  });
+
+  // Crear un nuevo usuario
+  app.post('/api/crear_usuario', async (req, res) => {
+    const { correo, password, rol } = req.body;
+    
+    if (!correo || !password || !rol) {
+      return res.status(400).json({ error: 'Campos incompletos' });
+    }
+  
+    // Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    const query = 'INSERT INTO usuarios (correo, password, rol) VALUES (?, ?, ?)';
+    db.query(query, [correo, hashedPassword, rol], (err, result) => {
+      if (err) {
+        console.error('Error en la consulta:', err);
+        return res.status(500).json({ error: 'Error al crear el usuario' });
+      }
+      res.status(201).json({ message: 'Usuario creado correctamente' });
+    });
+  });
+  
+
+  // Editar un usuario
+  app.put('/api/editar_usuario/:id', async (req, res) => {
+    const { id } = req.params;
+    const { correo, password, rol } = req.body;
+
+    // Si hay una nueva contraseña, la encriptamos
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+    const query = 'UPDATE usuarios SET correo = ?, password = ?, rol = ? WHERE id = ?';
+
+    db.query(query, [correo, hashedPassword || '', rol, id], (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error al actualizar el usuario' });
+      }
+      res.json({ message: 'Usuario actualizado correctamente' });
+    });
+  });
+
+  // Eliminar un usuario
+  app.delete('/api/eliminar_usuario/:id', (req, res) => {
+    const { id } = req.params;
+
+    const query = 'DELETE FROM usuarios WHERE id = ?';
+    db.query(query, [id], (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error al eliminar el usuario' });
+      }
+      res.json({ message: 'Usuario eliminado correctamente' });
+    });
+  });
+
+
+  // Endpoint para restablecer la contraseña de un usuario
+// Endpoint para restablecer la contraseña de un usuario
+// Endpoint para restablecer la contraseña de un usuario
+  app.put("/api/restablecer_password/:id", async (req, res) => {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+      return res.status(400).json({ error: "La nueva contraseña es requerida" });
+    }
+
+    // Cifrar la nueva contraseña
+    try {
+      const saltRounds = 10;  // Número de rondas de salt para bcrypt
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      // Actualizar la contraseña en la base de datos
+      const query = "UPDATE usuarios SET password = ? WHERE id = ?";
+      db.query(query, [hashedPassword, id], (err, result) => {
+        if (err) {
+          console.error("Error al actualizar la contraseña:", err);
+          return res.status(500).json({ error: "Error al actualizar la contraseña" });
+        }
+
+        // Si la actualización fue exitosa
+        return res.status(200).json({ message: "Contraseña restablecida correctamente" });
+      });
+    } catch (error) {
+      console.error("Error al cifrar la contraseña:", error);
+      return res.status(500).json({ error: "Error al cifrar la contraseña" });
+    }
+  });
+
+  // Endpoint para crear un estudiante
+  app.post('/api/crear_estudiante', async (req, res) => {
+    const { correo, nombres, apellido_paterno, apellido_materno, dni, celular, fecha_nacimiento } = req.body;
+  
+    // Validar que todos los campos estén presentes
+    if (!correo || !nombres || !apellido_paterno || !apellido_materno || !dni || !celular || !fecha_nacimiento) {
+      return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    }
+  
+    // Validar que el correo tenga formato válido (simple)
+    const correoRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!correoRegex.test(correo)) {
+      return res.status(400).json({ error: 'Correo no válido' });
+    }
+  
+    // Validar que el DNI tenga 8 dígitos
+    if (!/^\d{8}$/.test(dni)) {
+      return res.status(400).json({ error: 'El DNI debe contener 8 dígitos numéricos' });
+    }
+  
+    // Validar que el celular tenga 9 dígitos
+    if (!/^\d{9}$/.test(celular)) {
+      return res.status(400).json({ error: 'El celular debe contener 9 dígitos numéricos' });
+    }
+  
+    // Validar la fecha de nacimiento
+    const fechaNacimiento = new Date(fecha_nacimiento);
+    const today = new Date();
+    if (fechaNacimiento > today) {
+      return res.status(400).json({ error: 'La fecha de nacimiento no puede ser mayor que la fecha actual' });
+    }
+  
+    // Consultar si ya existe un estudiante con el mismo correo, dni o celular
+    const queryCheck = 'SELECT * FROM estudiantes WHERE correo = ? OR dni = ? OR celular = ?';
+    db.query(queryCheck, [correo, dni, celular], (err, results) => {
+      if (err) {
+        console.error('Error al consultar en la base de datos:', err);
+        return res.status(500).json({ error: 'Error al consultar la base de datos' });
+      }
+  
+      if (results.length > 0) {
+        return res.status(400).json({ error: 'Ya existe un estudiante con ese correo, dni o celular' });
+      }
+  
+      // Insertar los datos del estudiante en la base de datos
+      const query = 'INSERT INTO estudiantes (correo, nombres, apellido_paterno, apellido_materno, dni, celular, fecha_nacimiento) VALUES (?, ?, ?, ?, ?, ?, ?)';
+      db.query(query, [correo, nombres, apellido_paterno, apellido_materno, dni, celular, fecha_nacimiento], (err, result) => {
+        if (err) {
+          console.error('Error al crear el estudiante:', err);
+          return res.status(500).json({ error: 'Error al crear el estudiante' });
+        }
+  
+        res.status(201).json({ message: 'Estudiante creado correctamente' });
+      });
+    });
+  });
+
+  app.post('/api/crear_asesor', async (req, res) => {
+    const { correo, especialidad, fecha_ingreso, nombre_asesor, apellido_paterno, apellido_materno, dni } = req.body;
+  
+    if (!correo || !especialidad || !fecha_ingreso || !nombre_asesor || !apellido_paterno || !apellido_materno || !dni) {
+      return res.status(400).json({ error: 'Campos incompletos' });
+    }
+  
+    const query = 'INSERT INTO asesores (correo, especialidad, fecha_ingreso, nombre_asesor, apellido_paterno, apellido_materno, dni) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  
+    db.query(query, [correo, especialidad, fecha_ingreso, nombre_asesor, apellido_paterno, apellido_materno, dni], (err, result) => {
+      if (err) {
+        console.error('Error en la consulta:', err);
+        return res.status(500).json({ error: 'Error al crear el asesor' });
+      }
+      res.status(201).json({ message: 'Asesor creado correctamente' });
+    });
+  });
+  
+  app.post('/api/crear_revisor', async (req, res) => {
+    const { correo, nombre_revisor, apellido_paterno, apellido_materno, dni, especialidad, fecha_ingreso } = req.body;
+  
+    if (!correo || !nombre_revisor || !apellido_paterno || !apellido_materno || !dni || !especialidad || !fecha_ingreso) {
+      return res.status(400).json({ error: 'Campos incompletos' });
+    }
+  
+    const query = 'INSERT INTO revisores (correo, nombre_revisor, apellido_paterno, apellido_materno, dni, especialidad, fecha_ingreso) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  
+    db.query(query, [correo, nombre_revisor, apellido_paterno, apellido_materno, dni, especialidad, fecha_ingreso], (err, result) => {
+      if (err) {
+        console.error('Error en la consulta:', err);
+        return res.status(500).json({ error: 'Error al crear el revisor' });
+      }
+      res.status(201).json({ message: 'Revisor creado correctamente' });
+    });
+  });
+  
+  
+  
+  
+
 
  
 
