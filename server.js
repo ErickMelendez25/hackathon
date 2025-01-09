@@ -1632,6 +1632,76 @@ app.put('/api/actualizacion_informe', (req, res) => {
       res.status(201).json({ message: 'Revisor creado correctamente' });
     });
   });
+
+
+  //APIS PARAA EDITAR Y ACTULIAR DATOS DEL ESTUDAINTE---------------------------------------------------
+  // Endpoint para actualizar los datos del estudiante
+  app.put('/api/editar_estudiante/:id', (req, res) => {
+    const { id } = req.params;
+    console.log('Actualizando estudiante con ID:', id); // Agregar un log para verificar la ID que recibe
+    const { nombres, apellido_paterno, apellido_materno, correo, dni, celular } = req.body;
+    console.log('Datos recibidos:', { nombres, apellido_paterno, apellido_materno, correo, dni, celular });
+  
+    const query = `
+      UPDATE estudiantes 
+      SET nombres = ?, apellido_paterno = ?, apellido_materno = ?, correo = ?, dni = ?, celular = ? 
+      WHERE id = ?
+    `;
+    
+    db.query(query, [nombres, apellido_paterno, apellido_materno, correo, dni, celular, id], (err, result) => {
+      if (err) {
+        console.error('Error al actualizar los datos del estudiante:', err);
+        return res.status(500).send('Error al actualizar los datos del estudiante');
+      }
+  
+      if (result.affectedRows > 0) {
+        return res.status(200).send({ message: 'Estudiante actualizado correctamente' });
+      } else {
+        return res.status(404).send({ message: 'Estudiante no encontrado' });
+      }
+    });
+  });
+
+  app.delete('/api/eliminar_estudiante/:id', (req, res) => {
+    const { id } = req.params;
+
+    // Consulta SQL para eliminar el estudiante por su ID
+    const query = 'DELETE FROM estudiantes WHERE id = ?';
+
+    db.query(query, [id], (err, result) => {
+        if (err) {
+            console.error('Error al eliminar el estudiante:', err);
+            return res.status(500).send('Hubo un error al eliminar el estudiante');
+        }
+
+        if (result.affectedRows > 0) {
+            return res.status(200).send({ message: 'Estudiante eliminado correctamente' });
+        } else {
+            return res.status(404).send({ message: 'Estudiante no encontrado' });
+        }
+    });
+  });
+
+  // Eliminar un usuario por correo
+  app.delete('/api/eliminar_usuario_estudiante/:correo', (req, res) => {
+    const { correo } = req.params;  // Obtenemos el correo desde los parámetros de la URL
+
+    // Hacer la consulta para eliminar al usuario cuyo correo coincida
+    const query = 'DELETE FROM usuarios WHERE correo = ?';
+    db.query(query, [correo], (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error al eliminar el usuario' });
+      }
+      
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'No se encontró el usuario con ese correo' });
+      }
+
+      res.json({ message: 'Usuario eliminado correctamente' });
+    });
+  });
+
+
   
   
   

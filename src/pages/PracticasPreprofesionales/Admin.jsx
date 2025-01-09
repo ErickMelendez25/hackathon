@@ -81,6 +81,18 @@ const Admin = () => {
   const [errorMessage, setErrorMessage] = useState(""); // Para mostrar mensaje de error
   const [createUserModalOpen, setCreateUserModalOpen] = useState(false); // Estado para el modal de creación
 
+  //PARA LAS LISTA DE ESTUDIANTES:
+  const [openEditModal, setOpenEditModal] = useState(false); // Modal para editar
+  const [currentEstudiante, setCurrentEstudiante] = useState(null); // Estudiante actual que se edita
+  const [formData, setFormData] = useState({
+    nombres: "",
+    apellido_paterno: "",
+    apellido_materno: "",
+    correo: "",
+    dni: "",
+    celular: "",
+  });
+
   useEffect(() => {
     fetchUsuarios();
   }, []);
@@ -421,6 +433,89 @@ const Admin = () => {
       console.error("Error al crear el usuario:", error);
     }
   };
+
+  ///FUNCIONES PARA EDITAR Y ELIMINAR UN ESTUDIANTE------------------------------------------------
+
+    // Abrir modal de edición
+    const handleEdit = (estudiante) => {
+        setCurrentEstudiante(estudiante);
+        setFormData({
+        nombres: estudiante.nombres,
+        apellido_paterno: estudiante.apellido_paterno,
+        apellido_materno: estudiante.apellido_materno,
+        correo: estudiante.correo,
+        dni: estudiante.dni,
+        celular: estudiante.celular,
+        });
+        setOpenEditModal(true);
+    };
+
+      // Cerrar modal de edición
+    const handleCloseEditModal = () => {
+        setOpenEditModal(false);
+        setFormData({
+        nombres: "",
+        apellido_paterno: "",
+        apellido_materno: "",
+        correo: "",
+        dni: "",
+        celular: "",
+        });
+    };
+
+    const handleDelete = async (id, correo) => {
+        console.log("Correo recibido para eliminar usuario:", correo);  // Verifica que se recibe el correo
+        const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este estudiante?");
+        if (confirmDelete) {
+          try {
+            // Primero eliminamos al estudiante
+            await axios.delete(`http://localhost:5000/api/eliminar_estudiante/${id}`);
+            
+            // Luego eliminamos al usuario asociado usando el correo del estudiante
+            const response = await axios.delete(`http://localhost:5000/api/eliminar_usuario_estudiante/${correo}`);
+            
+            console.log("Respuesta del servidor al intentar eliminar usuario:", response); // Verifica la respuesta del backend
+      
+            if (response.status === 200) {
+              setSuccessMessage("Estudiante y usuario eliminados exitosamente");
+              fetchEstudiantes(); // Actualiza la lista de estudiantes
+              fetchUsuarios();   // Actualiza la lista de usuarios
+              setTimeout(() => setSuccessMessage(""), 2000); // El mensaje de éxito desaparece después de 2 segundos
+              setDeleteDialogOpen(false); // Cerrar el diálogo de confirmación
+            }
+          } catch (error) {
+            console.error("Error al eliminar el estudiante o el usuario:", error);
+            alert("Hubo un error al eliminar el estudiante o el usuario.");
+          }
+        }
+      };
+      
+      
+      
+      
+    
+
+    // Actualizar estudiante
+    const handleUpdateEstudiante = async () => {
+        try {
+            const res = await axios.put(
+                `http://localhost:5000/api/editar_estudiante/${currentEstudiante.id}`, // Esta URL debe ser correcta
+                formData
+              );
+            if (res.status === 200) {
+            setSuccessMessage("Estudiante actualizado con éxito.");
+            fetchEstudiantes(); // Recargar la lista de estudiantes
+            handleCloseEditModal(); // Cerrar el modal de edición
+            }
+        } catch (error) {
+            setErrorMessage("No puedes alterar el correo ya existente");
+        }
+        };
+
+
+
+
+  
   
   
 
@@ -440,7 +535,7 @@ const Admin = () => {
         onClick={handleOpenModalEstudiante}
         style={{
           marginBottom: '20px',
-          fontSize: '16px',
+          fontSize: '11px',
           borderRadius: '10px',
         }}
       >
@@ -475,7 +570,7 @@ const Admin = () => {
     </Typography>
 
     {/* Tabla para mostrar los estudiantes */}
-    <TableContainer sx={{ maxHeight: 400 }}> {/* Establece una altura máxima para la tabla */}
+    <TableContainer sx={{ maxHeight: 400, overflowY: 'auto' }}> {/* Desplazamiento vertical para la tabla */}
       <Table stickyHeader aria-label="Lista de Estudiantes">
         <TableHead>
           <TableRow>
@@ -485,6 +580,8 @@ const Admin = () => {
             <TableCell><strong>Correo</strong></TableCell>
             <TableCell><strong>DNI</strong></TableCell>
             <TableCell><strong>Celular</strong></TableCell>
+            <TableCell><strong>Editar</strong></TableCell> {/* Columna para el botón Editar */}
+            <TableCell><strong>Eliminar</strong></TableCell> {/* Columna para el ícono de Eliminar */}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -494,14 +591,38 @@ const Admin = () => {
                 <TableCell>{estudiante.nombres}</TableCell>
                 <TableCell>{estudiante.apellido_paterno}</TableCell>
                 <TableCell>{estudiante.apellido_materno}</TableCell>
-                <TableCell>{estudiante.correo}</TableCell> {/* Mostrar el correo */}
-                <TableCell>{estudiante.dni}</TableCell> {/* Mostrar el DNI */}
-                <TableCell>{estudiante.celular}</TableCell> {/* Mostrar el celular */}
+                <TableCell>{estudiante.correo}</TableCell>
+                <TableCell>{estudiante.dni}</TableCell>
+                <TableCell>{estudiante.celular}</TableCell>
+
+                {/* Columna de editar */}
+                <TableCell>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    onClick={() => handleEdit(estudiante)} // Función para editar
+                  >
+                    Editar
+                  </Button>
+                </TableCell>
+
+                
+
+                {/* Columna de eliminar con un ícono */}
+                <TableCell>
+                  <IconButton
+                    color="secondary"
+                    onClick={() => handleDelete(estudiante.id, estudiante.correo)} // Pasamos el correo aquí
+                  >
+                    <DeleteIcon /> {/* Ícono de eliminar */}
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6}>No hay estudiantes disponibles.</TableCell> {/* Ahora 6 columnas */}
+              <TableCell colSpan={8}>No hay estudiantes disponibles.</TableCell> {/* Ahora 8 columnas */}
             </TableRow>
           )}
         </TableBody>
@@ -510,10 +631,72 @@ const Admin = () => {
   </Box>
 </Modal>
 
+ {/* Modal para editar un estudiante */}
+      <Modal open={openEditModal} onClose={handleCloseEditModal}>
+        <Box sx={{ padding: 4, maxWidth: 400, margin: "auto", bgcolor: "background.paper" }}>
+          <Typography variant="h6">Editar Estudiante</Typography>
+          
+          {/* Formulario de edición */}
+          <TextField
+            label="Nombres"
+            value={formData.nombres}
+            onChange={(e) => setFormData({ ...formData, nombres: e.target.value })}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Apellido Paterno"
+            value={formData.apellido_paterno}
+            onChange={(e) => setFormData({ ...formData, apellido_paterno: e.target.value })}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Apellido Materno"
+            value={formData.apellido_materno}
+            onChange={(e) => setFormData({ ...formData, apellido_materno: e.target.value })}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Correo"
+            value={formData.correo}
+            onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="DNI"
+            value={formData.dni}
+            onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Celular"
+            value={formData.celular}
+            onChange={(e) => setFormData({ ...formData, celular: e.target.value })}
+            fullWidth
+            margin="normal"
+          />
+          
+          {/* Botón para actualizar */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleUpdateEstudiante}
+            style={{ marginTop: 20 }}
+          >
+            Actualizar
+          </Button>
+        </Box>
+      </Modal>
+
+
 
 
         
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h6" gutterBottom>
         Gestión de Usuarios
       </Typography>
 
@@ -524,7 +707,7 @@ const Admin = () => {
         onClick={handleOpenCreateUserModal}
         style={{
           marginBottom: "20px",
-          fontSize: "16px",
+          fontSize: "11px",
           borderRadius: "10px",
         }}
       >
