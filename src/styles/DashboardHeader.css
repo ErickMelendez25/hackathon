@@ -3,36 +3,32 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px; /* Reducción de padding para ajustarse mejor */
-    background-color: #6d7680; /* Fondo oscuro y elegante */
-    color: white;
-    position: fixed; /* Se mantiene fijo en la parte superior */
+    padding: 15px;
+    background-color: #595b5ecb;
+    color: rgb(255, 255, 255);
+    position: relative; /* Cambiar de 'fixed' a 'relative' */
     top: 0;
     left: 0;
     right: 0;
-    width: 100%; /* Asegura que el header ocupe todo el ancho de la pantalla */
-    box-sizing: border-box; /* Evita que el padding cause desbordamientos */
-    z-index: 9999; /* Asegura que el header se mantenga encima de otros elementos */
-    display: flex;
-    justify-content: space-between; /* Espacia los elementos */
-    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 1; /* Aseguramos que el header tenga un z-index superior */
 }
 
 /* Estilo para los logos */
 .logo-container {
     display: flex;
     align-items: center;
-    margin-right: 10px; /* Ajuste de separación entre el logo y el icono de usuario */
+    margin-right: 10px;
 }
 
 .logo-container img {
-    height: 48px; /* Ajusta el tamaño del logo */
+    height: 48px;
     transition: transform 0.3s ease-in-out, opacity 0.5s ease-in-out;
 }
 
-/* Agregar un margen al logo "sist.png" para separarlo del primer logo */
 .logo-container img:nth-child(2) {
-    margin-left: 25px; /* Ajusta la separación entre los logos */
+    margin-left: 50px;
 }
 
 .logo-animate {
@@ -45,7 +41,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%; /* Asegura que el menú ocupe todo el espacio disponible */
+    width: 100%;
 }
 
 /* Estilos de las opciones del menú */
@@ -53,33 +49,30 @@
     list-style: none;
     display: flex;
     justify-content: center;
-    gap: 15px; /* Ajuste en el espacio entre las opciones */
+    gap: 15px;
     margin: 0;
     padding: 0;
 }
 
 .nav-item {
     text-decoration: none;
-    color: white;
-    font-size: 0.9rem; /* Ajuste en el tamaño de letra */
-    font-weight: 500; /* Un peso de fuente equilibrado */
-    padding: 8px 15px; /* Ajuste de padding */
-    border-radius: 30px; /* Bordes redondeados */
-    background-color: rgba(255, 255, 255, 0.1); /* Fondo semi-transparente */
+    color: rgb(255, 255, 255);
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 8px 15px;
+    border-radius: 20px;
+    background-color: rgba(180, 170, 170, 0.2);  /* Fondo blanco semi-transparente */
     transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease;
-    white-space: nowrap; /* Evitar salto de línea */
+    white-space: nowrap;
 }
 
 .nav-item:hover {
-    background-color: #F1C40F; /* Amarillo suave en hover */
-    transform: translateY(-5px); /* Efecto de elevación */
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* Sombra prominente */
-    padding: 10px 20px; /* Aumento del padding en hover */
-}
-
-/* Efecto de hover con sombra más intensa */
-.nav-item:focus, .nav-item:hover {
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Sombra más intensa en hover */
+    font-size: bolder;
+    background-color: rgb(247, 173, 15);  /* Fondo blanco semi-transparente al pasar el mouse */
+    color: #ffffff;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+    padding: 10px 20px;
 }
 
 /* Estilos para el icono del usuario */
@@ -88,33 +81,43 @@
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    position: relative; /* Para el posicionamiento del menú desplegable */
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    text-align: center;
 }
 
 .user-icon {
-    width: 40px; /* Ajusta el tamaño del icono */
-    height: 40px; /* Ajusta el tamaño del icono */
-    border-radius: 50%; /* Hace el icono circular */
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     overflow: hidden;
-    border: 2px solid white; /* Borde blanco alrededor del icono */
+    border: 2px solid white;
     object-fit: cover;
-    transition: transform 0.1s ease; /* Efecto de expansión */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 10px;
 }
 
 .user-icon:hover {
-    transform: scale(1.1); /* Efecto de expansión */
+    transform: scale(1.1);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
 }
 
+/* Menú de opciones */
 .menu-options {
     position: absolute;
     top: 50px; /* Ajuste entre el icono y el menú */
+    left: 50%;
+    transform: translateX(-70%);
     background-color: #f9fafc;
     border-radius: 5px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     padding: 10px;
-    z-index: 9999;
+    z-index: 0;
     transition: opacity 0.3s ease-in-out;
     width: max-content; /* Ajusta el tamaño del menú */
+    display: none;
 }
 
 .menu-options ul {
@@ -124,15 +127,22 @@
 }
 
 .menu-options li {
-    padding: 10px;
-    color: rgb(37, 37, 37);
+    padding: 12px 0;
+    color: #333;
     cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .menu-options li:hover {
-    background-color: #07e437;
+    background-color: #00c73c;
+    color: white;
+}
+
+.user-icon-container:hover .menu-options {
+    display: block;
 }
 
 /* Estilos para el modal de confirmación */
@@ -209,5 +219,81 @@ body {
     color: #666;
     display: flex;
     align-items: center;
-  }
-  
+}
+
+/* Media Queries */
+
+/* Para pantallas grandes (más de 1024px) */
+@media (min-width: 1024px) {
+    .dashboard-header {
+        padding: 20px;
+    }
+
+    .navbar-container {
+        justify-content: center;
+    }
+
+    .header-options {
+        display: flex;
+        justify-content: center;
+    }
+}
+
+/* Para pantallas medianas (como tabletas o pantallas más pequeñas que 1024px) */
+@media (max-width: 1024px) {
+    .navbar-container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .logo-container img {
+        height: 60px;
+    }
+
+    .header-options {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .nav-item {
+        font-size: 1rem;
+        padding: 10px 20px;
+    }
+
+    .user-icon-container {
+        top: 50%; /* Centra el icono verticalmente */
+        right: 15px;
+        transform: translateY(-50%);
+    }
+}
+
+/* Para pantallas pequeñas (móviles) */
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .logo-container {
+        margin-bottom: 10px;
+    }
+
+    .header-options {
+        justify-content: center;
+        flex-direction: column;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .nav-item {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+
+    .user-icon-container {
+        margin-top: 17px;
+        top: 30;
+        right: 5px;
+    }
+}

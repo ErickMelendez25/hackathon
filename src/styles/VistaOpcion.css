@@ -33,7 +33,7 @@
   }
   
   .dashboard-header h1:hover {
-      color: #1abc9c; /* Color verde elegante al pasar el mouse */
+      color: #ae1abc; /* Color verde elegante al pasar el mouse */
   }
   
   /* Estilo para la sección principal (contenido relacionado con la opción) */
@@ -116,4 +116,6 @@
           padding: 15px; /* Reducir el padding para pantallas pequeñas */
       }
   }
+  
+
   

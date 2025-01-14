@@ -1,3 +1,6 @@
+ 
+  import nodemailer from 'nodemailer';  // Cambiar require por import  //PARA EL GMAIL
+
   import express from 'express';
   import mysql from 'mysql2';
   import bcrypt from 'bcryptjs';
@@ -6,6 +9,8 @@
   import path from 'path';
   import fs from 'fs';
   import jwt from 'jsonwebtoken';
+ 
+  import bodyParser from 'body-parser';  //PARA EL GMAIL
 
 
 
@@ -20,9 +25,14 @@
 
 
 
+
+
   
 
   app.use(express.json());
+ //PARA ENVIAR GMAIL
+  // Usamos body-parser para obtener los datos del cuerpo de la solicitud
+  app.use(bodyParser.json());
   app.use(cors());
 
   // Verificar si la carpeta 'uploads' existe, si no, crearla
@@ -1700,6 +1710,492 @@ app.put('/api/actualizacion_informe', (req, res) => {
       res.json({ message: 'Usuario eliminado correctamente' });
     });
   });
+
+  //PROCESO 4--------------------------------PROCESO 4--------------------------------PROCESO 4------------------4
+
+  // Ruta para obtener los registros de convalidación
+  app.get('/api/convalidaciones_experiencia', (req, res) => {
+    const query = 'SELECT * FROM convalidaciones_experiencias';
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error('Error al obtener convalidaciones:', err);
+        return res.status(500).send('Error al obtener convalidaciones');
+      }
+      res.json(results);
+    });
+  });
+
+  // Ruta para obtener los revisores
+  app.get('/api/revisores', (req, res) => {
+    const query = 'SELECT * FROM revisores';
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error('Error al obtener revisores:', err);
+        return res.status(500).send('Error al obtener revisores');
+      }
+      res.json(results);
+    });
+  });
+  
+  //CUANDO SECRETARIA DA EN ACTUALIZAR
+  // Ruta para editar una convalidación (actualizar registro)
+  app.put('/api/editar_convalidacion/:id_estudiante', async (req, res) => {
+    try {
+      const idEstudiante = req.params.id_estudiante;  // Obtener el ID del estudiante de la URL
+      const { estado_inscripcion, comentario_inscripcion } = req.body;  // Obtener los datos del cuerpo de la solicitud
+  
+      console.log('Datos recibidos para actualizar:');
+      console.log(`ID Estudiante: ${idEstudiante}`);
+      console.log(`Nuevo estado de inscripción: ${estado_inscripcion}`);
+      console.log(`Nuevo comentario de inscripción: ${comentario_inscripcion}`);
+  
+      // Consulta SQL para actualizar solo el estado y el comentario del registro con el ID del estudiante
+      const query = `
+        UPDATE convalidaciones_experiencias
+        SET estado_inscripcion = ?, comentario_inscripcion = ?
+        WHERE id_estudiante = ?
+      `;
+  
+      // Ejecutar la consulta
+      db.query(query, [estado_inscripcion, comentario_inscripcion, idEstudiante], (err, result) => {
+        if (err) {
+          console.error('Error al ejecutar la consulta:', err);
+          return res.status(500).json({ error: 'Error al actualizar el estado de inscripción.' });
+        }
+  
+        // Verificar si se actualizó un registro
+        if (result.affectedRows === 0) {
+          console.error('No se encontró el estudiante con el ID:', idEstudiante);
+          return res.status(404).json({ error: 'No se encontró el registro para actualizar.' });
+        }
+  
+        console.log('Registro actualizado correctamente');
+        res.status(200).json({ message: 'Estado de inscripción actualizado correctamente.' });
+      });
+  
+    } catch (error) {
+      console.error('Error al procesar la solicitud de actualización:', error);
+      res.status(500).json({ error: 'Error al procesar la solicitud de actualización.' });
+    }
+  });
+
+
+  //CUANOD COMISION DA EN ACTUALIZAR
+  app.put('/api/editar_convalidacion_comision/:id_estudiante', async (req, res) => {
+    try {
+      const idEstudiante = req.params.id_estudiante;  // Obtener el ID del estudiante de la URL
+      const { estado_solicitud_inscripcion, estado_plan_convalidacion, observacion_comision, id_revisor } = req.body;  // Obtener los datos del cuerpo de la solicitud
+  
+      console.log('Datos recibidos para actualizar:');
+      console.log(`ID Estudiante: ${idEstudiante}`);
+      console.log(`Nuevo estado de solicitud: ${estado_solicitud_inscripcion}`);
+      console.log(`Nuevo estado de plan de convalidación: ${estado_plan_convalidacion}`);
+      console.log(`Nueva observación de comisión: ${observacion_comision}`);
+      console.log(`Nuevo ID de Revisor: ${id_revisor}`);
+  
+      // Asegurarse de que si id_revisor es una cadena vacía, se convierta en NULL
+      const idRevisorFinal = id_revisor === '' ? null : id_revisor;
+  
+      // Consulta SQL para actualizar el estado de inscripción, el estado del plan de convalidación y la observación de comisión
+      const query = `
+        UPDATE convalidaciones_experiencias
+        SET estado_solicitud_inscripcion = ?, estado_plan_convalidacion = ?, observacion_comision = ?, id_revisor = ?
+        WHERE id_estudiante = ?
+      `;
+  
+      // Ejecutar la consulta
+      db.query(query, [estado_solicitud_inscripcion, estado_plan_convalidacion, observacion_comision, idRevisorFinal, idEstudiante], (err, result) => {
+        if (err) {
+          console.error('Error al ejecutar la consulta:', err);
+          return res.status(500).json({ error: 'Error al actualizar la convalidación.' });
+        }
+  
+        // Verificar si se actualizó un registro
+        if (result.affectedRows === 0) {
+          console.error('No se encontró el estudiante con el ID:', idEstudiante);
+          return res.status(404).json({ error: 'No se encontró el registro para actualizar.' });
+        }
+  
+        console.log('Registro de convalidación actualizado correctamente');
+        res.status(200).json({ message: 'Convalidación actualizada correctamente.' });
+      });
+  
+    } catch (error) {
+      console.error('Error al procesar la solicitud de actualización:', error);
+      res.status(500).json({ error: 'Error al procesar la solicitud de actualización.' });
+    }
+  });
+  
+  
+  
+  
+  
+
+  // Ruta para editar un registro de convalidación (Estado de informe y notificación)
+  app.put('/api/editar_informe_convalidacion/:id', (req, res) => {
+    const { id } = req.params;
+    console.log('Actualizando informe de convalidación con ID:', id);
+
+    const { estado_informe_convalidacion, comentario_convalidacion } = req.body;
+
+    console.log('Datos recibidos:', { estado_informe_convalidacion, comentario_convalidacion });
+
+    const query = `
+      UPDATE convalidaciones_experiencias
+      SET 
+        estado_informe_convalidacion = ?, 
+        comentario_convalidacion = ?
+      WHERE id = ?
+    `;
+
+    db.query(query, [estado_informe_convalidacion, comentario_convalidacion, id], (err, result) => {
+      if (err) {
+        console.error('Error al actualizar el informe de convalidación:', err);
+        return res.status(500).send('Error al actualizar el informe de convalidación');
+      }
+
+      if (result.affectedRows > 0) {
+        return res.status(200).send({ message: 'Informe de convalidación actualizado correctamente' });
+      } else {
+        return res.status(404).send({ message: 'Informe de convalidación no encontrado' });
+      }
+    });
+  });
+
+  // Ruta para editar el estado de la solicitud de revisión
+  // Ruta para editar el estado de la solicitud de revisión usando id_estudiante
+  app.put('/api/editar_revision/:id_estudiante', (req, res) => {
+    const { id_estudiante } = req.params;  // Obtenemos el id_estudiante de la URL
+    console.log('Actualizando solicitud de revisión con ID Estudiante:', id_estudiante);
+
+    const { estado_revision, comentario_revision } = req.body;
+
+    console.log('Datos recibidos:', { estado_revision, comentario_revision });
+
+    // Query para actualizar el estado de revisión y el comentario en la base de datos
+    const query = `
+      UPDATE convalidaciones_experiencias
+      SET 
+        estado_revision = ?, 
+        comentario_revision = ?
+      WHERE id_estudiante = ?
+    `;
+
+    db.query(query, [estado_revision, comentario_revision, id_estudiante], (err, result) => {
+      if (err) {
+        console.error('Error al actualizar la solicitud de revisión:', err);
+        return res.status(500).send('Error al actualizar la solicitud de revisión');
+      }
+
+      if (result.affectedRows > 0) {
+        return res.status(200).send({ message: 'Solicitud de revisión actualizada correctamente' });
+      } else {
+        return res.status(404).send({ message: 'Solicitud de revisión no encontrada' });
+      }
+    });
+  });
+
+
+  // Ruta para editar el estado de remisión (última etapa)
+  app.put('/api/editar_remision/:id_estudiante', (req, res) => { 
+    const { id_estudiante } = req.params;  // Obtener el id_estudiante de los parámetros de la URL
+    console.log('Actualizando estado de remisión con ID:', id_estudiante);
+  
+    const { estado_remitir } = req.body;  // Obtener el estado_remitir del cuerpo de la solicitud
+    console.log('Datos recibidos:', { estado_remitir });
+  
+    // Asegúrate de que el valor de estado_remitir no sea vacío antes de ejecutar la actualización
+    if (estado_remitir === undefined || estado_remitir === '') {
+      return res.status(400).json({ message: 'El campo estado_remitir es requerido' });
+    }
+  
+    // Crear la consulta SQL para actualizar el campo estado_remitir del registro correspondiente
+    const query = `
+      UPDATE convalidaciones_experiencias
+      SET estado_remitir = ?
+      WHERE id_estudiante = ?
+    `;
+  
+    // Ejecutar la consulta SQL
+    db.query(query, [estado_remitir, id_estudiante], (err, result) => {
+      if (err) {
+        console.error('Error al actualizar el estado_remitir:', err);
+        return res.status(500).json({ message: 'Error al actualizar el estado_remitir' });
+      }
+  
+      // Responder si la actualización fue exitosa
+      if (result.affectedRows > 0) {
+        console.log('Estado de remitir actualizado con éxito para el estudiante con ID:', id_estudiante);
+        return res.status(200).json({ message: 'Estado de remitir actualizado correctamente' });
+      } else {
+        console.log('No se encontró el estudiante con el ID:', id_estudiante);
+        return res.status(404).json({ message: 'Estudiante no encontrado' });
+      }
+    });
+  });
+  
+
+  // Endpoint para registrar la convalidación (incluyendo el id_estudiante)
+
+  app.post('/api/registrar_convalidacion', upload.fields([
+    { name: 'solicitud_inscripcion', maxCount: 1 },
+    { name: 'plan_convalidacion', maxCount: 1 },
+  ]), async (req, res) => {
+    try {
+      // Verificar si los archivos fueron cargados
+      if (!req.files.solicitud_inscripcion || !req.files.plan_convalidacion) {
+        return res.status(400).json({ error: 'Debe subir ambos archivos para enviar.' });
+      }
+  
+      // Obtener los archivos desde req.files
+      const solicitudInscripcionPath = req.files.solicitud_inscripcion[0].path;
+      const planConvalidacionPath = req.files.plan_convalidacion[0].path;
+      
+      // Obtener el id_estudiante desde el cuerpo de la solicitud
+      const { id_estudiante } = req.body;
+  
+      // Verificar si id_estudiante está presente
+      if (!id_estudiante) {
+        return res.status(400).json({ error: 'El id_estudiante es requerido.' });
+      }
+  
+      // Primero, verificar si ya existe un registro con ese id_estudiante
+      const checkQuery = 'SELECT * FROM convalidaciones_experiencias WHERE id_estudiante = ?';
+      db.query(checkQuery, [id_estudiante], (err, result) => {
+        if (err) {
+          console.error('Error en la consulta:', err);
+          return res.status(500).json({ error: 'Error al verificar el registro.' });
+        }
+  
+        // Si el registro ya existe, actualizamos
+        if (result.length > 0) {
+          const updateQuery = `
+            UPDATE convalidaciones_experiencias
+            SET solicitud_inscripcion = ?, plan_convalidacion = ?
+            WHERE id_estudiante = ?
+          `;
+          db.query(updateQuery, [solicitudInscripcionPath, planConvalidacionPath, id_estudiante], (err, updateResult) => {
+            if (err) {
+              console.error('Error al actualizar el registro:', err);
+              return res.status(500).json({ error: 'Error al actualizar la convalidación.' });
+            }
+            res.status(200).json({ message: 'Archivos actualizados correctamente.' });
+          });
+        } else {
+          // Si no existe, insertamos un nuevo registro
+          const insertQuery = 'INSERT INTO convalidaciones_experiencias (id_estudiante, solicitud_inscripcion, plan_convalidacion) VALUES (?, ?, ?)';
+          db.query(insertQuery, [id_estudiante, solicitudInscripcionPath, planConvalidacionPath], (err, insertResult) => {
+            if (err) {
+              console.error('Error al insertar el registro:', err);
+              return res.status(500).json({ error: 'Error al registrar la convalidación.' });
+            }
+            res.status(201).json({ message: 'Archivos registrados correctamente.' });
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Error al registrar la convalidación:', error);
+      res.status(500).json({ error: 'Error al procesar los archivos.' });
+    }
+  });
+  
+
+  //VISTA DE ESTUDAINTE PARA QUE  ENVIE ARCHIVOS ADICIONALES -------------------
+
+  // Endpoint PUT para enviar archivos adicionales
+  app.put('/api/enviar_archivos_adicionales/:id_estudiante', upload.fields([
+    { name: 'informe_convalidacion', maxCount: 1 },
+    { name: 'solicitud_revision', maxCount: 1 }
+  ]), async (req, res) => {
+    try {
+      const idEstudiante = req.params.id_estudiante;
+  
+      // Verificar si los archivos fueron cargados
+      if (!req.files['informe_convalidacion'] || !req.files['solicitud_revision']) {
+        return res.status(400).json({ error: 'Debe subir ambos archivos para enviar.' });
+      }
+  
+      // Obtener las rutas de los archivos subidos
+      const informeConvalidacion = req.files['informe_convalidacion'][0].path;
+      const solicitudRevision = req.files['solicitud_revision'][0].path;
+  
+      // Verificar que el id_estudiante está presente
+      if (!idEstudiante) {
+        return res.status(400).json({ error: 'El id_estudiante es requerido.' });
+      }
+  
+      // Consultamos si ya existe un registro para este estudiante
+      const checkQuery = 'SELECT * FROM convalidaciones_experiencias WHERE id_estudiante = ?';
+      db.query(checkQuery, [idEstudiante], (err, result) => {
+        if (err) {
+          console.error('Error en la consulta:', err);
+          return res.status(500).json({ error: 'Error al verificar el registro.' });
+        }
+  
+        // Si el registro ya existe, actualizamos
+        if (result.length > 0) {
+          const updateQuery = `
+            UPDATE convalidaciones_experiencias
+            SET informe_convalidacion = ?, solicitud_revision = ?
+            WHERE id_estudiante = ?
+          `;
+          db.query(updateQuery, [informeConvalidacion, solicitudRevision, idEstudiante], (err, updateResult) => {
+            if (err) {
+              console.error('Error al actualizar el registro:', err);
+              return res.status(500).json({ error: 'Error al actualizar los archivos.' });
+            }
+            res.status(200).json({ message: 'Archivos actualizados correctamente.' });
+          });
+        } else {
+          // Si no existe el registro, lo insertamos
+          const insertQuery = 'INSERT INTO convalidaciones_experiencias (id_estudiante, informe_convalidacion, solicitud_revision) VALUES (?, ?, ?)';
+          db.query(insertQuery, [idEstudiante, informeConvalidacion, solicitudRevision], (err, insertResult) => {
+            if (err) {
+              console.error('Error al insertar el registro:', err);
+              return res.status(500).json({ error: 'Error al registrar los archivos.' });
+            }
+            res.status(201).json({ message: 'Archivos registrados correctamente.' });
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Error al procesar los archivos:', error);
+      res.status(500).json({ error: 'Error al procesar los archivos.' });
+    }
+  });
+
+  ///para la vista de REVISOR ------------------------------------------------------------------------------------
+
+  // Ruta para actualizar estado de informe y comentario de convalidación
+  app.put('/api/subir_convalidacion/:id_estudiante', (req, res) => {
+    const { id_estudiante } = req.params; // Obtener el id_estudiante desde la URL
+    console.log('Actualizando convalidación con ID Estudiante:', id_estudiante);
+
+    // Obtener los datos enviados en el cuerpo de la solicitud
+    const { estado_informe_convalidacion, comentario_convalidacion } = req.body;
+    
+    // Imprimir los datos que se reciben para depuración
+    console.log('Datos recibidos:', { estado_informe_convalidacion, comentario_convalidacion });
+
+    // Validar que se hayan recibido ambos campos
+    if (!estado_informe_convalidacion || !comentario_convalidacion) {
+      return res.status(400).json({ message: 'Ambos campos (estado y comentario) son requeridos' });
+    }
+
+    // Crear la consulta SQL para actualizar el estado del informe y el comentario de convalidación
+    const query = `
+      UPDATE convalidaciones_experiencias
+      SET 
+        estado_informe_convalidacion = ?, 
+        comentario_convalidacion = ?
+      WHERE id_estudiante = ?
+    `;
+
+    // Ejecutar la consulta SQL para actualizar la base de datos
+    db.query(query, [estado_informe_convalidacion, comentario_convalidacion, id_estudiante], (err, result) => {
+      if (err) {
+        console.error('Error al actualizar la convalidación:', err);
+        return res.status(500).json({ message: 'Error al actualizar la convalidación' });
+      }
+
+      // Verificar si se actualizó el registro
+      if (result.affectedRows > 0) {
+        console.log('Convalidación actualizada correctamente para el estudiante con ID:', id_estudiante);
+        return res.status(200).json({ message: 'Convalidación actualizada correctamente' });
+      } else {
+        console.log('No se encontró el estudiante con el ID:', id_estudiante);
+        return res.status(404).json({ message: 'Estudiante no encontrado' });
+      }
+    });
+  });
+
+  //EN LA VISTA COMSION--------------------------------------------------------------------------------------
+
+
+  // Ruta para actualizar el comentario de notificación
+  app.put('/api/notificar_convalidacion/:id_estudiante', (req, res) => {
+    const { id_estudiante } = req.params; // Obtener el id_estudiante desde la URL
+    console.log('Actualizando notificación con ID Estudiante:', id_estudiante);
+
+    // Obtener los datos enviados en el cuerpo de la solicitud
+    const { comentario_notificacion } = req.body;
+
+    // Imprimir los datos que se reciben para depuración
+    console.log('Datos recibidos:', { comentario_notificacion });
+
+    // Validar que se haya recibido el campo comentario_notificacion
+    if (!comentario_notificacion) {
+      return res.status(400).json({ message: 'El campo comentario_notificacion es requerido' });
+    }
+
+    // Crear la consulta SQL para actualizar el comentario de notificación
+    const query = `
+      UPDATE convalidaciones_experiencias
+      SET comentario_notificacion = ?
+      WHERE id_estudiante = ?
+    `;
+
+    // Ejecutar la consulta SQL para actualizar la base de datos
+    db.query(query, [comentario_notificacion, id_estudiante], (err, result) => {
+      if (err) {
+        console.error('Error al actualizar la notificación:', err);
+        return res.status(500).json({ message: 'Error al actualizar la notificación' });
+      }
+
+      // Verificar si se actualizó el registro
+      if (result.affectedRows > 0) {
+        console.log('Notificación actualizada correctamente para el estudiante con ID:', id_estudiante);
+        return res.status(200).json({ message: 'Notificación actualizada correctamente' });
+      } else {
+        console.log('No se encontró el estudiante con el ID:', id_estudiante);
+        return res.status(404).json({ message: 'Estudiante no encontrado' });
+      }
+    });
+  });
+
+
+
+  // Configuración de Nodemailer para enviar el correo con Gmail
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: '72848846@continental.edu.pe', // Reemplaza con tu correo de Gmail
+      pass: 'Ander77melval@exo' // Reemplaza con tu contraseña de Gmail
+    }
+  });
+
+  // Endpoint para notificar al estudiante por correo electrónico
+  app.put('/api/notificar_gmail/:id_estudiante', async (req, res) => {
+    try {
+      const { id_estudiante } = req.params; // Obtener el id_estudiante desde los parámetros de la URL
+      const { comentario_notificacion, email_estudiante } = req.body; // Obtener los datos del cuerpo de la solicitud
+
+      // Verificamos que se haya proporcionado un correo
+      if (!email_estudiante || !comentario_notificacion) {
+        return res.status(400).json({ message: 'El correo electrónico y el mensaje son requeridos.' });
+      }
+
+      // Configuramos el mensaje que se enviará
+      const mailOptions = {
+        from: '72848846@continental.edu.pe', // Reemplaza con tu correo de Gmail
+        to: email_estudiante, // El correo del estudiante que recibe la notificación
+        subject: 'Notificación de Proceso de Convalidación',
+        text: comentario_notificacion, // El mensaje que se enviará al estudiante
+      };
+
+      // Enviar el correo electrónico
+      const info = await transporter.sendMail(mailOptions);
+
+      console.log('Correo enviado:', info.response);
+
+      // Respondemos al cliente con un mensaje de éxito
+      res.status(200).json({ message: 'Correo de notificación enviado correctamente' });
+    } catch (error) {
+      console.error('Error al enviar el correo:', error);
+      res.status(500).json({ message: 'Error al enviar el correo' });
+    }
+  });
+
 
 
   

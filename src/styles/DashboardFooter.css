@@ -73,6 +73,8 @@
 /* Responsive: hacer que el pie de página se adapte a pantallas pequeñas */
 @media (max-width: 750px) {
     .dashboard-footer {
+        margin-bottom: 30px;
+       
         padding: 20px 10px; /* Menos espacio en pantallas pequeñas */
     }
 
@@ -89,5 +91,17 @@
     .footer-text h3 {
         font-size: 1rem; /* Reducir el tamaño de fuente en pantallas pequeñas */
         margin-top: 5px; /* Asegura que no haya mucho espacio debajo de las opciones */
+    }
+}
+
+/* Para pantallas aún más pequeñas (como teléfonos muy pequeños) */
+@media (max-width: 480px) {
+    .footer-item {
+        font-size: 0.8rem; /* Reduce aún más el tamaño de los botones */
+        padding: 7px 12px; /* Ajuste de padding */
+    }
+
+    .footer-text h3 {
+        font-size: 0.9rem; /* Reduce el tamaño de fuente en pantallas más pequeñas */
     }
 }
