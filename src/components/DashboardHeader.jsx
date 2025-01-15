@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import axios from 'axios'; // Asegúrate de tener axios instalado
 import '../styles/DashboardHeader.css';
 
 const handleLogout = () => {
@@ -13,6 +14,9 @@ const handleLogout = () => {
 function DashboardHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+  const [estudiantes, setEstudiantes] = useState([]); // Lista de estudiantes
+  const [asesores, setAsesores] = useState([]); // Lista de estudiantes
+  const [revisores, setRevisores] = useState([]); // Lista de estudiantes
   const location = useLocation();
   const [titleVisible, setTitleVisible] = useState(false);
 
@@ -58,6 +62,79 @@ function DashboardHeader() {
   // Obtener el rol del usuario desde el localStorage
   const userRole = localStorage.getItem('userRole');
 
+  // Obtener el usuario logueado desde el localStorage
+  const user = JSON.parse(localStorage.getItem('usuario'));
+  const userEmail = user ? user.correo : '';  // Correo del usuario logueado
+  const userRol = user ? user.rol : '';  // Correo del usuario logueado
+
+
+  // Obtener el nombre completo del estudiante
+  let Nombre = '';
+  
+  // Condicional para determinar qué nombre mostrar dependiendo del rol
+  if (userRol === 'estudiante') {
+      // Obtener los estudiantes desde la API
+    useEffect(() => {
+      const fetchEstudiantes = async () => {
+        try {
+          const response = await axios.get('http://localhost:5000/api/estudiantes');
+          console.log("Estudiantes recibidos: ", response.data);  // Verifica que los estudiantes están bien cargados
+          setEstudiantes(response.data);
+        } catch (error) {
+          console.error('Error al obtener estudiantes:', error);
+        }
+      };
+
+      fetchEstudiantes();
+    }, []); // Este efecto se ejecuta solo una vez cuando el componente se monta
+
+    // Filtrar el estudiante basado en el correo del usuario logueado
+    const estudiante = estudiantes.find((item) => item.correo === userEmail);
+
+    // Verificar en consola si encontramos el estudiante correctamente
+    console.log("Estudiante filtrado: ", estudiante);
+
+    Nombre = estudiante ? `${estudiante.nombres} ${estudiante.apellido_paterno.charAt(0)}. ${estudiante.apellido_materno.charAt(0)}.` : '';
+  
+  } else if (userRol === 'asesor') {
+    useEffect(() => {
+      const fetchAsesores = async () => {
+        try {
+          const response = await axios.get('http://localhost:5000/api/asesores');
+          console.log("Asesores recibidos: ", response.data);  // Verifica que los estudiantes están bien cargados
+          setAsesores(response.data);
+        } catch (error) {
+          console.error('Error al obtener asesores:', error);
+        }
+      };
+
+      fetchAsesores();
+    }, []); // Este efecto se ejecuta solo una vez cuando el componente se monta
+
+    const asesor = asesores.find((item) => item.correo === userEmail);
+    console.log("asesor filtrado: ", asesor);
+    Nombre = asesor ? `${asesor.nombre_asesor} ${asesor.apellido_paterno} ${asesor.apellido_materno}` : '';
+
+  } else if (userRol === 'revisor') {
+    useEffect(() => {
+      const fetchRevisores = async () => {
+        try {
+          const response = await axios.get('http://localhost:5000/api/revisores');
+          console.log("Revisores recibidos: ", response.data);  // Verifica que los estudiantes están bien cargados
+          setRevisores(response.data);
+        } catch (error) {
+          console.error('Error al obtener revisores:', error);
+        }
+      };
+
+      fetchRevisores();
+    }, []); // Este efecto se ejecuta solo una vez cuando el componente se monta
+
+    const revisor = revisores.find((item) => item.correo === userEmail);
+    console.log("revisor filtrado: ", revisor);
+    Nombre = revisor ? `${revisor.nombre_revisor} ${revisor.apellido_paterno} ${revisor.apellido_materno}` : '';
+  }
+
   return (
     <header className="dashboard-header">
       <div className="logo-container">
@@ -68,6 +145,8 @@ function DashboardHeader() {
           <img src="/images/sist.png" alt="Logo Sist" className={titleVisible ? 'logo-animate' : ''} />
         </Link>
       </div>
+
+
 
       {/* Mostrar el título de la opción seleccionada o el menú, dependiendo de la ruta */}
       <div className="header-center">
@@ -100,6 +179,20 @@ function DashboardHeader() {
           onClick={toggleMenu} 
           title="Opciones" 
         />
+        {/* Mostrar el correo y nombre del usuario después del logo */}
+        {userEmail && (
+          <div className="user-info">
+            <p><strong>{userEmail}</strong> </p>
+            <p><strong> {userRol.toUpperCase()}</strong></p>
+
+            {Nombre ? (
+              <p><strong> {Nombre}</strong></p>
+            ) : (
+              <p><strong>Usuario no encontrado</strong></p>
+            )}
+          </div>
+        )}
+
         {isMenuOpen && (
           <div className="menu-options">
             <ul>
@@ -113,6 +206,7 @@ function DashboardHeader() {
       <div className="user-role" style={{ float: 'right', marginTop: '10px', fontSize: '16px' }}>
         <label>{userRole ? `Rol: ${userRole}` : userRole}</label>
       </div>
+
       {/* Modal de confirmación de cierre de sesión */}
       {showConfirmLogout && (
         <div className="modal-overlay">

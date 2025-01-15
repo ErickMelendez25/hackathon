@@ -4,7 +4,7 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background: linear-gradient(135deg, #005B87, #0069A5); /* Colores de la universidad */
+    background:  #107a2a; /* Colores de la universidad */
     font-family: 'Roboto', sans-serif;
   }
   
@@ -27,7 +27,7 @@
     margin-bottom: 30px;
     font-size: 28px;
     font-weight: 600;
-    color: #005B87; /* Color institucional más fuerte */
+    color: #1ecf0e; /* Color institucional más fuerte */
     text-transform: uppercase;
   }
   
@@ -67,7 +67,7 @@
   .login-form button {
     width: 100%;
     padding: 14px;
-    background-color: #005B87;
+    background-color: #47b905;
     border: none;
     border-radius: 8px;
     color: white;
@@ -78,7 +78,8 @@
   
   /* Efecto hover en el botón */
   .login-form button:hover {
-    background-color: #004973;
+    background-color: #eeff00;
+    color: rgb(0, 0, 0);
     transform: translateY(-3px);
   }
   

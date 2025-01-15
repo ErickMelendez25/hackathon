@@ -1243,7 +1243,7 @@ app.put('/api/actualizacion_informe', (req, res) => {
   // Endpoint para obtener la lista de asesores
   app.get('/api/asesores', (req, res) => {
     // Consulta SQL para obtener los asesores
-    const query = 'SELECT id, dni, nombre_asesor, apellido_paterno, apellido_materno FROM asesores';
+    const query = 'SELECT id, dni, nombre_asesor, apellido_paterno, apellido_materno,correo FROM asesores';
 
     // Ejecuta la consulta a la base de datos
     db.query(query, (err, results) => {
