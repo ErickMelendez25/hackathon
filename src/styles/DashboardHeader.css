@@ -72,8 +72,8 @@
 
 .nav-item:hover {
     
-    background-color: rgba(238, 204, 15, 0.6);  /* Fondo blanco semi-transparente al pasar el mouse */
-    color: #ffffff;
+    background-color: rgba(255, 217, 5, 0.959);  /* Fondo blanco semi-transparente al pasar el mouse */
+    color: #111131;
     transform: translateY(-5px);
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
     padding: 10px 20px;
