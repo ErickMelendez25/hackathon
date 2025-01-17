@@ -9,6 +9,16 @@ const ProcesoConvalidacionExperiencia = () => {
   const [convalidaciones, setConvalidaciones] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
   const [revisores, setRevisores] = useState([]);
+
+
+
+  const [mensajeNotificacion, setMensajeNotificacion] = useState("");
+
+    // Generar el mensaje de notificación a partir de los campos de la base de datos
+
+      // Buscar el estudiante logueado
+
+
   const [formData, setFormData] = useState({
     solicitudInscripcion: null,
     planConvalidacion: null,
@@ -85,6 +95,44 @@ const ProcesoConvalidacionExperiencia = () => {
 
 
   const user = JSON.parse(localStorage.getItem('usuario'));
+
+  const estudiante = convalidaciones.find((item) => item.id_estudiante === user.id_estudiante);
+
+    // Generar el mensaje de notificación a partir de los campos de la base de datos
+
+  const generarNotificacion = () => {
+    if (estudiante) {
+      const estadoSolicitud = estudiante.estado_solicitud_inscripcion;
+      const estadoInscripcion = estudiante.estado_inscripcion;
+      const estadoInforme = estudiante.estado_informe_convalidacion;
+      const estadoRevision = estudiante.estado_revision;
+      const estadoRemitir = estudiante.estado_remitir;
+      const comentario = estudiante.comentario_notificacion;
+
+      // Lógica condicional para el mensaje adicional cuando Informe Final y Asesoría están aprobados
+      let mensajeAdicional = '';
+      if (estadoInforme === 'Aprobado' && estadoInscripcion === 'Aprobado') {
+        mensajeAdicional = "Por favor, realice el proceso 3 para terminar su proceso de entrega de informe final y emisión de certificado.";
+      }
+
+      // Crear la cadena de texto separando cada estado en líneas distintas
+      return (
+        <div style={{ lineHeight: '1.6', fontFamily: 'Arial, sans-serif' }}>
+          <p><strong>Estado de Solicitud de Inscripción:</strong> {estadoSolicitud}</p>
+          <p><strong>Estado de Inscripción:</strong> {estadoInscripcion}</p>
+          <p><strong>Estado del Informe de Convalidación:</strong> {estadoInforme}</p>
+          <p><strong>Estado de Revisión:</strong> {estadoRevision}</p>
+          <p><strong>Estado de Remitir:</strong> {estadoRemitir}</p>
+          <p><strong>Comentario:</strong></p>
+          <h5>{comentario}</h5>
+          {mensajeAdicional && (
+            <p style={{ color: 'green', fontStyle: 'italic' }}>{mensajeAdicional}</p>
+          )}
+        </div>
+      );
+    }
+    return "No se encontraron datos de convalidación para este estudiante.";
+  };
 
   useEffect(() => {
     if (user) {
@@ -583,6 +631,8 @@ const ProcesoConvalidacionExperiencia = () => {
   };
 
 
+
+
   
   
   
@@ -599,58 +649,64 @@ const ProcesoConvalidacionExperiencia = () => {
   
     return (
       <div>
-        <h3>Formulario de Convalidación de Prácticas</h3>
-        <form onSubmit={handleEnviarEstudiante}>
-          {/* Campos para solicitud de inscripción y plan de convalidación */}
-          <label>Solicitud de Inscripción:</label>
-          <input
-            type="file"
-            name="solicitudInscripcion"
-            onChange={handleFileChange}
-            required
-          />
-          <br />
-          <label>Plan de Convalidación:</label>
-          <input
-            type="file"
-            name="planConvalidacion"
-            onChange={handleFileChange}
-            required
-          />
-          <br />
-          
-          {/* Botón para enviar los archivos principales */}
-          <button type="submit">Enviar</button>
-        </form>
-  
-        {/* Mostrar los campos adicionales solo si ambos estados son Aprobados */}
-        {estudiante && estudiante.estado_solicitud_inscripcion === 'Aprobado' && estudiante.estado_plan_convalidacion === 'Aprobado' && (
-          <>
-            {/* Aquí habilitamos los campos solo si los estados son Aprobados */}
-            <h4>Archivos Adicionales</h4>
-            <form onSubmit={handleEnviarEstudianteFiles}>
-              <label>Informe de Convalidación:</label>
-              <input
-                type="file"
-                name="informeConvalidacion"
-                onChange={handleFileChange}
-              />
-              <br />
-              <label>Solicitud de Revisión:</label>
-              <input
-                type="file"
-                name="solicitudRevision"
-                onChange={handleFileChange}
-              />
-              <br />
-              {/* Botón para enviar los archivos adicionales */}
-              <button type="submit">Enviar Archivos Adicionales</button>
-            </form>
-          </>
-        )}
+      <h3>Formulario de Convalidación de Prácticas</h3>
+
+      {/* Formulario para cargar los archivos de inscripción */}
+      <form onSubmit={handleEnviarEstudiante}>
+        <label>Solicitud de Inscripción:</label>
+        <input
+          type="file"
+          name="solicitudInscripcion"
+          onChange={handleFileChange}
+          required
+        />
+        <br />
+        <label>Plan de Convalidación:</label>
+        <input
+          type="file"
+          name="planConvalidacion"
+          onChange={handleFileChange}
+          required
+        />
+        <br />
+        <button type="submit">Enviar</button>
+      </form>
+
+      {/* Mostrar los campos adicionales solo si los estados son Aprobados */}
+      {estudiante && estudiante.estado_solicitud_inscripcion === 'Aprobado' && estudiante.estado_plan_convalidacion === 'Aprobado' && (
+        <>
+          <h4>Archivos Adicionales</h4>
+          <form onSubmit={handleEnviarEstudiante}>
+            <label>Informe de Convalidación:</label>
+            <input
+              type="file"
+              name="informeConvalidacion"
+              onChange={handleFileChange}
+            />
+            <br />
+            <label>Solicitud de Revisión:</label>
+            <input
+              type="file"
+              name="solicitudRevision"
+              onChange={handleFileChange}
+            />
+            <br />
+            <button type="submit">Enviar Archivos Adicionales</button>
+          </form>
+        </>
+      )}
+
+      {/* Mostrar las notificaciones del estudiante */}
+      <div>
+        <h3>Notificaciones</h3>
+        <div>
+          {/* Mostrar la cadena generada */}
+          <strong>{generarNotificacion()}</strong>
+        </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   // Vista Secretaria
   const renderSecretaria = () => {

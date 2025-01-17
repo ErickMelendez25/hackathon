@@ -710,6 +710,67 @@ function ProcesoRevisionInformes() {
     }
   };
 
+  useEffect(() => {
+  if (!estudiantes.length) {
+    axios.get('http://localhost:5000/api/estudiantes')
+      .then(response => {
+        setEstudiantes(response.data);  // Guarda los estudiantes en el estado
+      })
+      .catch(error => {
+        console.error('Error al obtener los estudiantes', error);
+      });
+  }
+}, []);
+
+
+  //PARA NOTIFICAR AL ESTUDAINTE EN LA VISTA DE COMSION AL DAR CLICK A NOTIFICAR---
+  const handleNotificar = async (id_estudiante, id_asesor, id_informe) => {
+    try {
+      // Buscar el estudiante por su id
+      const estudiante = estudiantes.find((item) => item.id === id_estudiante); 
+      if (!estudiante) {
+        console.log(`No se encontró el estudiante con id ${id_estudiante}`);
+        alert('No se encontró el estudiante.');
+        return;
+      }
+  
+      // Obtén el correo del estudiante
+      const email_estudiante = estudiante.correo;
+      if (!email_estudiante) {
+        console.log("El estudiante no tiene correo electrónico.");
+        alert("El estudiante no tiene correo electrónico.");
+        return;
+      }
+  
+      console.log(`Correo electrónico del estudiante: ${email_estudiante}`);
+  
+      // Obtener el estado del informe final y asesoría
+      const estado_informe_final = estadoInforme[id_informe]?.estado_final_informe || 'Pendiente';
+      const estado_asesoria = estadoInforme[id_informe]?.estado_final_asesoria || 'Pendiente';
+  
+      console.log(`Estado Informe Final: ${estado_informe_final}`);
+      console.log(`Estado Asesoría: ${estado_asesoria}`);
+  
+      // Construir el mensaje de notificación
+      const mensaje = `El Resultado de Informe Final fue realizado con el siguiente estado: Informe Final: ${estado_informe_final}, Asesoría: ${estado_asesoria}.`;
+      console.log("Mensaje de notificación a enviar:", mensaje);
+  
+      // Enviar el correo electrónico al Gmail del estudiante
+      const response = await axios.put(`http://localhost:5000/api/notificar_gmail/${id_estudiante}`, {
+        comentario_notificacion: mensaje,
+        email_estudiante
+      });
+  
+      console.log("Respuesta del servidor al enviar correo:", response.data);  // Mostrar el mensaje de éxito
+      alert('Notificación enviada correctamente al correo electrónico del estudiante.');
+      
+    } catch (error) {
+      console.error('Error al enviar la notificación:', error);
+      alert('Hubo un error al enviar la notificación. Intenta nuevamente.');
+    }
+  };
+  
+  
   
   
 

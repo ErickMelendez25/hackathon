@@ -182,14 +182,14 @@ function DashboardHeader() {
         {/* Mostrar el correo y nombre del usuario después del logo */}
         {userEmail && (
           <div className="user-info">
-            <p><strong>{userEmail}</strong> </p>
+      
             <p><strong> {userRol.toUpperCase()}</strong></p>
-
             {Nombre ? (
               <p><strong> {Nombre}</strong></p>
             ) : (
-              <p><strong>Usuario no encontrado</strong></p>
+              <p><strong></strong></p>
             )}
+            <p><strong>{userEmail}</strong> </p>
           </div>
         )}
 
