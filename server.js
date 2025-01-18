@@ -105,6 +105,21 @@
     
   };
 
+  db.on('error', (err) => {
+    console.error('Error en el pool de conexiones:', err);
+    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+      // Reconectar si la conexión se pierde
+      db.getConnection((err, connection) => {
+        if (err) {
+          console.error('Error al reconectar:', err);
+        } else {
+          console.log('Reconexión exitosa');
+          connection.release();
+        }
+      });
+    }
+  });
+
   ////CONEXION
 
   //LOGIN---------------------------------------------------------------------------------------------
