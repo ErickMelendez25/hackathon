@@ -2227,7 +2227,7 @@ app.put('/api/actualizacion_informe', (req, res) => {
   // Si usas React, por ejemplo
   app.use(express.static(path.join(__dirname, 'dist')));
 
-  // Para cualquier otra ruta, servir el index.html
+  // Para cualquier otra ra, servir el index.html
   app.get('*', (req, res) => {
       res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   });
