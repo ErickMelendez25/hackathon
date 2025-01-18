@@ -12,6 +12,9 @@
  
   import bodyParser from 'body-parser';  //PARA EL GMAIL
 
+  import dotenv from 'dotenv';
+  dotenv.config(); // Carga las variables de entorno desde el archivo .env
+
 
 
 
@@ -20,11 +23,17 @@
   const __dirname = path.resolve();
 
   const app = express();
-  const port = 5000;
+  const port= process.env.PORT || 5000;
 
+    // Configura CORS para permitir solicitudes solo desde tu frontend
+  const corsOptions = {
+    origin: 'https://gestioncalidaduncp-production.up.railway.app/', // Dominio de tu frontend
+    methods: 'GET, POST, PUT, DELETE', // Métodos permitidos
+    allowedHeaders: 'Content-Type, Authorization', // Headers permitidos
+  };
 
-
-
+  // Aplica la configuración de CORS
+  app.use(cors(corsOptions));
 
 
   
@@ -62,20 +71,29 @@
   app.use('/uploads', express.static(uploadDirectory));
 
   // Configuración de la base de datos
-  const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'Erick',
-    password: 'erickMV123@',
-    database: 'universidad_continental'
+  // Configuración del pool de conexiones
+  const db = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME,
+    connectionLimit: 10,  // Número de conexiones simultáneas que el pool puede manejar
+    waitForConnections: true,  // Espera cuando no haya conexiones disponibles
+    queueLimit: 0  // No limitar el número de consultas que esperan en la cola
   });
 
-  db.connect((err) => {
+
+  db.getConnection((err, connection) => {
     if (err) {
-      console.error('Error al conectar a la base de datos:', err.stack);
-      return;
+        console.error('Error al conectar a la base de datos:', err.stack);
+        return;
     }
     console.log('Conexión a la base de datos exitosa');
     cifrarContraseñas();  // Llamar a la función para cifrar contraseñas si es necesario
+
+    // Libera la conexión cuando termines
+    connection.release();
   });
 
   // Función para generar el token
@@ -2204,7 +2222,13 @@ app.put('/api/actualizacion_informe', (req, res) => {
   
 
 
- 
+  // Si usas React, por ejemplo
+  app.use(express.static(path.join(__dirname, 'dist')));
+
+  // Para cualquier otra ruta, servir el index.html
+  app.get('*', (req, res) => {
+      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  });
 
 
   app.listen(port, () => {
