@@ -19,7 +19,7 @@
 
 
 
- const express = require('express');
+
 
   // Obtener la ruta del directorio actual (corregido para Windows)
   const __dirname = path.resolve();
