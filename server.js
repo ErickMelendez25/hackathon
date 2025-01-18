@@ -19,11 +19,13 @@
 
 
 
+ const express = require('express');
+
   // Obtener la ruta del directorio actual (corregido para Windows)
   const __dirname = path.resolve();
 
   const app = express();
-  const port= process.env.PORT || 5000;
+  const port= process.env.PORT || 8080;
 
     // Configura CORS para permitir solicitudes solo desde tu frontend
   const corsOptions = {
