@@ -44,8 +44,8 @@
  //PARA ENVIAR GMAIL
   // Usamos body-parser para obtener los datos del cuerpo de la solicitud
   app.use(bodyParser.json());
-  /*app.use(cors());*/
-
+  app.use(cors());
+  
   // Verificar si la carpeta 'uploads' existe, si no, crearla
   const uploadDirectory = path.join(__dirname, 'uploads');
   if (!fs.existsSync(uploadDirectory)) {
