@@ -5,7 +5,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px;
-    background-color: #494a4dcb;
+    background-color: #9a9ba0cb;
     color: rgb(255, 255, 255);
     position: relative; /* Cambiar de 'fixed' a 'relative' */
     top: 0;
@@ -60,12 +60,12 @@
 .nav-item {
     
     text-decoration: none;
-    color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
     font-size: 0.9rem;
     font-weight: 500;
     padding: 8px 15px;
     border-radius: 20px;
-    background-color: rgb(255, 246, 246);  /* Fondo blanco semi-transparente */
+    background-color: rgb(30, 148, 40) ;/*Fondo blanco semi-transparente */
     transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease;
     white-space: nowrap;
 }

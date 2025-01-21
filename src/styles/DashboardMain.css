@@ -167,7 +167,7 @@
     }
 
     .option-btn {
-        font-size: 0.9rem;
+        font-size: 0.7rem;
         height: 70px;
         padding: 8px 12px;
         width: 120px; /* Reduce el tamaño de los botones */
@@ -187,7 +187,7 @@
 /* Para pantallas muy pequeñas (como teléfonos de 480px o menos) */
 @media (max-width: 480px) {
     .option-btn {   
-        font-size: 0.8rem; /* Reduce aún más el tamaño de los botones */
+        font-size: 0.65rem; /* Reduce aún más el tamaño de los botones */
         height: 60px;
         width: 100px;  /* Ancho reducido */
     }
