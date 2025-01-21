@@ -34,13 +34,21 @@ const ProcesoConvalidacionExperiencia = () => {
     estadoRemitir: '',
     comentarioNotificacion: '',
   });
+
+  const apiUrl = process.env.NODE_ENV === 'production' 
+  ? 'https://practicasuniversidad-production.up.railway.app' 
+  : 'http://localhost:5000';
+  
+
+
+  
   
   //PARA ENVIAR GMAIL AL ESTUDAINTE--------------------------------------
 
   useEffect(() => {
     const fetchEstudiantes = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/estudiantes');
+        const response = await axios.get(`${apiUrl}/api/estudiantes`);
         console.log(response.data);  // Verifica que los estudiantes están bien cargados
         setEstudiantes(response.data);
       } catch (error) {
@@ -188,7 +196,7 @@ const ProcesoConvalidacionExperiencia = () => {
   // Fetch de datos
   const fetchConvalidaciones = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/convalidaciones_experiencia');
+      const res = await axios.get(`${apiUrl}/api/convalidaciones_experiencia`);
       setConvalidaciones(res.data);
     } catch (error) {
       console.error('Error al obtener convalidaciones:', error);
@@ -219,7 +227,7 @@ const ProcesoConvalidacionExperiencia = () => {
 
   const fetchRevisores = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/revisores');
+      const res = await axios.get(`${apiUrl}/api/revisores`);
       setRevisores(res.data);
     } catch (error) {
       console.error('Error al obtener revisores:', error);
@@ -247,7 +255,7 @@ const ProcesoConvalidacionExperiencia = () => {
       console.log('Comentario de Inscripción:', comentario); // Usar el comentario específico por id_estudiante
 
       // Realizar el PUT, enviando solo los datos necesarios (estado y comentario)
-      const response = await axios.put(`http://localhost:5000/api/editar_convalidacion/${id_estudiante}`, {
+      const response = await axios.put(`${apiUrl}/api/editar_convalidacion/${id_estudiante}`, {
         estado_inscripcion: estado,
         comentario_inscripcion: comentario
       });
@@ -275,7 +283,7 @@ const ProcesoConvalidacionExperiencia = () => {
       console.log('Comentario de Revisión:', comentarioRevision);
 
       // Realizar el PUT, enviando solo los datos necesarios (estado y comentario)
-      const response = await axios.put(`http://localhost:5000/api/editar_revision/${id_estudiante}`, {
+      const response = await axios.put(`${apiUrl}/api/editar_revision/${id_estudiante}`, {
         estado_revision: estadoRevision,
         comentario_revision: comentarioRevision,
       });
@@ -314,7 +322,7 @@ const ProcesoConvalidacionExperiencia = () => {
       const mensaje = "Comisión indica que su Proceso de Convalidación por experiencias laborales ha sido exitoso, ahora realiza el proceso 3 de INSCRIPCIÓN de Informe Final y Emisión de certificado";
   
       // Enviar la solicitud PUT al servidor para actualizar el comentario_notificacion
-      const res = await axios.put(`http://localhost:5000/api/notificar_convalidacion/${id_estudiante}`, {
+      const res = await axios.put(`${apiUrl}/api/notificar_convalidacion/${id_estudiante}`, {
         comentario_notificacion: mensaje // Actualizamos el campo comentario_notificacion con el mensaje
       });
   
@@ -322,7 +330,7 @@ const ProcesoConvalidacionExperiencia = () => {
         console.log('Notificación de convalidación actualizada correctamente');
   
         // Enviar el correo electrónico al Gmail del estudiante
-        const response = await axios.put(`http://localhost:5000/api/notificar_gmail/${id_estudiante}`, {
+        const response = await axios.put(`${apiUrl}/api/notificar_gmail/${id_estudiante}`, {
           comentario_notificacion: mensaje,
           email_estudiante
         });
@@ -451,7 +459,7 @@ const ProcesoConvalidacionExperiencia = () => {
       console.log('ID Revisor:', finalIdRevisor || idRevisor);
   
       // Realizamos la solicitud PUT para actualizar la convalidación
-      const response = await axios.put(`http://localhost:5000/api/editar_convalidacion_comision/${idEstudiante}`, {
+      const response = await axios.put(`${apiUrl}/api/editar_convalidacion_comision/${idEstudiante}`, {
         estado_solicitud_inscripcion: estadoSolicitud,
         estado_plan_convalidacion: estadoPlan,
         observacion_comision: observacionComision,
@@ -476,7 +484,7 @@ const ProcesoConvalidacionExperiencia = () => {
         console.log('Enviando datos al servidor:', { estado_remitir: estadoRemitir });
     
         // Hacer el PUT para actualizar el estado_remitir
-        const response = await axios.put(`http://localhost:5000/api/editar_remision/${id_estudiante}`, {
+        const response = await axios.put(`${apiUrl}/api/editar_remision/${id_estudiante}`, {
           estado_remitir: estadoRemitir, // Solo enviar el estado_remitir
         });
     
@@ -547,7 +555,7 @@ const ProcesoConvalidacionExperiencia = () => {
   
     try {
       // Realizar la solicitud POST al backend
-      const response = await axios.post('http://localhost:5000/api/registrar_convalidacion', data, {
+      const response = await axios.post(`${apiUrl}/api/registrar_convalidacion`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -594,7 +602,7 @@ const ProcesoConvalidacionExperiencia = () => {
 
     try {
       // Realizamos la solicitud PUT al backend
-      const response = await axios.put(`http://localhost:5000/api/enviar_archivos_adicionales/${estudiante.id_estudiante}`, data, {
+      const response = await axios.put(`${apiUrl}/api/enviar_archivos_adicionales/${estudiante.id_estudiante}`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -654,7 +662,7 @@ const ProcesoConvalidacionExperiencia = () => {
   
     try {
       // Realizar el PUT para actualizar el estado y comentario en la base de datos
-      const response = await axios.put(`http://localhost:5000/api/subir_convalidacion/${id_estudiante}`, {
+      const response = await axios.put(`${apiUrl}/api/subir_convalidacion/${id_estudiante}`, {
         estado_informe_convalidacion: estadoInformeConvalidacion,
         comentario_convalidacion: comentarioConvalidacion,
       });

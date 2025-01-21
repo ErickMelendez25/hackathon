@@ -20,10 +20,20 @@ function ProcesoFusion() {
     });
     const user = JSON.parse(localStorage.getItem('usuario'));
 
+      // Determinamos la URL de la API dependiendo del entorno
+    const apiUrl = process.env.NODE_ENV === 'production' 
+    ? 'https://practicasuniversidad-production.up.railway.app' 
+    : 'http://localhost:5000';
+
+
+
+
+    
+
     useEffect(() => {
         if (user && user.rol === 'estudiante') {
           // Obtener las notificaciones
-          axios.get(`http://localhost:5000/api/notificaciones_incripciones?id_estudiante=${user.id_estudiante}`)
+          axios.get(`${apiUrl}/api/notificaciones_incripciones?id_estudiante=${user.id_estudiante}`)
             .then(response => {
               setNotificaciones(response.data);
               
@@ -31,7 +41,7 @@ function ProcesoFusion() {
               if (response.data.length > 0 && 
                   (response.data[0].mensaje.includes('Aprobada') || response.data[0].mensaje.includes('Derivada a Comisión'))) {
                 // Obtener el certificado más reciente si la notificación es válida
-                axios.get(`http://localhost:5000/api/certificados_practicas?id_estudiante=${user.id_estudiante}`)
+                axios.get(`${apiUrl}/api/certificados_practicas?id_estudiante=${user.id_estudiante}`)
                   .then(certResponse => {
                     // Si la API devuelve un certificado, se lo asignamos al estado
                     if (certResponse.data && certResponse.data.certificado_practicas) {
@@ -67,7 +77,7 @@ function ProcesoFusion() {
         }
         if (user && (user.rol === 'secretaria' || user.rol === 'comision')) {
             // Obtener las inscripciones solo una vez
-            axios.get('http://localhost:5000/api/inscripciones') // Asegúrate de que esta URL sea correcta
+            axios.get(`${apiUrl}/api/inscripciones`) // Asegúrate de que esta URL sea correcta
                 .then((response) => {
                     const inscripcionesData = response.data;
     
@@ -125,7 +135,7 @@ function ProcesoFusion() {
         formData.append('informe', files.informe);
         formData.append('id_estudiante', user.id_estudiante);
 
-        axios.post('http://localhost:5000/api/inscripcion_emision', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+        axios.post(`${apiUrl}/api/inscripcion_emision`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
             .then(() => {
                 alert('Archivos enviados correctamente');
                 setFiles({
@@ -152,7 +162,7 @@ function ProcesoFusion() {
 
     const handleUpdateState = (idInscripcion, estadoSeleccionado) => {
         // Enviar tanto el estado como la respuesta_comision
-        axios.put('http://localhost:5000/api/actualizar_inscripcion', {
+        axios.put(`${apiUrl}/api/actualizar_inscripcion`, {
             id_inscripcion: idInscripcion,
             estado: estadoSeleccionado,
             respuesta_comision: estadoSeleccionado // Usamos el mismo valor para respuesta_comision
@@ -182,7 +192,7 @@ function ProcesoFusion() {
             console.log('Datos de la notificación que se enviarán:', notificationData);
     
             // Hacer el POST para notificar
-            axios.post('http://localhost:5000/api/notificar_inscripciones', notificationData)
+            axios.post(`${apiUrl}/api/notificar_inscripciones`, notificationData)
                 .then((response) => {
                     console.log('Notificación enviada');
                 })
@@ -201,7 +211,7 @@ function ProcesoFusion() {
             alert('Por favor, ingrese un comentario antes de enviar.');
             return;
         }
-        axios.post('http://localhost:5000/api/comentarios', { idInscripcion, comentario })
+        axios.post(`${apiUrl}/api/comentarios`, { idInscripcion, comentario })
             .then(() => {
                 alert('Comentario enviado');
                 setComentarios((prevComentarios) => ({ ...prevComentarios, [idInscripcion]: comentario }));
@@ -222,7 +232,7 @@ function ProcesoFusion() {
         formData.append('id_estudiante', idEstudiante);
         formData.append('correo', correo);
 
-        axios.post('http://localhost:5000/api/certificado', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+        axios.post(`${apiUrl}/api/certificado`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
             .then(() => {
                 alert('Certificado enviado exitosamente');
                 setCertificadoFile(null);  // Limpiar el archivo después de enviar
@@ -294,7 +304,7 @@ function ProcesoFusion() {
                     <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <i className="fas fa-file-pdf" style={{ fontSize: '40px', color: '#ff4c4c' }}></i>
                         <a 
-                            href={`http://localhost:5000/api/descargar/${certificado}`} 
+                            href={`${apiUrl}/api/descargar/${certificado}`} 
                             download 
                             style={{
                                 fontSize: '18px', 
@@ -347,13 +357,13 @@ function ProcesoFusion() {
                         {inscripcion.correo}
                         </td>
                         <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
-                        <a href={`http://localhost:5000/uploads/${inscripcion.solicitud_inscripcion_emision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
+                        <a href={`${apiUrl}/uploads/${inscripcion.solicitud_inscripcion_emision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
                         </td>
                         <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
-                        <a href={`http://localhost:5000/uploads/${inscripcion.ficha_revision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
+                        <a href={`${apiUrl}/uploads/${inscripcion.ficha_revision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
                         </td>
                         <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
-                        <a href={`http://localhost:5000/uploads/${inscripcion.informe_final}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
+                        <a href={`${apiUrl}/uploads/${inscripcion.informe_final}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver</a>
                         </td>
 
                         {/* Estado Proceso - Reducción de tamaño y mejora en legibilidad */}
@@ -486,13 +496,13 @@ function ProcesoFusion() {
                                 <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px', width: '80px' }}>{inscripcion.id_estudiante}</td>
                                 <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>{inscripcion.correo}</td>
                                 <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
-                                    <a href={`http://localhost:5000/uploads/${inscripcion.solicitud_inscripcion_emision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver archivo</a>
+                                    <a href={`${apiUrl}/uploads/${inscripcion.solicitud_inscripcion_emision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver archivo</a>
                                 </td>
                                 <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
-                                    <a href={`http://localhost:5000/uploads/${inscripcion.ficha_revision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver archivo</a>
+                                    <a href={`${apiUrl}/uploads/${inscripcion.ficha_revision}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver archivo</a>
                                 </td>
                                 <td style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd', fontSize: '14px' }}>
-                                    <a href={`http://localhost:5000/uploads/${inscripcion.informe_final}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver archivo</a>
+                                    <a href={`${apiUrl}/uploads/${inscripcion.informe_final}`} target="_blank" style={{ color: '#007bff', fontSize: '14px' }}>Ver archivo</a>
                                 </td>
                                 <td style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
                                     <textarea value={comentarios[inscripcion.id] || ''} onChange={(e) => handleComentarioChange(inscripcion.id, e)} placeholder="Agregar comentario" style={{

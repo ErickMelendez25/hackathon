@@ -13,7 +13,7 @@ import ProcesoFusion from './pages/PracticasPreprofesionales/ProcesoFusion'; // 
 import Admin from './pages/PracticasPreprofesionales/Admin';
 
 // Importar los procesos de admisión desde el archivo de exportación
-import { Proceso1, Proceso2, Proceso3 } from './pages/Admision/ProcesosAdmision'; // Importación única
+import { Administrador, Proceso2, Proceso3 } from './pages/Admision/ProcesosAdmision'; // Importación única
 
 import './styles/Global.css';
 
@@ -75,7 +75,7 @@ function App() {
           <Route path="Convalidacion-experiencialaboral" element={<ProtectedRoute element={<Admin />} />} />
 
           {/* Rutas específicas para 'Admision' con diferentes procesos */}
-          <Route path="proceso-1" element={<ProtectedRoute element={<Proceso1 />} />} />
+          <Route path="proceso-1" element={<ProtectedRoute element={<Administrador />} />} />
           <Route path="proceso-2" element={<ProtectedRoute element={<Proceso2 />} />} />
           <Route path="proceso-3" element={<ProtectedRoute element={<Proceso3 />} />} />
         </Route>
