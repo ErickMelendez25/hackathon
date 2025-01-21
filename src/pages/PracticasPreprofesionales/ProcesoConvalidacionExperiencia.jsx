@@ -117,18 +117,60 @@ const ProcesoConvalidacionExperiencia = () => {
 
       // Crear la cadena de texto separando cada estado en líneas distintas
       return (
-        <div style={{ lineHeight: '1.6', fontFamily: 'Arial, sans-serif' }}>
-          <p><strong>Estado de Solicitud de Inscripción:</strong> {estadoSolicitud}</p>
-          <p><strong>Estado de Inscripción:</strong> {estadoInscripcion}</p>
-          <p><strong>Estado del Informe de Convalidación:</strong> {estadoInforme}</p>
-          <p><strong>Estado de Revisión:</strong> {estadoRevision}</p>
-          <p><strong>Estado de Remitir:</strong> {estadoRemitir}</p>
-          <p><strong>Comentario:</strong></p>
-          <h5>{comentario}</h5>
-          {mensajeAdicional && (
-            <p style={{ color: 'green', fontStyle: 'italic' }}>{mensajeAdicional}</p>
-          )}
-        </div>
+<div style={{ fontFamily: 'Helvetica, Arial, sans-serif', lineHeight: '1.5', color: '#333', marginTop: '20px' }}>
+
+  {/* Párrafos con títulos y subtítulos */}
+  <div style={{ marginBottom: '12px' }}>
+    <p style={{ fontSize: '1rem', fontWeight: '500', marginBottom: '5px' }}>
+      <strong>Estado de Solicitud de Inscripción:</strong>
+      <span style={{ fontWeight: '400', color: '#555' }}> {estadoSolicitud}</span>
+    </p>
+  </div>
+
+  <div style={{ marginBottom: '12px' }}>
+    <p style={{ fontSize: '1rem', fontWeight: '500', marginBottom: '5px' }}>
+      <strong>Estado de Inscripción:</strong>
+      <span style={{ fontWeight: '400', color: '#555' }}> {estadoInscripcion}</span>
+    </p>
+  </div>
+
+  <div style={{ marginBottom: '12px' }}>
+    <p style={{ fontSize: '1rem', fontWeight: '500', marginBottom: '5px' }}>
+      <strong>Estado del Informe de Convalidación:</strong>
+      <span style={{ fontWeight: '400', color: '#555' }}> {estadoInforme}</span>
+    </p>
+  </div>
+
+  <div style={{ marginBottom: '12px' }}>
+    <p style={{ fontSize: '1rem', fontWeight: '500', marginBottom: '5px' }}>
+      <strong>Estado de Revisión:</strong>
+      <span style={{ fontWeight: '400', color: '#555' }}> {estadoRevision}</span>
+    </p>
+  </div>
+
+  <div style={{ marginBottom: '12px' }}>
+    <p style={{ fontSize: '1rem', fontWeight: '500', marginBottom: '5px' }}>
+      <strong>Estado de Remitir:</strong>
+      <span style={{ fontWeight: '400', color: '#555' }}> {estadoRemitir}</span>
+    </p>
+  </div>
+
+  {/* Comentario con estilo destacado */}
+  <div style={{ marginBottom: '20px' }}>
+    <p style={{ fontSize: '1rem', fontWeight: '500', marginBottom: '5px' }}>
+      <strong>Comentario:</strong>
+    </p>
+    <h5 style={{ fontSize: '1.1rem', color: '#333', fontWeight: '400', marginTop: '5px' }}>{comentario}</h5>
+  </div>
+
+  {/* Mensaje adicional (si existe) */}
+  {mensajeAdicional && (
+    <div style={{ marginTop: '15px' }}>
+      <p style={{ fontStyle: 'italic', color: 'green', fontSize: '1rem' }}>{mensajeAdicional}</p>
+    </div>
+  )}
+</div>
+
       );
     }
     return "No se encontraron datos de convalidación para este estudiante.";
@@ -648,65 +690,73 @@ const ProcesoConvalidacionExperiencia = () => {
     const estudiante = convalidaciones.find((item) => item.id_estudiante === user.id_estudiante);
   
     return (
-      <div>
-      <h3>Formulario de Convalidación de Prácticas</h3>
-
-      {/* Formulario para cargar los archivos de inscripción */}
-      <form onSubmit={handleEnviarEstudiante}>
-        <label>Solicitud de Inscripción:</label>
-        <input
-          type="file"
-          name="solicitudInscripcion"
-          onChange={handleFileChange}
-          required
-        />
-        <br />
-        <label>Plan de Convalidación:</label>
-        <input
-          type="file"
-          name="planConvalidacion"
-          onChange={handleFileChange}
-          required
-        />
-        <br />
-        <button type="submit">Enviar</button>
-      </form>
-
-      {/* Mostrar los campos adicionales solo si los estados son Aprobados */}
-      {estudiante && estudiante.estado_solicitud_inscripcion === 'Aprobado' && estudiante.estado_plan_convalidacion === 'Aprobado' && (
-        <>
-          <h4>Archivos Adicionales</h4>
-          <form onSubmit={handleEnviarEstudiante}>
-            <label>Informe de Convalidación:</label>
-            <input
-              type="file"
-              name="informeConvalidacion"
-              onChange={handleFileChange}
-            />
-            <br />
-            <label>Solicitud de Revisión:</label>
-            <input
-              type="file"
-              name="solicitudRevision"
-              onChange={handleFileChange}
-            />
-            <br />
-            <button type="submit">Enviar Archivos Adicionales</button>
-          </form>
-        </>
-      )}
-
-      {/* Mostrar las notificaciones del estudiante */}
-      <div>
-        <h3>Notificaciones</h3>
-        <div>
-          {/* Mostrar la cadena generada */}
-          <strong>{generarNotificacion()}</strong>
+      <div style={{ padding: '20px', overflowX: 'auto' }}>
+        <h3>Formulario de Convalidación de Prácticas</h3>
+  
+        {/* Contenedor con el Formulario y Notificaciones */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px' }}>
+  
+          {/* Formulario de Convalidación */}
+          <div style={{ flex: 1, backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+            <form onSubmit={handleEnviarEstudiante}>
+              <label>Solicitud de Inscripción:</label>
+              <input
+                type="file"
+                name="solicitudInscripcion"
+                onChange={handleFileChange}
+                required
+              />
+              <br />
+              <label>Plan de Convalidación:</label>
+              <input
+                type="file"
+                name="planConvalidacion"
+                onChange={handleFileChange}
+                required
+              />
+              <br />
+              <button type="submit">Enviar</button>
+            </form>
+  
+            {/* Mostrar los campos adicionales solo si los estados son Aprobados */}
+            {estudiante && estudiante.estado_solicitud_inscripcion === 'Aprobado' && estudiante.estado_plan_convalidacion === 'Aprobado' && (
+              <>
+                <h4>Archivos Adicionales</h4>
+                <form onSubmit={handleEnviarEstudiante}>
+                  <label>Informe de Convalidación:</label>
+                  <input
+                    type="file"
+                    name="informeConvalidacion"
+                    onChange={handleFileChange}
+                  />
+                  <br />
+                  <label>Solicitud de Revisión:</label>
+                  <input
+                    type="file"
+                    name="solicitudRevision"
+                    onChange={handleFileChange}
+                  />
+                  <br />
+                  <button type="submit">Enviar Archivos Adicionales</button>
+                </form>
+              </>
+            )}
+          </div>
+  
+          {/* Contenedor con Notificaciones */}
+          <div style={{ flex: '0 0 300px', backgroundColor: '#f4f4f9', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+            {/* Sección de Notificaciones */}
+            <h3>Notificaciones</h3>
+            <div>
+              {/* Mostrar la cadena generada */}
+              <strong>{generarNotificacion()}</strong>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
+  
 
   // Vista Secretaria
   const renderSecretaria = () => {

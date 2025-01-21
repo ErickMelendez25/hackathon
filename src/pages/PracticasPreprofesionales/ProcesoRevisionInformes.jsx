@@ -769,6 +769,8 @@ function ProcesoRevisionInformes() {
       alert('Hubo un error al enviar la notificación. Intenta nuevamente.');
     }
   };
+
+ 
   
   
   
@@ -780,30 +782,108 @@ function ProcesoRevisionInformes() {
 
     return (
     <div>
-      {/* Vista Estudiante */}
-      {userRole === 'estudiante' && (
-        <div>
-          <h3>Informe de Avance</h3>
-          <form onSubmit={handleSubmitAvance}>
-            <label>Informe de Avance:</label>
-            <input type="file" name="avance" onChange={handleFileChange} required />
+{userRole === 'estudiante' && (
+  <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
+    <h3 style={{ fontSize: '1.8rem', color: '#333', fontWeight: '500' }}>Informe de Avance</h3>
+
+    {/* Contenedor con el Formulario y Notificaciones */}
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginTop: '20px' }}>
+
+      {/* Formulario de Informe de Avance */}
+      <div style={{ flex: 1, backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', minWidth: '320px' }}>
+        <form onSubmit={handleSubmitAvance}>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ fontSize: '1rem', color: '#555' }}>Informe de Avance:</label>
+            <input
+              type="file"
+              name="avance"
+              onChange={handleFileChange}
+              required
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ fontSize: '1rem', color: '#555' }}>Seleccionar Asesor:</label>
+            <select
+              value={selectedAsesor}
+              onChange={(e) => setSelectedAsesor(e.target.value)}
+              required
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+            >
+              <option value="">Seleccionar Asesor</option>
+              {asesores.map((asesor) => (
+                <option key={asesor.id} value={asesor.id}>
+                  {asesor.dni} - {asesor.nombre_asesor} {asesor.apellido_paterno} {asesor.apellido_materno}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            style={{
+              backgroundColor: '#007bff',
+              color: '#fff',
+              border: 'none',
+              padding: '10px 18px',
+              borderRadius: '4px',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              width: '100%',
+              transition: 'background-color 0.3s',
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
+          >
+            Enviar Informe de Avance
+          </button>
+        </form>
+
+        {/* Mostrar formulario para enviar informe final solo si el estado de informe de avance es aprobado */}
+        {notificaciones.length > 0 && notificaciones[0].mensaje.includes('El estado de su informe de avance es: Aprobado') && (
+          <div style={{ marginTop: '30px' }}>
+            <h3 style={{ fontSize: '1.4rem', color: '#333' }}>Informe Final</h3>
+            <form onSubmit={handleSubmitInformeFinal}>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ fontSize: '1rem', color: '#555' }}>Informe Final:</label>
+                <input
+                  type="file"
+                  name="final"
+                  onChange={handleFileChange}
+                  required
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              <button
+                type="submit"
+                style={{
+                  backgroundColor: '#007bff',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '10px 18px',
+                  borderRadius: '4px',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  width: '100%',
+                  transition: 'background-color 0.3s',
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
+              >
+                Enviar Informe Final
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+
+      {/* Contenedor de Notificaciones */}
+      <div style={{ flex: '0 0 320px', backgroundColor: '#f4f4f9', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', minWidth: '280px' }}>
+        <h3 style={{ fontSize: '1.5rem', color: '#333', fontWeight: '500' }}>Notificaciones</h3>
+        <div style={{ fontSize: '1rem', color: '#555' }}>
+          {notificaciones.length > 0 ? (
             <div>
-              <label>Seleccionar Asesor:</label>
-              <select value={selectedAsesor} onChange={(e) => setSelectedAsesor(e.target.value)} required>
-                <option value="">Seleccionar Asesor</option>
-                {asesores.map((asesor) => (
-                  <option key={asesor.id} value={asesor.id}>
-                    {asesor.dni} - {asesor.nombre} {asesor.apellido}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button type="submit">Enviar Informe de Avance</button>
-          </form>
-          <h3>Notificaciones</h3>
-          <div>
-            {notificaciones.length > 0 ? (
-              <div>
               {/* Mostrar solo el mensaje de la última actualización */}
               <strong>{notificaciones[0].mensaje}</strong><br />
               {isNaN(new Date(notificaciones[0].fecha)) ? (
@@ -812,24 +892,15 @@ function ProcesoRevisionInformes() {
                 <em>{new Date(notificaciones[0].fecha).toLocaleString()}</em>
               )}
             </div>
-            ) : (
-              <p>No tienes notificaciones.</p>
-            )}
-          </div>
-        {/* Mostrar formulario para enviar informe final solo si el estado de informe de avance es aprobado */}
-        {notificaciones.length > 0 && 
-          notificaciones[0].mensaje.includes('El estado de su informe de avance es: Aprobado') && (
-            <div>
-              <h3>Informe Final</h3>
-              <form onSubmit={handleSubmitInformeFinal}>
-                <label>Informe Final:</label>
-                <input type="file" name="final" onChange={handleFileChange} required />
-                <button type="submit">Enviar Informe Final</button>
-              </form>
-            </div>
+          ) : (
+            <p>No tienes notificaciones.</p>
           )}
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* Vista Asesor */}
       {userRole === 'asesor' && (
