@@ -70,7 +70,7 @@ function ProcesoRevisionInformes() {
   ? 'https://gestioncalidaduncp-production.up.railway.app' 
   : 'http://localhost:5000';
 
-s
+
 
   //aqui se cambio..................................
 
