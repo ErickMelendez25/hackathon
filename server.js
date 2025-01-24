@@ -29,9 +29,9 @@
 
     // Configura CORS para permitir solicitudes solo desde tu frontend
   const corsOptions = {
-    origin: 'https://gestioncalidaduncp-production.up.railway.app/', // Dominio de tu frontend
+    origin: 'https://gestioncalidaduncp-production.up.railway.app', // Permitir solo solicitudes desde este dominio
     methods: 'GET, POST, PUT, DELETE', // Métodos permitidos
-    allowedHeaders: 'Content-Type, Authorization', // Headers permitidos
+    allowedHeaders: 'Content-Type, Authorization', // Encabezados permitidos
   };
 
   // Aplica la configuración de CORS
