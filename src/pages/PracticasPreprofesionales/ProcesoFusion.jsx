@@ -22,7 +22,7 @@ function ProcesoFusion() {
 
       // Determinamos la URL de la API dependiendo del entorno
     const apiUrl = process.env.NODE_ENV === 'production' 
-    ? 'https://practicasuniversidad-production.up.railway.app' 
+    ? 'https://gestioncalidaduncp-production.up.railway.app' 
     : 'http://localhost:5000';
 
 
