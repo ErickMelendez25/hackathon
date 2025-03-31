@@ -152,8 +152,10 @@ function DashboardHeader() {
       <div className="header-center">
         {decodedTitle ? (
           <h1 className={titleVisible ? 'title-animate' : ''}>
-            {decodedTitle.toUpperCase()}
+            {decodedTitle && decodedTitle.trim() ? decodedTitle.toUpperCase() : 'Título no disponible'}
           </h1>
+
+
         ) : (
           isDashboard && (
             <div className="navbar-container">
