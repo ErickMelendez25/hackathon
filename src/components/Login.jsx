@@ -22,6 +22,7 @@ const Login = () => {
       const apiUrl = process.env.NODE_ENV === 'production' 
       ? 'https://sateliterrreno-production.up.railway.app/login' 
       : 'http://localhost:5000/login';
+    
 
       console.log("API URL:", apiUrl);  // Verifica si la URL es correcta
 
