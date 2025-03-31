@@ -77,7 +77,7 @@ function DashboardHeader() {
     useEffect(() => {
       const fetchEstudiantes = async () => {
         try {
-          const response = await axios.get('http://localhost:5000/api/estudiantes');
+          const response = await axios.get('https://sateliterrreno-production.up.railway.app/api/estudiantes');
           console.log("Estudiantes recibidos: ", response.data);  // Verifica que los estudiantes están bien cargados
           setEstudiantes(response.data);
         } catch (error) {
@@ -100,7 +100,7 @@ function DashboardHeader() {
     useEffect(() => {
       const fetchAsesores = async () => {
         try {
-          const response = await axios.get('http://localhost:5000/api/asesores');
+          const response = await axios.get('https://sateliterrreno-production.up.railway.app/api/asesores');
           console.log("Asesores recibidos: ", response.data);  // Verifica que los estudiantes están bien cargados
           setAsesores(response.data);
         } catch (error) {
@@ -119,7 +119,7 @@ function DashboardHeader() {
     useEffect(() => {
       const fetchRevisores = async () => {
         try {
-          const response = await axios.get('http://localhost:5000/api/revisores');
+          const response = await axios.get('https://sateliterrreno-production.up.railway.app/api/revisores');
           console.log("Revisores recibidos: ", response.data);  // Verifica que los estudiantes están bien cargados
           setRevisores(response.data);
         } catch (error) {
