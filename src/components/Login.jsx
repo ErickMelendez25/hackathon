@@ -23,6 +23,8 @@ const Login = () => {
       ? 'https://sateliterrreno-production.up.railway.app/login' 
       : 'http://localhost:5000/login';
 
+      console.log("API URL:", apiUrl);  // Verifica si la URL es correcta
+
       const response = await axios.post(apiUrl, {
         correo: username,
         password: password,

@@ -29,9 +29,9 @@
 
     // Configura CORS para permitir solicitudes solo desde tu frontend
   const corsOptions = {
-    origin: ['https://sateliterrreno-production.up.railway.app', 'http://localhost:5000'],
-    methods: 'GET, POST, PUT, DELETE', // Asegúrate de permitir el método POST
-    allowedHeaders: 'Content-Type, Authorization', // Asegúrate de que los encabezados estén permitidos
+    origin: '*',  // Permite cualquier origen (esto es solo para depuración)
+    methods: 'GET, POST, PUT, DELETE',
+    allowedHeaders: 'Content-Type, Authorization',
   };
   
   app.use(cors(corsOptions));
