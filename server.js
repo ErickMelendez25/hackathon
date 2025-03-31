@@ -29,17 +29,12 @@
 
     // Configura CORS para permitir solicitudes solo desde tu frontend
   const corsOptions = {
-    origin: 'https://gestioncalidaduncp-production.up.railway.app', // Permitir solo solicitudes desde este dominio
-    methods: 'GET, POST, PUT, DELETE', // Métodos permitidos
-    allowedHeaders: 'Content-Type, Authorization', // Encabezados permitidos
+    origin: ['https://sateliterreno-production.up.railway.app', 'http://localhost:5000'],
+    methods: 'GET, POST, PUT, DELETE', // Asegúrate de permitir el método POST
+    allowedHeaders: 'Content-Type, Authorization', // Asegúrate de que los encabezados estén permitidos
   };
-
-  // Aplica la configuración de CORS
-  app.use(cors(corsOptions));
-
-
   
-
+  app.use(cors(corsOptions));
   app.use(express.json());
  //PARA ENVIAR GMAIL
   // Usamos body-parser para obtener los datos del cuerpo de la solicitud

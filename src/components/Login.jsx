@@ -40,7 +40,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <form className="login-form" onSubmit={handleLogin}>
-        <h2>Bienvenidos al Sistema De Gestión de la Calidad</h2>
+        <h2>Bienvenidos al Sistema De Gestión de la Calidad 222</h2>
         
         <div>
           <label htmlFor="username">Correo</label>
