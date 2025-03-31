@@ -213,9 +213,9 @@
                 });
             } else {
                 // Si no es ni revisor ni asesor, solo obtenemos el id del estudiante
-                db.query('SELECT id FROM estudiantes WHERE correo = ?', [user.correo], (err, studentResult) => {
+                db.query('SELECT id FROM usuarios WHERE correo = ?', [user.correo], (err, studentResult) => {
                     if (err) {
-                        console.error('Error al consultar el estudiante:', err);
+                        console.error('Error al consultar el usuario:', err);
                         return res.status(500).json({ message: 'Error en el servidor' });
                     }
 
