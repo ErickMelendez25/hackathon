@@ -20,7 +20,7 @@ const Login = () => {
 
       // Verifica si estás en producción (Railway) o en desarrollo (localhost)
       const apiUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://gestioncalidaduncp-production.up.railway.app/login' 
+      ? 'https://sateliterrreno-production.up.railway.app/login' 
       : 'http://localhost:5000/login';
 
       const response = await axios.post(apiUrl, {
