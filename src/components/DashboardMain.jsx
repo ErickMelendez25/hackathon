@@ -53,7 +53,7 @@ const DashboardMain = () => {
 
   // Obtener los usuarios desde la API
   useEffect(() => {
-    axios.get(`${apiUrl}/api/usuarios`)
+    axios.get(`${apiUrl}/api/usuarios`) // Comillas invertidas corregidas
       .then((response) => {
         setUsuarios(response.data);
       })
@@ -64,9 +64,8 @@ const DashboardMain = () => {
 
   // Obtener terrenos desde la API basados en la categoría
   useEffect(() => {
-    // Siempre que la lista de terrenos cambie, la vista se actualizará
     if (categoria === 'terrenos') {
-      axios.get(`${apiUrl}/api/terrenos`)
+      axios.get(`${apiUrl}/api/terrenos`) // Comillas invertidas corregidas
         .then((response) => {
           setTerrenos(response.data);
           setLoading(false);
@@ -78,7 +77,7 @@ const DashboardMain = () => {
     } else {
       setTerrenos([]);
     }
-  }, [categoria]); // Sigue dependiendo de la categoría, pero ahora el estado de los terrenos también se actualizará tras crear un terreno.
+  }, [categoria]);// Sigue dependiendo de la categoría, pero ahora el estado de los terrenos también se actualizará tras crear un terreno.
   
 
   const getUsuarioDetails = (usuarioId) => {
@@ -137,7 +136,7 @@ const DashboardMain = () => {
     console.log('Datos enviados al servidor:', newTerreno);
   
     try {
-      const response = await fetch('https://sateliterrreno-production.up.railway.app//api/Createterrenos', {
+      const response = await fetch('https://sateliterrreno-production.up.railway.app/api/Createterrenos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
