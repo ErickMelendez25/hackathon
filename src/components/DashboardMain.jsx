@@ -9,7 +9,9 @@ const DashboardMain = () => {
   const [editMode, setEditMode] = useState(false);
 
   const [usuarioLocal, setUsuarioLocal] = useState(null);
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const apiUrl = process.env.NODE_ENV === 'production' 
+  ? 'https://sateliterrreno-production.up.railway.app' 
+  : 'http://localhost:5000';
 
 
   const { categoria } = useParams();
@@ -135,7 +137,7 @@ const DashboardMain = () => {
     console.log('Datos enviados al servidor:', newTerreno);
   
     try {
-      const response = await fetch('http://localhost:5000/api/Createterrenos', {
+      const response = await fetch('https://sateliterrreno-production.up.railway.app//api/Createterrenos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
