@@ -2227,6 +2227,146 @@ app.put('/api/actualizacion_informe', (req, res) => {
   });
 
 
+  ///////PRYECTO DE SATELIRTERRRENOON////
+  app.get('/api/usuarios', async (req, res) => {
+    let connection;
+    try {
+      connection = await db.getConnection();
+      const [rows] = await connection.execute('SELECT * FROM usuarios');
+      res.json(rows);  // Aquí se debería devolver JSON
+    } catch (error) {
+      console.error('Error al obtener usuarios:', error);
+      res.status(500).json({ message: 'Error al obtener usuarios', error: error.message });  
+    } finally {
+      if (connection) connection.release();
+    }
+  });
+  
+  
+  
+  
+  
+  
+  
+  
+  // Rutas para obtener los datos
+  app.get('/api/terrenos', async (req, res) => {
+    let connection;
+    try {
+      connection = await db.getConnection();
+  
+      const [rows] = await connection.execute('SELECT * FROM terrenos WHERE estado = "disponible"');
+      res.json(rows);
+    } catch (error) {
+      console.error('Error al obtener terrenos:', error);
+      res.status(500).json({ message: 'Error en el servidor' });
+    } finally {
+      if (connection) connection.release();
+    }
+  });
+  
+  // Ruta para obtener los detalles de un terreno por ID
+  app.get('/api/terrenos/:id', async (req, res) => {
+    const { id } = req.params;
+    let connection;
+    try {
+      connection = await db.getConnection();
+  
+      const [rows] = await connection.execute('SELECT * FROM terrenos WHERE id = ?', [id]);
+  
+      if (rows.length === 0) {
+        return res.status(404).json({ message: 'Terreno no encontrado' });
+      }
+  
+      res.json(rows[0]); // Devuelve el terreno específico
+    } catch (error) {
+      console.error('Error al obtener el terreno:', error);
+      res.status(500).json({ message: 'Error en el servidor' });
+    } finally {
+      if (connection) connection.release();
+    }
+  });
+  
+  
+  
+  
+  
+  
+  // Ruta para obtener un usuario por ID
+  app.get('/api/usuarios/:id', async (req, res) => {
+    const { id } = req.params;
+    let connection;
+    try {
+      connection = await db.getConnection();
+  
+      const [rows] = await connection.execute('SELECT * FROM usuarios WHERE id = ?', [id]);
+  
+      if (rows.length === 0) {
+        return res.status(404).json({ message: 'Usuario no encontrado' });
+      }
+  
+      res.json(rows[0]); // Devuelve el usuario específico
+    } catch (error) {
+      console.error('Error al obtener el usuario:', error);
+      res.status(500).json({ message: 'Error en el servidor' });
+    } finally {
+      if (connection) connection.release();
+    }
+  });
+  
+  
+  app.get('/api/favoritos', async (req, res) => {
+    let connection;
+    try {
+      connection = await db.getConnection();
+  
+      const [rows] = await connection.execute('SELECT * FROM favoritos');
+      res.json(rows);
+    } catch (error) {
+      console.error('Error al obtener favoritos:', error);
+      res.status(500).json({ message: 'Error en el servidor' });
+    } finally {
+      if (connection) connection.release();
+    }
+  });
+  
+  app.post('/api/Createterrenos', async (req, res) => {
+    let connection;
+    try {
+      const { titulo, descripcion, precio, ubicacion_lat, ubicacion_lon, metros_cuadrados, imagenes, estado, usuario_id } = req.body;
+  
+      // Verificar si faltan datos
+      if (!titulo || !descripcion || !precio || !ubicacion_lat || !ubicacion_lon || !metros_cuadrados || !imagenes || !estado || !usuario_id) {
+        console.error('Faltan campos en el formulario:', req.body);  // Log de lo que se recibe
+        return res.status(400).json({ message: 'Todos los campos son requeridos' });
+      }
+  
+      console.log('Datos recibidos:', req.body); // Log de los datos recibidos
+  
+      // Crear una nueva entrada en la base de datos
+      connection = await db.getConnection();
+  
+      const [result] = await connection.execute(
+        'INSERT INTO terrenos (titulo, descripcion, precio, ubicacion_lat, ubicacion_lon, metros_cuadrados, imagenes, estado, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [titulo, descripcion, precio, ubicacion_lat, ubicacion_lon, metros_cuadrados, imagenes, estado, usuario_id]
+      );
+  
+      console.log('Resultado de la inserción:', result);  // Log del resultado de la inserción
+  
+      // Respuesta exitosa
+      res.status(201).json({
+        message: 'Terreno creado exitosamente',
+        terrenoId: result.insertId,
+      });
+    } catch (error) {
+      console.error('Error al crear el terreno:', error);  // Log del error
+      res.status(500).json({ message: 'Error en el servidor' });
+    } finally {
+      if (connection) connection.release();
+    }
+  });
+  
+
 
   
   
