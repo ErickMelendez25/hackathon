@@ -65,7 +65,7 @@ const DashboardMain = () => {
   // Obtener terrenos desde la API basados en la categoría
   useEffect(() => {
     if (categoria === 'terrenos') {
-      axios.get(`${apiUrl}/api/terrenos`) // Comillas invertidas corregidas
+      axios.get(`${apiUrl}/api/terrenos`) 
         .then((response) => {
           setTerrenos(response.data);
           setLoading(false);
@@ -620,7 +620,10 @@ const DashboardMain = () => {
     </div>
   );
 
-  return usuarioLocal && usuarioLocal.tipo === 'admin' ? renderAdminView() : renderCompradorView();
+  return renderCompradorView();
+
+
+  //return usuarioLocal && usuarioLocal.tipo === 'admin' ? renderAdminView() : renderCompradorView();
 };
 
 export default DashboardMain;

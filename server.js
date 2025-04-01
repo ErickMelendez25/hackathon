@@ -1483,16 +1483,7 @@ app.put('/api/actualizacion_informe', (req, res) => {
   ////ADMINISTRADO VISTA DEL ADMIN------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
 
-  // Obtener todos los usuarios
-  app.get('/api/usuarios', (req, res) => {
-    const query = 'SELECT id, correo, rol, fecha_creacion FROM usuarios';
-    db.query(query, (err, results) => {
-      if (err) {
-        return res.status(500).json({ error: 'Error al obtener los usuarios' });
-      }
-      res.json(results);
-    });
-  });
+
 
   // Crear un nuevo usuario
   app.post('/api/crear_usuario', async (req, res) => {
