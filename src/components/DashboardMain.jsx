@@ -52,32 +52,46 @@ const DashboardMain = () => {
   }, [usuarios]);
 
   // Obtener los usuarios desde la API
-  useEffect(() => {
-    axios.get(`${apiUrl}/api/usuarios`) // Comillas invertidas corregidas
-      .then((response) => {
-        setUsuarios(response.data);
-      })
-      .catch((error) => {
-        console.error('Error al obtener usuarios:', error);
-      });
-  }, []);
+// Obtener los usuarios desde la API
+useEffect(() => {
+  const token = localStorage.getItem('authToken');
+  axios.get(`${apiUrl}/api/usuarios`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  .then((response) => {
+    setUsuarios(response.data);
+  })
+  .catch((error) => {
+    console.error('Error al obtener usuarios:', error);
+  });
+}, []);
+
 
   // Obtener terrenos desde la API basados en la categoría
-  useEffect(() => {
-    if (categoria === 'terrenos') {
-      axios.get(`${apiUrl}/api/terrenos`) 
-        .then((response) => {
-          setTerrenos(response.data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error('Error al obtener terrenos:', error);
-          setLoading(false);
-        });
-    } else {
-      setTerrenos([]);
-    }
-  }, [categoria]);// Sigue dependiendo de la categoría, pero ahora el estado de los terrenos también se actualizará tras crear un terreno.
+// Obtener terrenos desde la API basados en la categoría
+useEffect(() => {
+  if (categoria === 'terrenos') {
+    const token = localStorage.getItem('authToken');
+    axios.get(`${apiUrl}/api/terrenos`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response) => {
+      setTerrenos(response.data);
+      setLoading(false);
+    })
+    .catch((error) => {
+      console.error('Error al obtener terrenos:', error);
+      setLoading(false);
+    });
+  } else {
+    setTerrenos([]);
+  }
+}, [categoria]);
+// Sigue dependiendo de la categoría, pero ahora el estado de los terrenos también se actualizará tras crear un terreno.
   
 
   const getUsuarioDetails = (usuarioId) => {
