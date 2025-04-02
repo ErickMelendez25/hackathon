@@ -19,7 +19,7 @@ const __dirname = path.resolve();  // Obtener la ruta del directorio actual (cor
 
 // Configura CORS para permitir solicitudes solo desde tu frontend
 const corsOptions = {
-  origin: ['https://sateliterrreno-production.up.railway.app', 'http://localhost:5000'],
+  origin: ['https://sateliterreno-production.up.railway.app', 'http://localhost:5000'],
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
 };
@@ -75,23 +75,6 @@ const generateToken = (user) => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });  // Usar la variable de entorno para la clave secreta
 };
 
-
-
-db.on('error', (err) => {
-  console.error('Error en el pool de conexiones:', err);
-  if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-    // Reconectar si la conexión se pierde
-    db.getConnection((err, connection) => {
-      if (err) {
-        console.error('Error al reconectar:', err);
-      } else {
-        console.log('Reconexión exitosa');
-        connection.release();
-      }
-    });
-  }
-});
-
 // Middleware para verificar el token de autenticación
 const verificarToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];  // Obtenemos el token del header
@@ -108,7 +91,6 @@ const verificarToken = (req, res, next) => {
     next();
   });
 };
-
 
 // Ruta de login
 app.post('/login', (req, res) => {
@@ -237,14 +219,12 @@ app.get('/api/terrenos', verificarToken, async (req, res) => {
   }
 });
 
-
 // Ruta para obtener los detalles de un terreno por ID
 app.get('/api/terrenos/:id', async (req, res) => {
   const { id } = req.params;
   let connection;
   try {
     connection = await db.getConnection();
-
     const [rows] = await connection.execute('SELECT * FROM terrenos WHERE id = ?', [id]);
 
     if (rows.length === 0) {
@@ -260,12 +240,12 @@ app.get('/api/terrenos/:id', async (req, res) => {
   }
 });
 
-// Si usas React, por ejemplo
+// Para cualquier otra ruta, servir el index.html
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Para cualquier otra ra, servir el index.html
+// Ruta principal
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 app.listen(port, () => {
