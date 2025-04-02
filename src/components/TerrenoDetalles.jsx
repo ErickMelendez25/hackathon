@@ -8,7 +8,10 @@ const TerrenoDetalles = () => {
   const [terreno, setTerreno] = useState(null);
   const [vendedorNombre, setVendedorNombre] = useState('');
   const [loading, setLoading] = useState(true);
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    // Verifica si estás en producción (Railway) o en desarrollo (localhost)
+    const apiUrl = process.env.NODE_ENV === 'production' 
+    ? 'https://sateliterrreno-production.up.railway.app' 
+    : 'http://localhost:5000';
 
   useEffect(() => {
     // Obtener detalles del terreno

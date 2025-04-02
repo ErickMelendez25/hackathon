@@ -239,6 +239,28 @@ app.get('/api/terrenos', authenticateToken, async (req, res) => {
 });
 
 
+// Ruta para obtener los detalles de un terreno por ID
+app.get('/api/terrenos/:id', async (req, res) => {
+  const { id } = req.params;
+  let connection;
+  try {
+    connection = await db.getConnection();
+
+    const [rows] = await connection.execute('SELECT * FROM terrenos WHERE id = ?', [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Terreno no encontrado' });
+    }
+
+    res.json(rows[0]); // Devuelve el terreno específico
+  } catch (error) {
+    console.error('Error al obtener el terreno:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
 // Si usas React, por ejemplo
 app.use(express.static(path.join(__dirname, 'dist')));
 
