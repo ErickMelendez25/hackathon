@@ -92,19 +92,20 @@ db.on('error', (err) => {
   }
 });
 
-const authenticateToken = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // Extraer el token del header Authorization
+// Middleware para verificar el token de autenticación
+const verificarToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1];  // Obtenemos el token del header
 
   if (!token) {
-    return res.status(403).json({ message: 'No se proporcionó token de autorización' });
+    return res.status(403).json({ message: 'Token no proporcionado' });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(403).json({ message: 'Token no válido' });
     }
-    req.user = user;
-    next(); // Pasar al siguiente middleware o ruta
+    req.user = decoded;  // Agregamos los datos del usuario decodificados
+    next();
   });
 };
 
@@ -207,13 +208,12 @@ app.post('/login', (req, res) => {
   });
 });
 
-// Rutas de usuarios y terrenos
-app.get('/api/usuarios', authenticateToken, async (req, res) => {
+// Rutas de usuarios y terrenos con autorización
+app.get('/api/usuarios', verificarToken, async (req, res) => {
   let connection;
   try {
     connection = await db.getConnection();
     const [rows] = await connection.execute('SELECT * FROM usuarios');
-    console.log('Usuarios:', rows); // Verifica qué datos devuelve la consulta
     res.json(rows);
   } catch (error) {
     console.error('Error al obtener usuarios:', error);
@@ -223,16 +223,15 @@ app.get('/api/usuarios', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/api/terrenos', authenticateToken, async (req, res) => {
+app.get('/api/terrenos', verificarToken, async (req, res) => {
   let connection;
   try {
     connection = await db.getConnection();
     const [rows] = await connection.execute('SELECT * FROM terrenos WHERE estado = "disponible"');
-    console.log('Terrenos:', rows); // Verifica qué datos devuelve la consulta
     res.json(rows);
   } catch (error) {
     console.error('Error al obtener terrenos:', error);
-    res.status(500).json({ message: 'Error en el servidor', error: error.message });
+    res.status(500).json({ message: 'Error en el servidor' });
   } finally {
     if (connection) connection.release();
   }
