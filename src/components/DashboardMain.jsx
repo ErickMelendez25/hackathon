@@ -52,47 +52,44 @@ const DashboardMain = () => {
   }, [usuarios]);
 
   // Obtener los usuarios desde la API
-// Obtener los usuarios desde la API
-useEffect(() => {
-  const token = localStorage.getItem('authToken');
-  axios.get(`${apiUrl}/api/usuarios`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-  .then((response) => {
-    setUsuarios(response.data);
-  })
-  .catch((error) => {
-    console.error('Error al obtener usuarios:', error);
-  });
-}, []);
-
-
-  // Obtener terrenos desde la API basados en la categoría
-// Obtener terrenos desde la API basados en la categoría
-useEffect(() => {
-  if (categoria === 'terrenos') {
+  // Obtener los usuarios desde la API
+  useEffect(() => {
     const token = localStorage.getItem('authToken');
-    axios.get(`${apiUrl}/api/terrenos`, {
+    axios.get(`${apiUrl}/api/usuarios`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     })
     .then((response) => {
-      setTerrenos(response.data);
-      setLoading(false);
+      setUsuarios(response.data);
     })
     .catch((error) => {
-      console.error('Error al obtener terrenos:', error);
-      setLoading(false);
+      console.error('Error al obtener usuarios:', error.response?.data || error.message);
     });
-  } else {
-    setTerrenos([]);
-  }
-}, [categoria]);
-// Sigue dependiendo de la categoría, pero ahora el estado de los terrenos también se actualizará tras crear un terreno.
-  
+  }, []);
+
+  // Obtener terrenos desde la API
+  useEffect(() => {
+    if (categoria === 'terrenos') {
+      const token = localStorage.getItem('authToken');
+      axios.get(`${apiUrl}/api/terrenos`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        setTerrenos(response.data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Error al obtener terrenos:', error.response?.data || error.message);
+        setLoading(false);
+      });
+    } else {
+      setTerrenos([]);
+    }
+  }, [categoria]);
+
 
   const getUsuarioDetails = (usuarioId) => {
     const usuario = usuarios.find(user => user.id === usuarioId);

@@ -75,6 +75,8 @@ const generateToken = (user) => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });  // Usar la variable de entorno para la clave secreta
 };
 
+
+
 db.on('error', (err) => {
   console.error('Error en el pool de conexiones:', err);
   if (err.code === 'PROTOCOL_CONNECTION_LOST') {
@@ -89,6 +91,23 @@ db.on('error', (err) => {
     });
   }
 });
+
+const authenticateToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // Extraer el token del header Authorization
+
+  if (!token) {
+    return res.status(403).json({ message: 'No se proporcionó token de autorización' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Token no válido' });
+    }
+    req.user = user;
+    next(); // Pasar al siguiente middleware o ruta
+  });
+};
+
 
 // Ruta de login
 app.post('/login', (req, res) => {
@@ -189,11 +208,12 @@ app.post('/login', (req, res) => {
 });
 
 // Rutas de usuarios y terrenos
-app.get('/api/usuarios', async (req, res) => {
+app.get('/api/usuarios', authenticateToken, async (req, res) => {
   let connection;
   try {
     connection = await db.getConnection();
     const [rows] = await connection.execute('SELECT * FROM usuarios');
+    console.log('Usuarios:', rows); // Verifica qué datos devuelve la consulta
     res.json(rows);
   } catch (error) {
     console.error('Error al obtener usuarios:', error);
@@ -203,19 +223,21 @@ app.get('/api/usuarios', async (req, res) => {
   }
 });
 
-app.get('/api/terrenos', async (req, res) => {
+app.get('/api/terrenos', authenticateToken, async (req, res) => {
   let connection;
   try {
     connection = await db.getConnection();
     const [rows] = await connection.execute('SELECT * FROM terrenos WHERE estado = "disponible"');
+    console.log('Terrenos:', rows); // Verifica qué datos devuelve la consulta
     res.json(rows);
   } catch (error) {
     console.error('Error al obtener terrenos:', error);
-    res.status(500).json({ message: 'Error en el servidor' });
+    res.status(500).json({ message: 'Error en el servidor', error: error.message });
   } finally {
     if (connection) connection.release();
   }
 });
+
 
 // Si usas React, por ejemplo
 app.use(express.static(path.join(__dirname, 'dist')));
