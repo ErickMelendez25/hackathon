@@ -65,20 +65,21 @@ const DashboardMain = () => {
   // Obtener terrenos desde la API basados en la categoría
   useEffect(() => {
     if (categoria === 'terrenos') {
-      axios.get(`${apiUrl}/api/terrenos`)
-        .then((response) => {
-          if (Array.isArray(response.data)) {
-            setTerrenos(response.data);
-          } else {
-            console.error('La respuesta no es un array:', response.data);
-            setTerrenos([]); // O cualquier valor por defecto que quieras
-          }
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error('Error al obtener terrenos:', error);
-          setLoading(false);
-        });
+      axios.get(`${apiUrl}/api/terrenos`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(response => {
+        setTerrenos(response.data);  // Asegúrate de que la respuesta sea un array de terrenos
+        setLoading(false);
+      })
+      .catch(error => {
+        setError('Error al obtener terrenos');
+        setLoading(false);
+        console.error('Error al obtener terrenos:', error.response?.data || error.message);
+      });
+      
     } else {
       setTerrenos([]);
     }
