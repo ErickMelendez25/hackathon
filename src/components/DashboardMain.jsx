@@ -1,69 +1,86 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import "../styles/DashboardTerrenos.css";
+import { useParams, useNavigate } from 'react-router-dom';
+import "../styles/DashboardTerrenos.css";  // Asegúrate de tener un archivo de estilos
 
 const DashboardMain = () => {
-  const [usuarios, setUsuarios] = useState([]);
-  const [terrenos, setTerrenos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [terrenos, setTerrenos] = useState([]);  // Guardamos los terrenos
+  const [loading, setLoading] = useState(true);  // Para controlar si estamos cargando
+  const [error, setError] = useState(null);  // Para manejar los errores
+
+  // Obtener el valor de la categoría de la URL (por ejemplo, 'terrenos')
   const { categoria } = useParams();
   const navigate = useNavigate();
+
+  // API URL dependiendo si estamos en desarrollo o producción
   const apiUrl = process.env.NODE_ENV === 'production' 
-    ? 'https://sateliterrreno-production.up.railway.app' 
+    ? 'https://sateliterreno-production.up.railway.app' 
     : 'http://localhost:5000';
 
+  // useEffect para obtener los terrenos
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      setError('Token de autenticación no encontrado');
-      return;
-    }
-
-    // Obtener usuarios
-    axios.get(`${apiUrl}/api/usuarios`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(response => {
-      setUsuarios(response.data);
-    })
-    .catch(error => {
-      setError('Error al obtener usuarios');
-      console.error('Error al obtener usuarios:', error);
-    });
-
-    // Obtener terrenos
+    // Si la categoría es 'terrenos', entonces obtenemos los terrenos
     if (categoria === 'terrenos') {
+      console.log("Iniciando la solicitud para obtener terrenos...");
+
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setError('Token de autenticación no encontrado');
+        console.error("No se encontró el token de autenticación.");
+        return;
+      }
+
+      // Llamada GET para obtener los terrenos
       axios.get(`${apiUrl}/api/terrenos`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          Authorization: `Bearer ${token}`,  // Enviar el token de autenticación
+        },
       })
       .then(response => {
-        setTerrenos(response.data);
-        setLoading(false);
+        console.log("Terrenos obtenidos:", response.data);  // Mostrar los terrenos obtenidos
+        setTerrenos(response.data);  // Guardamos los terrenos en el estado
+        setLoading(false);  // Ya no estamos cargando
       })
       .catch(error => {
         setError('Error al obtener terrenos');
-        console.error('Error al obtener terrenos:', error);
-        setLoading(false);
+        setLoading(false);  // Ya no estamos cargando
+        console.error('Error al obtener terrenos:', error.response?.data || error.message);
       });
     } else {
-      setTerrenos([]);
+      console.log("No es la categoría de terrenos, no se hace la solicitud.");
+      setTerrenos([]);  // Limpiar la lista de terrenos si no es la categoría correcta
     }
-  }, [categoria, apiUrl]);
+  }, [categoria, apiUrl]);  // Dependemos de la categoría para volver a hacer la solicitud
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  // Mientras estamos cargando, mostramos un mensaje de loading
+  if (loading) {
+    return <div>Cargando terrenos...</div>;
+  }
+
+  // Si ocurrió un error, mostramos el mensaje de error
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <div className="dashboard">
-      {/* Mostrar los terrenos filtrados y los usuarios */}
-      <h2>Terrenos</h2>
-      <div>
-        {terrenos.map((terreno) => (
-          <div key={terreno.id}>{terreno.titulo}</div>
-        ))}
-      </div>
+      <h2>Lista de Terrenos</h2>
+
+      {/* Si hay terrenos, los mostramos */}
+      {terrenos.length > 0 ? (
+        <div className="terrenos-list">
+          {terrenos.map((terreno) => (
+            <div key={terreno.id} className="terreno-item">
+              <h3>{terreno.titulo}</h3>
+              <p>Descripción: {terreno.descripcion}</p>
+              <p>Precio: S/. {terreno.precio}</p>
+              <p>Ubicación: {terreno.ubicacion_lat}, {terreno.ubicacion_lon}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div>No hay terrenos disponibles en esta categoría.</div>
+      )}
     </div>
   );
 };
