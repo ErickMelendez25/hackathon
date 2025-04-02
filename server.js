@@ -205,7 +205,7 @@ app.get('/api/usuarios', async (req, res) => {
   }
 });
 
-app.get('/api/terrenos', async (req, res) => {
+app.get('/terrenos', async (req, res) => {
   let connection;
   try {
     connection = await db.getConnection();
