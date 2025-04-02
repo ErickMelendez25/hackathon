@@ -191,7 +191,7 @@ app.post('/login', (req, res) => {
 });
 
 // Rutas de usuarios y terrenos con autorización
-app.get('/api/usuarios', verificarToken, async (req, res) => {
+app.get('/api/usuarios', async (req, res) => {
   let connection;
   try {
     connection = await db.getConnection();
@@ -205,11 +205,12 @@ app.get('/api/usuarios', verificarToken, async (req, res) => {
   }
 });
 
-app.get('/api/terrenos', verificarToken, async (req, res) => {
+app.get('/api/terrenos', async (req, res) => {
   let connection;
   try {
     connection = await db.getConnection();
-    const [rows] = await connection.execute('SELECT * FROM terrenos WHERE estado = "disponible"');
+
+    const [rows] = await connection.execute('SELECT * FROM terrenos  ');
     res.json(rows);
   } catch (error) {
     console.error('Error al obtener terrenos:', error);
@@ -239,6 +240,29 @@ app.get('/api/terrenos/:id', async (req, res) => {
     if (connection) connection.release();
   }
 });
+
+// Ruta para obtener un usuario por ID
+app.get('/api/usuarios/:id', async (req, res) => {
+  const { id } = req.params;
+  let connection;
+  try {
+    connection = await db.getConnection();
+
+    const [rows] = await connection.execute('SELECT * FROM usuarios WHERE id = ?', [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.json(rows[0]); // Devuelve el usuario específico
+  } catch (error) {
+    console.error('Error al obtener el usuario:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
 
 // Para cualquier otra ruta, servir el index.html
 app.use(express.static(path.join(__dirname, 'dist')));
