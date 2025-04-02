@@ -68,6 +68,7 @@ const DashboardMain = () => {
     if (categoria === 'terrenos') {
       axios.get(`${apiUrl}/api/terrenos`)
         .then((response) => {
+          console.log(Array.isArray(response.data));  // Verifica si la respuesta es un array
           setTerrenos(response.data);
           setLoading(false);
         })
