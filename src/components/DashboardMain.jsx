@@ -11,7 +11,7 @@ const DashboardMain = () => {
   const { categoria } = useParams();
   const navigate = useNavigate();
   const apiUrl = process.env.NODE_ENV === 'production' 
-    ? 'https://sateliterreno-production.up.railway.app' 
+    ? 'https://sateliterrreno-production.up.railway.app' 
     : 'http://localhost:5000';
 
   useEffect(() => {
