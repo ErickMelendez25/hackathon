@@ -8,7 +8,7 @@ const DashboardMain = () => {
   const [error, setError] = useState(null);  // Para manejar los errores
 
   const apiUrl = process.env.NODE_ENV === 'production' 
-    ? 'https://sateliterreno-production.up.railway.app' 
+    ? 'https://sateliterrreno-production.up.railway.app' 
     : 'http://localhost:5000';
 
   // useEffect para obtener los terrenos
