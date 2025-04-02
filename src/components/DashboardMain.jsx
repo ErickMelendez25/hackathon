@@ -64,12 +64,15 @@ const DashboardMain = () => {
 
   // Obtener terrenos desde la API basados en la categoría
   useEffect(() => {
-    // Siempre que la lista de terrenos cambie, la vista se actualizará
     if (categoria === 'terrenos') {
       axios.get(`${apiUrl}/api/terrenos`)
         .then((response) => {
-          console.log(Array.isArray(response.data));  // Verifica si la respuesta es un array
-          setTerrenos(response.data);
+          if (Array.isArray(response.data)) {
+            setTerrenos(response.data);
+          } else {
+            console.error('La respuesta no es un array:', response.data);
+            setTerrenos([]); // O cualquier valor por defecto que quieras
+          }
           setLoading(false);
         })
         .catch((error) => {
@@ -79,15 +82,14 @@ const DashboardMain = () => {
     } else {
       setTerrenos([]);
     }
-  }, [categoria]); // Sigue dependiendo de la categoría, pero ahora el estado de los terrenos también se actualizará tras crear un terreno.
+  }, [categoria]);
   
-
   const getUsuarioDetails = (usuarioId) => {
     const usuario = usuarios.find(user => user.id === usuarioId);
     return usuario ? usuario.nombre : 'Usuario no encontrado';
   };
 
-  const filteredTerrenos = terrenos.filter(terreno => {
+  const filteredTerrenos = Array.isArray(terrenos) ? terrenos.filter(terreno => {
     const precioValido = terreno.precio >= filters.precioMin && terreno.precio <= filters.precioMax;
     const estadoValido = filters.estado === 'todos' || terreno.estado === filters.estado;
     const ubicacionValida = terreno.ubicacion_lat && terreno.ubicacion_lon && (
@@ -96,7 +98,7 @@ const DashboardMain = () => {
     const searchValido = (terreno.titulo && (terreno.titulo.toLowerCase().includes(filters.search.toLowerCase()) || terreno.descripcion.toLowerCase().includes(filters.search.toLowerCase())));
 
     return precioValido && estadoValido && ubicacionValida && searchValido;
-  });
+  }):[];
 
   const sortedTerrenos = filteredTerrenos.sort((a, b) => new Date(b.fecha_publicacion) - new Date(a.fecha_publicacion));
 
