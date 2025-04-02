@@ -15,7 +15,9 @@ const DashboardMain = () => {
   // useEffect para obtener los terrenos
   useEffect(() => {
     console.log("Iniciando la solicitud para obtener terrenos...");
+    
     const token = localStorage.getItem('authToken');  // Obtener el token de autenticación
+    console.log("Token recuperado del localStorage:", token);
 
     if (!token) {
       setError('Token de autenticación no encontrado');
@@ -25,13 +27,15 @@ const DashboardMain = () => {
     }
 
     // Llamada GET para obtener los terrenos
+    console.log("Realizando la solicitud GET para obtener terrenos...");
     axios.get(`${apiUrl}/api/terrenos`, {
       headers: {
         Authorization: `Bearer ${token}`,  // Enviar el token de autenticación
       },
     })
     .then(response => {
-      console.log("Terrenos obtenidos:", response.data);  // Mostrar los terrenos obtenidos
+      console.log("Respuesta de la API (terrenos obtenidos):", response);
+      console.log("Datos de terrenos:", response.data);  // Mostrar los terrenos obtenidos
       setTerrenos(response.data);  // Guardamos los terrenos en el estado
       setLoading(false);  // Ya no estamos cargando
     })
@@ -44,11 +48,13 @@ const DashboardMain = () => {
 
   // Mientras estamos cargando, mostramos un mensaje de loading
   if (loading) {
+    console.log("Cargando terrenos...");
     return <div>Cargando terrenos...</div>;
   }
 
   // Si ocurrió un error, mostramos el mensaje de error
   if (error) {
+    console.error("Error en la carga de terrenos:", error);
     return <div>{error}</div>;
   }
 
