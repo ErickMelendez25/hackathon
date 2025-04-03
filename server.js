@@ -235,45 +235,60 @@ app.get('/terrenos', async (req, res) => {
 // Ruta para obtener los detalles de un terreno por ID
 app.get('/api/terrenos/:id', async (req, res) => {
   const { id } = req.params;
-  let connection;
+
   try {
-    connection = await db.getConnection();
-    const [rows] = await connection.execute('SELECT * FROM terrenos WHERE id = ?', [id]);
+    // Usamos db.query en lugar de connection.execute
+    db.query('SELECT * FROM terrenos WHERE id = ?', [id], (err, rows) => {
+      if (err) {
+        // Manejo de errores si la consulta falla
+        console.error('Error al obtener el terreno:', err);
+        return res.status(500).json({ message: 'Error en el servidor', error: err.message });
+      }
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'Terreno no encontrado' });
-    }
+      // Si no se encuentra el terreno, devolvemos 404
+      if (rows.length === 0) {
+        return res.status(404).json({ message: 'Terreno no encontrado' });
+      }
 
-    res.json(rows[0]); // Devuelve el terreno específico
+      // Devolvemos el primer terreno encontrado
+      res.json(rows[0]);
+    });
   } catch (error) {
-    console.error('Error al obtener el terreno:', error);
-    res.status(500).json({ message: 'Error en el servidor' });
-  } finally {
-    if (connection) connection.release();
+    // Si ocurre algún error inesperado
+    console.error('Error inesperado al obtener el terreno:', error);
+    res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 });
+
 
 // Ruta para obtener un usuario por ID
 app.get('/api/usuarios/:id', async (req, res) => {
   const { id } = req.params;
-  let connection;
+
   try {
-    connection = await db.getConnection();
+    // Usamos db.query en lugar de connection.execute
+    db.query('SELECT * FROM usuarios WHERE id = ?', [id], (err, rows) => {
+      if (err) {
+        // Manejo de errores si la consulta falla
+        console.error('Error al obtener el usuario:', err);
+        return res.status(500).json({ message: 'Error en el servidor', error: err.message });
+      }
 
-    const [rows] = await connection.execute('SELECT * FROM usuarios WHERE id = ?', [id]);
+      // Si no se encuentra el usuario, devolvemos 404
+      if (rows.length === 0) {
+        return res.status(404).json({ message: 'Usuario no encontrado' });
+      }
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-
-    res.json(rows[0]); // Devuelve el usuario específico
+      // Devolvemos el primer usuario encontrado
+      res.json(rows[0]);
+    });
   } catch (error) {
-    console.error('Error al obtener el usuario:', error);
-    res.status(500).json({ message: 'Error en el servidor' });
-  } finally {
-    if (connection) connection.release();
+    // Si ocurre algún error inesperado
+    console.error('Error inesperado al obtener el usuario:', error);
+    res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 });
+
 
 
 // Para cualquier otra ruta, servir el index.html
