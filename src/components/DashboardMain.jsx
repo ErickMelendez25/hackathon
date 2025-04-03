@@ -276,6 +276,7 @@ useEffect(() => {
 
   const renderCompradorView = () => (
     <div className="dashboard">
+      <button class="sidebar-toggle">☰</button> 
       <div className="sidebar">
         <div className="categories">
           <button
