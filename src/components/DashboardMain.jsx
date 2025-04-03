@@ -66,35 +66,35 @@ const DashboardMain = () => {
 
   // Obtener terrenos desde la API basados en la categoría
   useEffect(() => {
-    // Definir apiUrl dentro del useEffect para asegurarse de que está en el contexto adecuado
     const apiUrl = process.env.NODE_ENV === 'production'
       ? 'https://sateliterrreno-production.up.railway.app'
       : 'http://localhost:5000';
   
-    // Verifica si la categoría es 'terrenos'
     if (categoria === 'terrenos') {
-      // Asegúrate de que el token esté disponible si es necesario para la autorización
-      const token = localStorage.getItem('token'); // O usa el token desde el contexto, si corresponde
+      const token = localStorage.getItem('token');
   
-      // Realizar la solicitud con el token
       axios.get(`${apiUrl}/api/terrenos`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Autenticación con token
+          Authorization: `Bearer ${token}`,
         },
       })
       .then((response) => {
-        setTerrenos(response.data); // Guarda los terrenos en el estado
-        setLoading(false); // Termina el loading
+        // Verifica si la respuesta es un array antes de establecer el estado
+        const terrenosData = Array.isArray(response.data) ? response.data : [];
+        setTerrenos(terrenosData);
+        setLoading(false);
       })
       .catch((error) => {
         console.error('Error al obtener terrenos:', error);
-        setLoading(false); // Termina el loading en caso de error
+        setTerrenos([]); // Asegúrate de que los terrenos sean un array vacío en caso de error
+        setLoading(false);
       });
     } else {
-      setTerrenos([]); // Si no es la categoría 'terrenos', limpia los terrenos
-      setLoading(false); // Termina el loading si no es 'terrenos'
+      setTerrenos([]);
+      setLoading(false);
     }
-  }, [categoria]); // Se ejecuta siempre que la categoría cambie
+  }, [categoria]);
+  
   
 
   const getUsuarioDetails = (usuarioId) => {
