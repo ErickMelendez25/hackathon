@@ -10,8 +10,8 @@ const DashboardMain = () => {
 
   const [usuarioLocal, setUsuarioLocal] = useState(null);
   const apiUrl = process.env.NODE_ENV === 'production' 
-  ? 'https://sateliterrreno-production.up.railway.app/login' 
-  : 'http://localhost:5000/login';
+  ? 'https://sateliterrreno-production.up.railway.app' 
+  : 'http://localhost:5000';
 
 
   const { categoria } = useParams();
@@ -64,33 +64,29 @@ const DashboardMain = () => {
 
   // Obtener terrenos desde la API basados en la categoría
   useEffect(() => {
+    // Siempre que la lista de terrenos cambie, la vista se actualizará
     if (categoria === 'terrenos') {
-      axios.get(`${apiUrl}/api/terrenos`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then(response => {
-        setTerrenos(response.data);  // Asegúrate de que la respuesta sea un array de terrenos
-        setLoading(false);
-      })
-      .catch(error => {
-        setError('Error al obtener terrenos');
-        setLoading(false);
-        console.error('Error al obtener terrenos:', error.response?.data || error.message);
-      });
-      
+      axios.get(`${apiUrl}/api/terrenos`)
+        .then((response) => {
+          setTerrenos(response.data);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error('Error al obtener terrenos:', error);
+          setLoading(false);
+        });
     } else {
       setTerrenos([]);
     }
-  }, [categoria]);
+  }, [categoria]); // Sigue dependiendo de la categoría, pero ahora el estado de los terrenos también se actualizará tras crear un terreno.
   
+
   const getUsuarioDetails = (usuarioId) => {
     const usuario = usuarios.find(user => user.id === usuarioId);
     return usuario ? usuario.nombre : 'Usuario no encontrado';
   };
 
-  const filteredTerrenos = Array.isArray(terrenos) ? terrenos.filter(terreno => {
+  const filteredTerrenos = terrenos.filter(terreno => {
     const precioValido = terreno.precio >= filters.precioMin && terreno.precio <= filters.precioMax;
     const estadoValido = filters.estado === 'todos' || terreno.estado === filters.estado;
     const ubicacionValida = terreno.ubicacion_lat && terreno.ubicacion_lon && (
@@ -99,7 +95,7 @@ const DashboardMain = () => {
     const searchValido = (terreno.titulo && (terreno.titulo.toLowerCase().includes(filters.search.toLowerCase()) || terreno.descripcion.toLowerCase().includes(filters.search.toLowerCase())));
 
     return precioValido && estadoValido && ubicacionValida && searchValido;
-  }):[];
+  });
 
   const sortedTerrenos = filteredTerrenos.sort((a, b) => new Date(b.fecha_publicacion) - new Date(a.fecha_publicacion));
 
@@ -625,7 +621,7 @@ const DashboardMain = () => {
     </div>
   );
 
-  return renderCompradorView();
+  return usuarioLocal && usuarioLocal.tipo === 'admin' ? renderAdminView() : renderCompradorView();
 };
 
 export default DashboardMain;
