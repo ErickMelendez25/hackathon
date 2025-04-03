@@ -37,19 +37,7 @@ const DashboardMain = () => {
     consentimiento: false,
   });
 
-  // Obtener el usuario desde localStorage
-  useEffect(() => {
-    const usuario = JSON.parse(localStorage.getItem('usuario'));
-    if (usuario) {
-      setUsuarioLocal(usuario);
-      if (usuario.id) {
-        const usuarioAPI = usuarios.find(user => user.id === usuario.id);
-        if (usuarioAPI) {
-          console.log('Tipo de usuario desde la API:', usuarioAPI.tipo);
-        }
-      }
-    }
-  }, [usuarios]);
+
 
   // Obtener los usuarios desde la API
   useEffect(() => {
@@ -86,6 +74,23 @@ const DashboardMain = () => {
     }
   
   }, []); // Este efecto solo se ejecuta una vez al cargar el componente
+
+  // Obtener el usuario desde localStorage y sincronizar con los usuarios de la API
+  useEffect(() => {
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+    if (usuario) {
+      setUsuarioLocal(usuario);
+      if (usuario.id && usuarios.length > 0) {
+        // Buscar el usuario en el array de usuarios obtenidos de la API
+        const usuarioAPI = usuarios.find(user => user.id === usuario.id);
+        if (usuarioAPI) {
+          console.log('Tipo de usuario desde la API:', usuarioAPI.tipo);
+        } else {
+          console.log('Usuario no encontrado en la API');
+        }
+      }
+    }
+  }, [usuarios]); // Este useEffect se ejecuta cuando `usuarios` cambia
   
   
 
