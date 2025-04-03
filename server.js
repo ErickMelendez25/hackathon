@@ -192,18 +192,25 @@ app.post('/login', (req, res) => {
 
 // Rutas de usuarios y terrenos con autorización
 app.get('/api/usuarios', async (req, res) => {
-  let connection;
   try {
-    connection = await db.getConnection();
-    const [rows] = await connection.execute('SELECT * FROM usuarios');
-    res.json(rows);
+    // Usamos db.query en lugar de connection.execute
+    db.query('SELECT * FROM usuarios', (err, rows) => {
+      if (err) {
+        // Manejo de errores si la consulta falla
+        console.error('Error al obtener usuarios:', err);
+        return res.status(500).json({ message: 'Error al obtener usuarios', error: err.message });
+      }
+      
+      // Si no hay errores, devolvemos los usuarios obtenidos
+      res.json(rows);
+    });
   } catch (error) {
-    console.error('Error al obtener usuarios:', error);
-    res.status(500).json({ message: 'Error al obtener usuarios', error: error.message });
-  } finally {
-    if (connection) connection.release();
+    // Si ocurre un error inesperado
+    console.error('Error inesperado al obtener usuarios:', error);
+    res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 });
+
 
 app.get('/terrenos', async (req, res) => {
   try {
