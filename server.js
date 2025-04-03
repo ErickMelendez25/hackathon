@@ -206,17 +206,22 @@ app.get('/api/usuarios', async (req, res) => {
 });
 
 app.get('/terrenos', async (req, res) => {
-  let connection;
   try {
-    connection = await db.getConnection();
+    // Ejecutamos la consulta con db.query
+    db.query('SELECT * FROM terrenos', (err, rows) => {
+      if (err) {
+        // Manejo de errores si algo sale mal
+        console.error('Error al consultar los terrenos:', err);
+        return res.status(500).json({ message: 'Error en el servidor' });
+      }
 
-    const [rows] = await connection.execute('SELECT * FROM terrenos  ');
-    res.json(rows);
+      // Enviamos los resultados de la consulta como respuesta
+      res.json(rows);
+    });
   } catch (error) {
+    // Si hay algún error inesperado
     console.error('Error al obtener terrenos:', error);
     res.status(500).json({ message: 'Error en el servidor' });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
