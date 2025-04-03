@@ -62,35 +62,39 @@ const DashboardMain = () => {
       });
   }, []);
 
+
+
   // Obtener terrenos desde la API basados en la categoría
   useEffect(() => {
-    // Siempre que la lista de terrenos cambie, la vista se actualizará
+    // Definir apiUrl dentro del useEffect para asegurarse de que está en el contexto adecuado
+    const apiUrl = process.env.NODE_ENV === 'production'
+      ? 'https://sateliterreno-production.up.railway.app'
+      : 'http://localhost:5000';
+  
+    // Verifica si la categoría es 'terrenos'
     if (categoria === 'terrenos') {
-      // Verifica si estás en producción (Railway) o en desarrollo (localhost)
-      const apiUrl = process.env.NODE_ENV === 'production'
-        ? 'https://sateliterrreno-production.up.railway.app/terrenos'
-        : 'http://localhost:5000/api/terrenos';
-
-      // Hacer la solicitud con el token para obtener los terrenos
-      axios.get(apiUrl, {
+      // Asegúrate de que el token esté disponible si es necesario para la autorización
+      const token = localStorage.getItem('token'); // O usa el token desde el contexto, si corresponde
+  
+      // Realizar la solicitud con el token
+      axios.get(`${apiUrl}/api/terrenos`, {
         headers: {
           Authorization: `Bearer ${token}`, // Autenticación con token
         },
       })
-        .then((response) => {
-          setTerrenos(response.data); // Guarda los terrenos en el estado
-          setLoading(false); // Termina el loading
-        })
-        .catch((error) => {
-          console.error('Error al obtener terrenos:', error);
-          setErrorMessage('Hubo un error al obtener los terrenos');
-          setLoading(false); // Termina el loading en caso de error
-        });
+      .then((response) => {
+        setTerrenos(response.data); // Guarda los terrenos en el estado
+        setLoading(false); // Termina el loading
+      })
+      .catch((error) => {
+        console.error('Error al obtener terrenos:', error);
+        setLoading(false); // Termina el loading en caso de error
+      });
     } else {
       setTerrenos([]); // Si no es la categoría 'terrenos', limpia los terrenos
       setLoading(false); // Termina el loading si no es 'terrenos'
     }
-  }, [categoria, token]); // Sigue dependiendo de la categoría, pero ahora el estado de los terrenos también se actualizará tras crear un terreno.
+  }, [categoria]); // Se ejecuta siempre que la categoría cambie
   
 
   const getUsuarioDetails = (usuarioId) => {
