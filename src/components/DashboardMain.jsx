@@ -53,6 +53,10 @@ const DashboardMain = () => {
 
   // Obtener los usuarios desde la API
   useEffect(() => {
+    const apiUrl = process.env.NODE_ENV === 'production'
+    ? 'https://sateliterrreno-production.up.railway.app'
+    : 'http://localhost:5000';
+
     axios.get(`${apiUrl}/api/usuarios`)
       .then((response) => {
         setUsuarios(response.data);
