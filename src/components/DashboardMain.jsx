@@ -6,6 +6,7 @@ import "../styles/DashboardTerrenos.css";
 const DashboardMain = () => {
   const [usuarios, setUsuarios] = useState([]);
 
+
   const [editMode, setEditMode] = useState(false);
 
   const [usuarioLocal, setUsuarioLocal] = useState(null);
@@ -78,16 +79,17 @@ const DashboardMain = () => {
   // Obtener el usuario desde localStorage y sincronizar con los usuarios de la API
   useEffect(() => {
     const usuario = JSON.parse(localStorage.getItem('usuario'));
-    
+
     console.log("Usuario obtenido desde localStorage:", usuario); // Verifica que el usuario esté en localStorage
 
     if (usuario) {
       setUsuarioLocal(usuario);
 
-      // Solo buscar el usuario si los datos de usuarios ya están cargados
-      if (usuario.id && usuarios.length > 0) {
-        console.log("Usuarios cargados desde la API:", usuarios); // Verifica que los usuarios están cargados
+      // Verificar que usuarios están cargados antes de hacer la búsqueda
+      if (usuarios.length > 0) {
+        console.log("Usuarios cargados desde la API:", usuarios);
 
+        // Buscar el usuario en la lista de usuarios de la API
         const usuarioAPI = usuarios.find(user => user.id === usuario.id);
 
         if (usuarioAPI) {
@@ -96,7 +98,7 @@ const DashboardMain = () => {
           console.log('Usuario no encontrado en la API');
         }
       } else {
-        console.log("Aún no se han cargado los usuarios desde la API o el ID no coincide.");
+        console.log("Aún no se han cargado los usuarios desde la API.");
       }
     } else {
       console.log("No hay usuario en localStorage.");
