@@ -295,25 +295,26 @@
 
 /* Para pantallas pequeñas (móviles) */
 @media (max-width: 768px) {
-  /* Barra lateral */
+  /* Barra lateral encima de los filtros y contenido */
   .sidebar {
-      width: 150px;  /* Reducimos el tamaño de la barra lateral */
+      width: 100%;  /* La barra lateral ocupa todo el ancho de la pantalla */
       position: fixed;  /* Fija la barra lateral */
       top: 0;
-      left: -150px;  /* Ocultamos la barra lateral fuera de la pantalla */
-      height: 100vh;
+      left: 0;
+      height: auto; /* La barra lateral tendrá altura dinámica según el contenido */
       background-color: #0c9790;
       color: white;
-      padding: 15px;
+      padding: 10px 15px;
+      z-index: 1000;
       transition: transform 0.3s ease-in-out;
   }
 
-  /* Barra lateral visible cuando se hace clic en el botón de menú */
+  /* La barra lateral se muestra cuando está activa */
   .sidebar.active {
-      left: 0;  /* Cuando se activa, la barra lateral se desliza dentro */
+      top: 0;
   }
 
-  /* Botón para abrir y cerrar la barra lateral */
+  /* Estilo del botón para abrir y cerrar la barra lateral */
   .sidebar-toggle {
       display: block;
       background-color: #1fcac2;
@@ -325,26 +326,28 @@
       position: absolute;
       top: 10px;
       left: 10px;
-      z-index: 1000;
+      z-index: 1001; /* Aseguramos que el botón esté por encima de la barra */
   }
 
   /* Estilo de las categorías dentro de la barra lateral */
   .categories {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 10px;  /* Reducimos el espacio entre las categorías */
+      padding-top: 50px;  /* Para que no se solapen con el botón de apertura */
   }
 
   .category-btn {
       background-color: #1fcac2;
       color: white;
       border: none;
-      padding: 10px;
+      padding: 8px 12px;  /* Botones más pequeños */
       margin: 5px 0;
-      font-size: 14px; /* Reducimos el tamaño de los botones */
+      font-size: 12px;  /* Reducimos el tamaño de fuente */
       cursor: pointer;
       border-radius: 5px;
       transition: background-color 0.3s ease;
+      text-align: center;
   }
 
   .category-btn.active {
@@ -357,15 +360,15 @@
 
   /* Modificar la galería para que se adapte a pantallas móviles */
   .gallery {
-      grid-template-columns: repeat(2, 1fr); /* Ajustamos la galería a dos columnas */
-      gap: 20px; /* Reducimos el espacio entre las cards */
-      margin-top: 20px; /* Reducimos el margen superior */
+      grid-template-columns: repeat(2, 1fr);  /* Ajustamos la galería a dos columnas */
+      gap: 15px;  /* Reducimos el espacio entre las cards */
+      margin-top: 20px;  /* Reducimos el margen superior */
   }
 
   /* Estilo de las cards dentro de la galería */
   .card {
       background-color: #FFFFFF;
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -377,12 +380,13 @@
       box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
   }
 
-  /* Estilos generales para el contenido */
+  /* Estilos generales para el contenido principal */
   .main-content {
-      margin-left: 0; /* Ajusta el contenido para que no se solape con la barra lateral */
-      padding: 10px; /* Reduce el padding del contenido */
+      margin-top: 110px;  /* Dejamos espacio para la barra lateral cuando está activa */
+      padding: 10px;  /* Reducimos el padding del contenido */
   }
 }
+
 
 
 /* Para tabletas (entre 768px y 1024px) */
@@ -405,6 +409,6 @@
     }
 
     .main-content {
-        padding: 15px;
-    }
+      margin-top: 110px;  /* Dejamos espacio para la barra lateral cuando está activa */
+      padding: 10px;  /* Reducimos el padding del contenido */}
 }
