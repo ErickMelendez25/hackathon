@@ -71,7 +71,8 @@ const DashboardMain = () => {
       : 'http://localhost:5000';
 
     if (categoria === 'terrenos') {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
+
       console.log("Token obtenido: ", token); // Verifica si el token está siendo correctamente extraído
 
       axios.get(`${apiUrl}/api/terrenos`, {
