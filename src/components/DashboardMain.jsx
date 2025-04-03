@@ -9,6 +9,9 @@ const DashboardMain = () => {
   const [editMode, setEditMode] = useState(false);
 
   const [usuarioLocal, setUsuarioLocal] = useState(null);
+  const apiUrl = process.env.NODE_ENV === 'production' 
+  ? 'https://sateliterrreno-production.up.railway.app' 
+  : 'http://localhost:5000';
 
 
   const { categoria } = useParams();
