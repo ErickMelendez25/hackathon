@@ -126,7 +126,7 @@ app.post('/login', (req, res) => {
       let id_estudiante = null;
       let id_asesor = null;
       let id_revisor = null;
-
+     
       // Manejo según rol
       if (user.rol === 'revisor') {
         db.query('SELECT id FROM revisores WHERE correo = ?', [user.correo], (err, revisorResult) => {

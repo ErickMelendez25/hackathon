@@ -77,33 +77,35 @@ const DashboardMain = () => {
   }, []); // Este efecto solo se ejecuta una vez al cargar el componente
 
   // Obtener el usuario desde localStorage y sincronizar con los usuarios de la API
-  useEffect(() => {
-    const usuario = JSON.parse(localStorage.getItem('usuario'));
+// Obtener el usuario desde localStorage y sincronizar con los usuarios de la API
+useEffect(() => {
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
 
-    console.log("Usuario obtenido desde localStorage:", usuario); // Verifica que el usuario esté en localStorage
+  console.log("Usuario obtenido desde localStorage:", usuario); // Verifica que el usuario esté en localStorage
 
-    if (usuario) {
-      setUsuarioLocal(usuario);
+  if (usuario) {
+    setUsuarioLocal(usuario);
 
-      // Verificar que usuarios están cargados antes de hacer la búsqueda
-      if (usuarios.length > 0) {
-        console.log("Usuarios cargados desde la API:", usuarios);
+    // Verificar que usuarios están cargados antes de hacer la búsqueda
+    if (usuarios.length > 0) {
+      console.log("Usuarios cargados desde la API:", usuarios);
 
-        // Buscar el usuario en la lista de usuarios de la API
-        const usuarioAPI = usuarios.find(user => user.id === usuario.id);
+      // Buscar el usuario en la lista de usuarios de la API usando id_estudiante
+      const usuarioAPI = usuarios.find(user => user.id === usuario.id_estudiante); // Compara con id_estudiante
 
-        if (usuarioAPI) {
-          console.log('Tipo de usuario desde la API:', usuarioAPI.tipo); // Verifica el tipo del usuario
-        } else {
-          console.log('Usuario no encontrado en la API');
-        }
+      if (usuarioAPI) {
+        console.log('Tipo de usuario desde la API:', usuarioAPI.tipo); // Verifica el tipo del usuario
       } else {
-        console.log("Aún no se han cargado los usuarios desde la API.");
+        console.log('Usuario no encontrado en la API');
       }
     } else {
-      console.log("No hay usuario en localStorage.");
+      console.log("Aún no se han cargado los usuarios desde la API.");
     }
-  }, [usuarios]); // Este useEffect se ejecuta cuando `usuarios` cambia
+  } else {
+    console.log("No hay usuario en localStorage.");
+  }
+}, [usuarios]); // Este useEffect se ejecuta cuando `usuarios` cambia
+
   
 
 
