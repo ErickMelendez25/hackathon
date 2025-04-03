@@ -15,22 +15,12 @@ const DashboardMain = () => {
   : 'http://localhost:5000';
 
   // Obtener elementos necesarios
-  const sidebar = document.querySelector('.sidebar');
-  const sidebarToggle = document.querySelector('.sidebar-toggle');
-  const categoryButtons = document.querySelectorAll('.category-btn');
 
-  // Función para activar/desactivar la barra lateral
-  sidebarToggle.addEventListener('click', () => {
-      sidebar.classList.toggle('active');
-  });
 
-  // Función para cerrar la barra lateral cuando se seleccione una categoría
-  categoryButtons.forEach(button => {
-      button.addEventListener('click', () => {
-          sidebar.classList.remove('active');  // Cierra la barra lateral
-          // Aquí puedes agregar lógica adicional para filtrar por categoría
-      });
-  });
+  const [sidebarActive, setSidebarActive] = useState(false);
+ 
+
+
 
 
   const { categoria } = useParams();
@@ -276,7 +266,12 @@ useEffect(() => {
 
   const renderCompradorView = () => (
     <div className="dashboard">
-      <button class="sidebar-toggle">☰</button> 
+      <button
+        className="sidebar-toggle"
+        onClick={() => setSidebarActive(!sidebarActive)}
+      >
+        ☰
+      </button>
       <div className="sidebar">
         <div className="categories">
           <button
