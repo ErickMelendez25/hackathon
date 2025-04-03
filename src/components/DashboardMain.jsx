@@ -53,18 +53,41 @@ const DashboardMain = () => {
 
   // Obtener los usuarios desde la API
   useEffect(() => {
+    // Establecer la URL de la API según el entorno (producción o desarrollo)
     const apiUrl = process.env.NODE_ENV === 'production'
-    ? 'https://sateliterrreno-production.up.railway.app'
-    : 'http://localhost:5000';
-
-    axios.get(`${apiUrl}/api/usuarios`)
-      .then((response) => {
-        setUsuarios(response.data);
+      ? 'https://sateliterrreno-production.up.railway.app'
+      : 'http://localhost:5000';
+  
+    // Obtener el token desde localStorage para incluirlo en el encabezado de autorización
+    const token = localStorage.getItem('authToken'); 
+    console.log("Token obtenido: ", token); // Verificar que el token esté siendo correctamente extraído
+  
+    // Hacer la solicitud para obtener los usuarios si el token está presente
+    if (token) {
+      axios.get(`${apiUrl}/api/usuarios`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Incluir el token en el encabezado
+        },
       })
-      .catch((error) => {
-        console.error('Error al obtener usuarios:', error);
-      });
-  }, []);
+        .then((response) => {
+          console.log("Respuesta de la API para usuarios:", response); // Verificar la respuesta completa de la API
+          // Verificar si la respuesta es un array antes de establecer el estado
+          const usuariosData = Array.isArray(response.data) ? response.data : [];
+          console.log("Usuarios obtenidos:", usuariosData); // Verificar los usuarios obtenidos
+          setUsuarios(usuariosData); // Establecer los usuarios en el estado
+        })
+        .catch((error) => {
+          console.error('Error al obtener usuarios:', error); // Mostrar el error si ocurre
+          setUsuarios([]); // Asegurarse de que los usuarios sean un array vacío en caso de error
+        });
+    } else {
+      console.log('No se encontró el token, no se puede obtener los usuarios.');
+      setUsuarios([]); // Limpiar el estado de usuarios si no se encuentra el token
+    }
+  
+  }, []); // Este efecto solo se ejecuta una vez al cargar el componente
+  
+  
 
 
 
