@@ -9,9 +9,6 @@ const DashboardMain = () => {
   const [editMode, setEditMode] = useState(false);
 
   const [usuarioLocal, setUsuarioLocal] = useState(null);
-  const apiUrl = process.env.NODE_ENV === 'production' 
-  ? 'https://sateliterrreno-production.up.railway.app' 
-  : 'http://localhost:5000';
 
 
   const { categoria } = useParams();
@@ -69,31 +66,36 @@ const DashboardMain = () => {
     const apiUrl = process.env.NODE_ENV === 'production'
       ? 'https://sateliterrreno-production.up.railway.app'
       : 'http://localhost:5000';
-  
+
     if (categoria === 'terrenos') {
       const token = localStorage.getItem('token');
-  
+      console.log("Token obtenido: ", token); // Verifica si el token está siendo correctamente extraído
+
       axios.get(`${apiUrl}/api/terrenos`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
       .then((response) => {
+        console.log("Respuesta de la API:", response); // Verifica la respuesta completa de la API
         // Verifica si la respuesta es un array antes de establecer el estado
         const terrenosData = Array.isArray(response.data) ? response.data : [];
+        console.log("Terrenos obtenidos:", terrenosData); // Verifica los terrenos obtenidos
         setTerrenos(terrenosData);
         setLoading(false);
       })
       .catch((error) => {
-        console.error('Error al obtener terrenos:', error);
+        console.error('Error al obtener terrenos:', error); // Muestra el error si ocurre
         setTerrenos([]); // Asegúrate de que los terrenos sean un array vacío en caso de error
         setLoading(false);
       });
     } else {
-      setTerrenos([]);
+      console.log("Categoría no es terrenos, limpiando terrenos...");
+      setTerrenos([]); // Limpiar si no es la categoría 'terrenos'
       setLoading(false);
     }
   }, [categoria]);
+
   
   
 
