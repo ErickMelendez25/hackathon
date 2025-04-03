@@ -78,20 +78,30 @@ const DashboardMain = () => {
   // Obtener el usuario desde localStorage y sincronizar con los usuarios de la API
   useEffect(() => {
     const usuario = JSON.parse(localStorage.getItem('usuario'));
+    
+    console.log("Usuario obtenido desde localStorage:", usuario); // Verifica que el usuario esté en localStorage
+
     if (usuario) {
       setUsuarioLocal(usuario);
+
+      // Solo buscar el usuario si los datos de usuarios ya están cargados
       if (usuario.id && usuarios.length > 0) {
-        // Buscar el usuario en el array de usuarios obtenidos de la API
+        console.log("Usuarios cargados desde la API:", usuarios); // Verifica que los usuarios están cargados
+
         const usuarioAPI = usuarios.find(user => user.id === usuario.id);
+
         if (usuarioAPI) {
-          console.log('Tipo de usuario desde la API:', usuarioAPI.tipo);
+          console.log('Tipo de usuario desde la API:', usuarioAPI.tipo); // Verifica el tipo del usuario
         } else {
           console.log('Usuario no encontrado en la API');
         }
+      } else {
+        console.log("Aún no se han cargado los usuarios desde la API o el ID no coincide.");
       }
+    } else {
+      console.log("No hay usuario en localStorage.");
     }
   }, [usuarios]); // Este useEffect se ejecuta cuando `usuarios` cambia
-  
   
 
 
