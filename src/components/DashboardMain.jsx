@@ -68,7 +68,7 @@ const DashboardMain = () => {
   useEffect(() => {
     // Definir apiUrl dentro del useEffect para asegurarse de que está en el contexto adecuado
     const apiUrl = process.env.NODE_ENV === 'production'
-      ? 'https://sateliterreno-production.up.railway.app'
+      ? 'https://sateliterrreno-production.up.railway.app'
       : 'http://localhost:5000';
   
     // Verifica si la categoría es 'terrenos'
