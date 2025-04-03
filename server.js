@@ -212,7 +212,7 @@ app.get('/api/usuarios', async (req, res) => {
 });
 
 
-app.get('/terrenos', async (req, res) => {
+app.get('/api/terrenos', async (req, res) => {
   try {
     // Ejecutamos la consulta con db.query
     db.query('SELECT * FROM terrenos', (err, rows) => {
