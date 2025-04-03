@@ -66,19 +66,31 @@ const DashboardMain = () => {
   useEffect(() => {
     // Siempre que la lista de terrenos cambie, la vista se actualizará
     if (categoria === 'terrenos') {
-      axios.get(`${apiUrl}/api/terrenos`)
+      // Verifica si estás en producción (Railway) o en desarrollo (localhost)
+      const apiUrl = process.env.NODE_ENV === 'production'
+        ? 'https://sateliterrreno-production.up.railway.app/terrenos'
+        : 'http://localhost:5000/api/terrenos';
+
+      // Hacer la solicitud con el token para obtener los terrenos
+      axios.get(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Autenticación con token
+        },
+      })
         .then((response) => {
-          setTerrenos(response.data);
-          setLoading(false);
+          setTerrenos(response.data); // Guarda los terrenos en el estado
+          setLoading(false); // Termina el loading
         })
         .catch((error) => {
           console.error('Error al obtener terrenos:', error);
-          setLoading(false);
+          setErrorMessage('Hubo un error al obtener los terrenos');
+          setLoading(false); // Termina el loading en caso de error
         });
     } else {
-      setTerrenos([]);
+      setTerrenos([]); // Si no es la categoría 'terrenos', limpia los terrenos
+      setLoading(false); // Termina el loading si no es 'terrenos'
     }
-  }, [categoria]); // Sigue dependiendo de la categoría, pero ahora el estado de los terrenos también se actualizará tras crear un terreno.
+  }, [categoria, token]); // Sigue dependiendo de la categoría, pero ahora el estado de los terrenos también se actualizará tras crear un terreno.
   
 
   const getUsuarioDetails = (usuarioId) => {
