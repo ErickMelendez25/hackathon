@@ -16,8 +16,12 @@ const DashboardMain = () => {
 
   // Obtener elementos necesarios
 
+  const [sidebarActive, setSidebarActive] = useState(false);  
 
-  const [sidebarActive, setSidebarActive] = useState(false);
+  const changeCategory = (newCategory) => {
+    history.push(`/dashboard/${newCategory}`);
+    setSidebarActive(false); // Cerrar la barra lateral
+  };
  
 
 
@@ -175,15 +179,7 @@ useEffect(() => {
 
   const sortedTerrenos = filteredTerrenos.sort((a, b) => new Date(b.fecha_publicacion) - new Date(a.fecha_publicacion));
 
-  const changeCategory = (category) => {
-    if (category === 'vender') {
-      setShowForm(true);
-    } else {
-      setShowForm(false);
-  
-      navigate(`/dashboard/${category}`);
-    }
-  };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -268,11 +264,11 @@ useEffect(() => {
     <div className="dashboard">
       <button
         className="sidebar-toggle"
-        onClick={() => setSidebarActive(!sidebarActive)}
+        onClick={() => setSidebarActive(!sidebarActive)} // Cambiar el estado de la barra lateral
       >
         ☰
       </button>
-      <div className="sidebar">
+      <div className={`sidebar ${sidebarActive ? 'active' : ''}`}>
         <div className="categories">
           <button
             className={`category-btn ${categoria === 'terrenos' ? 'active' : ''}`}

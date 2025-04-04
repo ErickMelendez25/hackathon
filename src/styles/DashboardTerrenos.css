@@ -317,17 +317,17 @@
 
   /* Botón para abrir y cerrar la barra lateral */
   .sidebar-toggle {
-      display: block;
-      background-color: #1fcac2;
-      color: white;
-      border: none;
-      padding: 10px;
-      font-size: 18px;
-      cursor: pointer;
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1001;
+    display: block;
+    background-color: #1fcac2;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1001;
   }
 
   /* Contenedor de las categorías */
