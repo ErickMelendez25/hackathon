@@ -425,7 +425,17 @@
         padding: 12px;
     }
 
+
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);  /* Ajusta la galería a dos columnas */
+      gap: 15px;  /* Reduce el espacio entre las cards */
+      margin-top: 0px;  /* Reduce el margen superior */
+    }
+
     .main-content {
-      margin-top: 110px;  /* Dejamos espacio para la barra lateral cuando está activa */
-      padding: 50px;  /* Reducimos el padding del contenido */}
+      margin-top: 150px;  /* Para que no se solape con la barra lateral */
+      padding: 10px;  /* Reduce el padding del contenido */
+  }
 }
