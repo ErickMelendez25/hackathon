@@ -411,9 +411,9 @@
 
     /* Barra lateral (sidebar) */
     .sidebar {
-      width: 100%; /* Ocupa todo el ancho de la pantalla */
-      position: fixed; /* Fija la barra lateral en la parte superior */
-      top: 70px; /* Ajuste para que no tape el header */
+      width: 20%; /* Ocupa todo el ancho de la pantalla */
+      position: relative; /* Fija la barra lateral en la parte superior */
+      top: 120px; /* Ajuste para que no tape el header */
       left: 0;
       height: auto; /* La altura es automática dependiendo del contenido */
       background-color: #0c9790;
