@@ -409,20 +409,6 @@
 /* Para tabletas (entre 768px y 1024px) */
 @media (max-width: 950px) and (min-width: 620px) {
 
-    /* Barra lateral (sidebar) */
-    .sidebar {
-      width: 20%; /* Ocupa todo el ancho de la pantalla */
-      position: relative; /* Fija la barra lateral en la parte superior */
-      top: 120px; /* Ajuste para que no tape el header */
-      left: 0;
-      height: auto; /* La altura es automática dependiendo del contenido */
-      background-color: #0c9790;
-      color: white;
-      padding: 10px 15px;
-      z-index: 1000;
-      transition: transform 0.3s ease-in-out;
-      display: none; /* Inicialmente está oculta */
-  }
 
   /* Barra lateral activa */
   .sidebar.active {
@@ -446,11 +432,11 @@
 
   /* Contenedor de las categorías */
   .categories {
-      display: flex;
-      flex-direction: column;  /* Muestra los botones horizontalmente */
-      flex-wrap: wrap;  /* Permite que los botones se ajusten en líneas si es necesario */
-      gap: 10px;  /* Espacio entre botones */
-      padding-top: 0px;  /* Espacio superior para evitar que se solapen */
+    display: flex;
+    flex-direction: row;  /* Muestra los botones horizontalmente */
+    flex-wrap: wrap;  /* Permite que los botones se ajusten en líneas si es necesario */
+    gap: 10px;  /* Espacio entre botones */
+    padding-top: 10px;  /* Espacio superior para evitar que se solapen */
   }
 
   /* Estilo de los botones de categoría */
