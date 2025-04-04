@@ -450,7 +450,7 @@
       flex-direction: column;  /* Muestra los botones horizontalmente */
       flex-wrap: wrap;  /* Permite que los botones se ajusten en líneas si es necesario */
       gap: 10px;  /* Espacio entre botones */
-      padding-top: 10px;  /* Espacio superior para evitar que se solapen */
+      padding-top: 0px;  /* Espacio superior para evitar que se solapen */
   }
 
   /* Estilo de los botones de categoría */
