@@ -409,6 +409,20 @@
 /* Para tabletas (entre 768px y 1024px) */
 @media (max-width: 950px) and (min-width: 620px) {
 
+    /* Barra lateral (sidebar) */
+    .sidebar {
+      width: 20%; /* Ocupa todo el ancho de la pantalla */
+      position: fixed; /* Fija la barra lateral en la parte superior */
+      top: 0px; /* Ajuste para que no tape el header */
+      left: 0;
+      height: auto; /* La altura es automática dependiendo del contenido */
+      background-color: #0c9790;
+      color: white;
+      padding: 10px 15px;
+      z-index: 1000;
+      transition: transform 0.3s ease-in-out;
+      display: none; /* Inicialmente está oculta */
+  }
 
   /* Barra lateral activa */
   .sidebar.active {
