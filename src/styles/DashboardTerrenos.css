@@ -426,6 +426,6 @@
     }
 
     .main-content {
-      margin-top: 10px;  /* Dejamos espacio para la barra lateral cuando está activa */
+      margin-top: 110px;  /* Dejamos espacio para la barra lateral cuando está activa */
       padding: 0px;  /* Reducimos el padding del contenido */}
 }
