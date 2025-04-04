@@ -19,8 +19,8 @@ const DashboardMain = () => {
   const [sidebarActive, setSidebarActive] = useState(false);  
 
   const changeCategory = (newCategory) => {
-    history.push(`/dashboard/${newCategory}`);
-    setSidebarActive(false); // Cerrar la barra lateral
+    navigate(`/dashboard/${newCategory}`);  // Navega usando `navigate`
+    setSidebarActive(false); // Cierra la barra lateral cuando se selecciona una categoría
   };
  
 
