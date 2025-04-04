@@ -4,20 +4,39 @@
     font-family: 'Arial', sans-serif;
 }
 
-/* Barra lateral */
-.sidebar {
-    width: 200px;
+  /* Barra lateral (sidebar) */
+  .sidebar {
+    width: 100%; /* Ocupa todo el ancho de la pantalla */
+    position: fixed; /* Fija la barra lateral en la parte superior */
+    top: 70px; /* Ajuste para que no tape el header */
+    left: 0;
+    height: auto; /* La altura es automática dependiendo del contenido */
     background-color: #0c9790;
     color: white;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.3s ease;
+    padding: 10px 15px;
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out;
+    display: none; /* Inicialmente está oculta */
 }
 
-/* Barra lateral visible en pantallas grandes y móvil */
+/* Barra lateral activa */
 .sidebar.active {
-    transform: translateX(0);
+    display: block; /* Aparece cuando se activa */
+}
+
+/* Botón para abrir y cerrar la barra lateral */
+.sidebar-toggle {
+  display: block;
+  background-color: #1fcac2;
+  color: white;
+  border: none;
+  padding: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1001;
 }
 
 /* Botones de categoría en la barra lateral */
