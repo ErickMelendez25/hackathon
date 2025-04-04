@@ -407,7 +407,7 @@
 
 
 /* Para tabletas (entre 768px y 1024px) */
-@media (max-width: 1024px) and (min-width: 768px) {
+@media (max-width: 950px) and (min-width: 620px) {
 
     /* Barra lateral (sidebar) */
     .sidebar {
