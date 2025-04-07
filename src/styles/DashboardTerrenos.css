@@ -2,17 +2,26 @@
 .dashboard {
     display: flex;
     font-family: 'Arial', sans-serif;
-}
-
-
-
-/* Botones de categoría en la barra lateral */
-.categories {
+   
+  }
+  
+  /* Barra lateral */
+  .sidebar {
+    width: 200px;
+    background-color: #0c9790;
+    color: white;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-}
-
-.category-btn {
+  }
+  
+  /* Botones de categoría en la barra lateral */
+  .categories {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .category-btn {
     background-color: #1fcac2;
     color: white;
     border: none;
@@ -22,89 +31,89 @@
     cursor: pointer;
     border-radius: 5px;
     transition: background-color 0.3s ease;
-}
-
-.category-btn.active {
+  }
+  
+  .category-btn.active {
     background-color: #34495E;
-}
-
-.category-btn:hover {
+  }
+  
+  .category-btn:hover {
     background-color: #293a4b;
-}
-
-/* Contenido principal */
-.main-content {
+  }
+  
+  /* Contenido principal */
+  .main-content {
     flex: 1;
     padding: 20px;
-}
-
-/* Filtros de búsqueda */
-.filters {
+  }
+  
+  /* Filtros de búsqueda */
+  .filters {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
-}
-
-.filter-item {
+  }
+  
+  .filter-item {
     flex: 1;
-}
-
-.filter-input, .filter-select {
+  }
+  
+  .filter-input, .filter-select {
     width: 100%;
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #BDC3C7;
-}
-
-.filter-select {
+  }
+  
+  .filter-select {
     background-color: #f0f0f0;
-}
-
-/* Resumen de estadísticas */
-.stats-summary {
+  }
+  
+  /* Resumen de estadísticas */
+  .stats-summary {
     margin-top: 20px;
-}
-
-/* Galería de Cards */
-.gallery {
+  }
+  
+  /* Galería de Cards */
+  .gallery {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 30px;
     margin-top: 30px;
-}
-
-/* Card - Contenedor */
-.card {
+  }
+  
+  /* Card - Contenedor */
+  .card {
     background-color: #FFFFFF;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
+  }
+  
+  .card:hover {
     transform: translateY(-5px); /* Efecto de movimiento */
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Sombra más prominente */
-}
-
-/* Contenedor de la imagen */
-.card-image-container {
+  }
+  
+  /* Contenedor de la imagen */
+  .card-image-container {
     position: relative; /* Permite colocar el título dentro de la imagen */
     width: 100%;
     height: 200px;
     overflow: hidden;
     border-bottom: 2px solid #BDC3C7;
-}
-
-/* Imagen de la Card */
-.card-image {
+  }
+  
+  /* Imagen de la Card */
+  .card-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-}
-
-/* Título de la Card */
-.card-title {
+  }
+  
+  /* Título de la Card */
+  .card-title {
     position: absolute;
     bottom: 10px;
     left: 15px;
@@ -116,20 +125,20 @@
     background-color: rgba(255, 255, 255, 0.7); /* Fondo semitransparente */
     padding: 5px;
     border-radius: 5px;
-}
-
-/* Detalles de la Card */
-.card-details {
+  }
+  
+  /* Detalles de la Card */
+  .card-details {
     padding: 15px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     height: auto;
     gap: 5px;
-}
-
-/* Descripción de la Card */
-.card-description {
+  }
+  
+  /* Descripción de la Card */
+  .card-description {
     font-size: 14px;
     color: #7F8C8D;
     margin-bottom: 10px;
@@ -137,50 +146,50 @@
     flex-grow: 1;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-/* Precio de la Card */
-.card-price {
+  }
+  
+  /* Precio de la Card */
+  .card-price {
     font-size: 16px;
     font-weight: bold;
     color: #1ABC9C;
     margin-bottom: 0px;
     line-height: 0;
-}
-
-/* Ubicación de la Card */
-.card-location {
+  }
+  
+  /* Ubicación de la Card */
+  .card-location {
     font-size: 14px;  /* Ajusta el tamaño del ícono */
     color: #BDC3C7;   /* Color del ícono */
     margin-bottom: 0px;  /* Espacio inferior */
     display: flex;
     align-items: center;  /* Alinea el ícono verticalmente */
     font-style: italic;
-}
-.card-location i {
+  }
+  .card-location i {
     margin-right: 5px; /* Espacio entre el ícono y la ubicación */
-}
-
-/* Estado de la Card */
-.card-estado {
+  }
+  
+  /* Estado de la Card */
+  .card-estado {
     font-size: 14px;
     color: #BDC3C7;
     margin-bottom: 0px;
     font-style: italic;
     line-height: 0;
-}
-
-/* Vendedor de la Card */
-.card-vendedor {
+  }
+  
+  /* Vendedor de la Card */
+  .card-vendedor {
     font-size: 14px;
     color: #BDC3C7;
     margin-bottom: 3px;
     font-style: italic;
     line-height: 1.2;
-}
-
-/* Botón de la Card */
-.card-button {
+  }
+  
+  /* Botón de la Card */
+  .card-button {
     background-color: #1ABC9C;
     color: white;
     padding: 12px 20px;
@@ -190,35 +199,36 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
     text-align: center;
-}
-
-.card-button:hover {
+  }
+  
+  .card-button:hover {
     background-color: #81dd08;
-}
-
-/* Pie de la Card - Información adicional */
-.card-footer {
+  }
+  
+  /* Pie de la Card - Información adicional */
+  .card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 15px;
-}
-
-/* Vendor de la Card */
-.card-footer .card-vendor {
+  }
+  
+  /* Vendor de la Card */
+  .card-footer .card-vendor {
     font-weight: 600;
     color: #2C3E50;
     font-size: 14px;
-}
-
-/* Información adicional del footer */
-.card-footer p {
+  }
+  
+  /* Información adicional del footer */
+  .card-footer p {
     font-size: 12px;
     color: #BDC3C7;
-}
-
-/* Estilo del botón "¿Quieres vender?" */
-.sell-button {
+  }
+  
+  
+  /* Estilo del botón "¿Quieres vender?" */
+  .sell-button {
     background-color: #eeeeee;
     color: rgb(33, 47, 75);
     padding: 12px 20px;
@@ -227,43 +237,45 @@
     font-size: 16px;
     cursor: pointer;
     margin-top: 15px;
-}
-
-.sell-button:hover {
+  }
+  
+  .sell-button:hover {
     background-color:  #34495E;
-    color: #f9f9f9;
-}
-
-/* Estilo del formulario de venta */
-.sell-form-container {
+    color: #f9f9f9
+    ;
+  }
+  
+  
+  /* Estilo del formulario de venta */
+  .sell-form-container {
     background-color: #f9f9f9;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-bottom: 30px;
-}
-
-.sell-form h3 {
+  }
+  
+  .sell-form h3 {
     font-size: 22px;
     margin-bottom: 15px;
-}
-
-.sell-form label {
+  }
+  
+  .sell-form label {
     display: block;
     margin-bottom: 8px;
     font-size: 14px;
-}
-
-.sell-form input,
-.sell-form textarea {
+  }
+  
+  .sell-form input,
+  .sell-form textarea {
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
     border-radius: 5px;
     border: 1px solid #BDC3C7;
-}
-
-.sell-form-submit {
+  }
+  
+  .sell-form-submit {
     background-color: #1ABC9C;
     color: white;
     padding: 12px 20px;
@@ -271,142 +283,251 @@
     border-radius: 25px;
     font-size: 16px;
     cursor: pointer;
-}
-
-.sell-form-submit:hover {
+  }
+  
+  .sell-form-submit:hover {
     background-color: #16A085;
-}
-
+  }
+  
+  .sidebar-toggle {
+    display: none;}
 /* Media Queries para Responsividad */
 
 /* Para pantallas pequeñas (móviles) */
-@media (max-width: 768px) {
-  /* Barra lateral (sidebar) */
-  .sidebar {
-    width: 5%; /* Ocupa todo el ancho de la pantalla */
-    position: fixed; /* Fija la barra lateral en la parte superior */
-    top: 20px; /* Ajuste para que no tape el header */
-    left: 0;
-    height: auto; /* La altura es automática dependiendo del contenido */
-    background-color: #0c9790;
-    color: white;
-    padding: 10px 15px;
-    z-index: 1000;
-    transition: transform 0.3s ease-in-out;
-    display: none; /* Inicialmente está oculta */ 
-  }
-  /* Barra lateral activa */
-  .sidebar.active {
-      display: block; /* Aparece cuando se activa */
-  }
-
-  /* Botón para abrir y cerrar la barra lateral */
-  .sidebar-toggle {
-    display: block;
-    background-color: #1fcac2;
-    color: white;
-    border: none;
-    padding: 10px;
-    font-size: 18px;
-    cursor: pointer;
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 1001;
-  }
-
-  /* Contenedor de las categorías */
-  .categories {
+@media (max-width: 599px) {
+    /* Barra lateral (sidebar) */    /* Barra lateral (sidebar) */
+    .sidebar {
+        width: 20%; /* Ocupa todo el ancho de la pantalla */
+        position: fixed; /* Fija la barra lateral en la parte superior */
+        top: 20px; /* Ajuste para que no tape el header */
+        left: 0;
+        height: auto; /* La altura es automática dependiendo del contenido */
+        background-color: #0c9790;
+        color: white;
+        
+        z-index: 1000;
+        transition: transform 0.3s ease-in-out;
+        display: none; /* Inicialmente está oculta */
+        
+    }
+  
+    /* Barra lateral activa */
+    .sidebar.active {
+        display: block; /* Aparece cuando se activa */
+        
+    }
+  
+    /* Botón para abrir y cerrar la barra lateral */
+    .sidebar-toggle {
+      display: block;
+      background-color: #1fcac2;
+      color: white;
+      border: none;
+      padding: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1001;
+    }
+  
+    /* Contenedor de las categorías */
+    .categories {
       display: flex;
       flex-direction: row;  /* Muestra los botones horizontalmente */
       flex-wrap: wrap;  /* Permite que los botones se ajusten en líneas si es necesario */
       gap: 10px;  /* Espacio entre botones */
       padding-top: 10px;  /* Espacio superior para evitar que se solapen */
-  }
-
-  /* Estilo de los botones de categoría */
-  .category-btn {
-      background-color: #1fcac2;
-      color: white;
-      border: none;
-      padding: 8px 15px;  /* Botones más pequeños */
-      font-size: 12px;  /* Tamaño de fuente reducido */
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
-      text-align: center;
-  }
-
-  /* Estilo de los botones cuando están activos */
-  .category-btn.active {
-      background-color: #34495E;
-  }
-
-  /* Estilo de los botones cuando están en hover */
-  .category-btn:hover {
-      background-color: #293a4b;
-  }
-
-  /* Estilos de los filtros (debajo de la barra lateral) */
-  .filters {
+    }
+  
+    /* Estilo de los botones de categoría */
+    .category-btn {
+        background-color: #1fcac2;
+        color: white;
+        border: none;
+        padding: 8px 15px;  /* Botones más pequeños */
+        font-size: 12px;  /* Tamaño de fuente reducido */
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+        text-align: center;
+    }
+  
+    /* Estilo de los botones cuando están activos */
+    .category-btn.active {
+        background-color: #34495E;
+    }
+  
+    /* Estilo de los botones cuando están en hover */
+    .category-btn:hover {
+        background-color: #293a4b;
+    }
+  
+  /* Filtros de búsqueda */
+    .filters {
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
-      margin-top: 10px;
-  }
-
-  /* Estilo de los elementos del filtro */
-  .filter-item {
+    }
+  
+    .filter-item {
       flex: 1;
-      min-width: 200px; /* Para asegurar que no se vean demasiado pequeños */
-  }
-
-  .filter-input, .filter-select {
+    }
+  
+    .filter-input, .filter-select {
       width: 100%;
       padding: 10px;
       border-radius: 5px;
       border: 1px solid #BDC3C7;
-  }
-
-  .filter-select {
+    }
+  
+    .filter-select {
       background-color: #f0f0f0;
-  }
-
-  /* Modificar la galería de cards para que se adapte mejor a dispositivos móviles */
-  .gallery {
+    }
+  
+    /* Resumen de estadísticas */
+    .stats-summary {
+      margin-top: 20px;
+    }
+  
+    /* Galería de Cards */
+    .gallery {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);  /* Ajusta la galería a dos columnas */
-      gap: 15px;  /* Reduce el espacio entre las cards */
-      margin-top: 20px;  /* Reduce el margen superior */
-  }
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 30px;
+      margin-top: 30px;
 
-  /* Estilo de las cards dentro de la galería */
-  .card {
-      background-color: #FFFFFF;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      height: 100%;
-  }
+      
+    }
 
-  .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-  }
 
-  /* Estilo general del contenido principal */
-  .main-content {
-      margin-top: 150px;  /* Para que no se solape con la barra lateral */
-      padding: 10px;  /* Reduce el padding del contenido */
-  }
+    .sidebar {
+       
+        width: 100%;
+        top: -1px;
+        /* Ocupa todo el ancho de la pantalla */
+        position: fixed; /* Fija la barra lateral en la parte superior */
+         /* Ajuste para que no tape el header */
+        left: 0px;
+        height: auto; /* La altura es automática dependiendo del contenido */
+        background-color: #0c9790;
+        color: white;
+        padding: 10px 50px;
+        z-index: 1000;
+        transition: transform 0.3s ease-in-out;
+        display: none; /* Inicialmente está oculta */
+
+
+    }
+  
+    /* Barra lateral activa */
+    .sidebar.active {
+        display: block; /* Aparece cuando se activa */
+    }
+
+    /* Estilos cuando la sidebar tiene la clase 'active' */
+
+  
+    /* Botón para abrir y cerrar la barra lateral */
+    .sidebar-toggle {
+    
+      display: block;
+      background-color: hsl(187, 89%, 51%);
+      color: rgb(255, 255, 255);
+      border: none;
+      padding: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1001;
+
+
+    }
+  
+    /* Contenedor de las categorías */
+    .categories {
+      display: flex;
+      flex-direction: row;  /* Muestra los botones horizontalmente */
+      flex-wrap: wrap;  /* Permite que los botones se ajusten en líneas si es necesario */
+      gap: 10px;  /* Espacio entre botones */
+      padding-top: 10px;  /* Espacio superior para evitar que se solapen */
+    }
+  
+    /* Estilo de los botones de categoría */
+    .category-btn {
+        background-color: #1fcac2;
+        color: white;
+        border: none;
+        padding: 8px 15px;  /* Botones más pequeños */
+        font-size: 12px;  /* Tamaño de fuente reducido */
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+        text-align: center;
+    }
+  
+    /* Estilo de los botones cuando están activos */
+    .category-btn.active {
+        background-color: #34495E;
+    }
+  
+    /* Estilo de los botones cuando están en hover */
+    .category-btn:hover {
+        background-color: #293a4b;
+    }
+  
+  /* Filtros de búsqueda */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      
+    }
+  
+    .filter-item {
+      flex: 1;
+    }
+  
+    .filter-input, .filter-select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #BDC3C7;
+      font-size: 12px;
+      
+    }
+  
+    .filter-select {
+      background-color: #f0f0f0;
+    }
+  
+    /* Resumen de estadísticas */
+    .stats-summary {
+      margin-top: 20px;
+    }
+
+
+  
+    /* Si el sidebar está activo, aplicar estilos a la main-content también */
+
+    /* Galería de Cards */
+    .gallery {
+      display: grid;
+      grid-template-rows: repeat(auto-fill, minmax(180px, 2fr));
+      gap: 30px;
+      margin-top: 30px;
+    }
+
 }
 
 
 
 
 /* Para tabletas (entre 768px y 1024px) */
-@media (max-width: 950px) and (min-width: 620px) {
+@media (max-width: 950px) and (min-width: 600px) {
 
     /* Barra lateral (sidebar) */
     .sidebar {
@@ -505,7 +626,7 @@
   /* Galería de Cards */
   .gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 3fr));
     gap: 30px;
     margin-top: 30px;
   }

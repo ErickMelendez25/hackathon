@@ -21,6 +21,7 @@ const DashboardMain = () => {
   const changeCategory = (newCategory) => {
     navigate(`/dashboard/${newCategory}`);  // Navega usando `navigate`
     setSidebarActive(false); // Cierra la barra lateral cuando se selecciona una categoría
+    setShowForm(false);
   };
  
 
@@ -288,16 +289,16 @@ useEffect(() => {
           >
             Casas
           </button>
-        </div>
+        
         <button
-          className="sell-button"
-          onClick={() => {
-            setShowForm(true);
-            navigate('/dashboard/vender');
-          }}
+          className={`category-btn ${categoria === 'vender' ? 'active' : ''}`}
+          onClick={() => { changeCategory('vender'); setShowForm(true)}}
+
+          
         >
           ¿Quieres vender?
         </button>
+        </div>
       </div>
 
       <div className="main-content">
@@ -380,7 +381,7 @@ useEffect(() => {
         ) : (
           <>
             {categoria === 'terrenos' && (
-              <div className="filters">
+              <div className={`filters ${sidebarActive ? 'active' : ''}`}>
                 <div className="filter-item">
                   <select
                     value={filters.estado}
@@ -441,12 +442,12 @@ useEffect(() => {
                 <p>Cargando datos...</p>
               ) : categoria === 'terrenos' ? (
                 sortedTerrenos.map((terreno, index) => {
-                  const imagenUrl = terreno.imagenes && Array.isArray(terreno.imagenes) ? terreno.imagenes[0] : '/default-image.jpg';
+                  const imagenUrl = terreno.imagenes && Array.isArray(terreno.imagenes) ? `/terrenos/${terreno.imagenes[0]}` : '/default-image.jpg';
                   const vendedorNombre = getUsuarioDetails(terreno.usuario_id);
                   return (
                     <div key={index} className="card">
                       <div className="card-image-container">
-                        <img src={imagenUrl} alt={terreno.titulo} className="card-image" />
+                        <img src={`http://localhost:5000/terrenos/terrenaid.jpg`} alt={terreno.titulo} className="card-image" />
                         <h3 className="card-title">{terreno.titulo}</h3>
                       </div>
                       <div className="card-details">

@@ -51,7 +51,7 @@ const Login = () => {
       // Verifica si estás en producción (Railway) o en desarrollo (localhost)
       const apiUrl = process.env.NODE_ENV === 'production' 
       ? 'https://sateliterrreno-production.up.railway.app/api/terrenos' 
-      : 'http://localhost:5000/api/terrenos';
+      : 'http://localhost:5173/api/terrenos';
 
       const response = await axios.get(apiUrl, {
         headers: {

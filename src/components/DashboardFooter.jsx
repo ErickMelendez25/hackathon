@@ -21,11 +21,7 @@ function DashboardFooter() {
       {window.location.pathname === "/dashboard" && (
         <div className="footer-options">
           {/* Enlaces a las opciones que mencionaste */}
-          <Link to="/dashboard/seguridad-salud-trabajo" className="footer-item">Seguridad y salud en el trabajo</Link>
-          <Link to="/dashboard/gestion-talento-humano" className="footer-item">Gestión del talento humano</Link>
-          <Link to="/dashboard/informacion-comunicacion" className="footer-item">Información y comunicación</Link>
-          <Link to="/dashboard/bienestar-organizacional" className="footer-item">Bienestar organizacional</Link>
-          <Link to="/dashboard/consejeria-academica" className="footer-item">Consejería académica</Link>
+
         </div>
       )}
 

@@ -19,7 +19,7 @@ const __dirname = path.resolve();  // Obtener la ruta del directorio actual (cor
 
 // Configura CORS para permitir solicitudes solo desde tu frontend
 const corsOptions = {
-  origin: ['https://sateliterrreno-production.up.railway.app', 'http://localhost:5000'],
+  origin: ['https://sateliterrreno-production.up.railway.app', 'http://localhost:5173'],
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
 };
@@ -29,14 +29,14 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 // Verificar si la carpeta 'uploads' existe, si no, crearla
-const uploadDirectory = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDirectory)) {
-  fs.mkdirSync(uploadDirectory, { recursive: true });
+const terrenosDirectory  = path.join(__dirname, 'terrenos');
+if (!fs.existsSync(terrenosDirectory)) {
+  fs.mkdirSync(terrenosDirectory, { recursive: true });
 }
 
 // Configuración de almacenamiento de archivos con multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDirectory),
+  destination: (req, file, cb) => cb(null, terrenosDirectory),
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),  // Usar fecha para nombres únicos
 });
 
@@ -45,7 +45,7 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },  // Limitar tamaño a 10MB por archivo
 });
 
-app.use('/uploads', express.static(uploadDirectory)); // Servir archivos estáticos desde 'uploads'
+app.use('/terrenos', express.static(terrenosDirectory)); // Servir archivos estáticos desde 'uploads'
 
 // Configuración de la base de datos
 const db = mysql.createPool({
