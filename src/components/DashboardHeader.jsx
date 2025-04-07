@@ -147,7 +147,7 @@ function DashboardHeader() {
     <header className="dashboard-header">
       <div className="logo-container">
         <Link to="/dashboard" className="logo-link">
-          <img src="http://localhost:5000/terrenos/logo.png" alt="Logo de CampusUC" className={titleVisible ? 'logo-animate' : ''} />
+          <img src="https://sateliterrreno-production.up.railway.app/terrenos/logo.png" alt="Logo de CampusUC" className={titleVisible ? 'logo-animate' : ''} />
         </Link>
       </div>
 
