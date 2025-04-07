@@ -447,7 +447,7 @@ useEffect(() => {
                   return (
                     <div key={index} className="card">
                       <div className="card-image-container">
-                        <img src={`http://localhost:5000/terrenos/terrenaid.jpg`} alt={terreno.titulo} className="card-image" />
+                        <img src={`https://sateliterrreno-production.up.railway.app/terrenos/terrenaid.jpg`} alt={terreno.titulo} className="card-image" />
                         <h3 className="card-title">{terreno.titulo}</h3>
                       </div>
                       <div className="card-details">
