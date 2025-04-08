@@ -94,56 +94,48 @@ const verificarToken = (req, res, next) => {
 
 // Endpoint de autenticación con Google
 // Endpoint de autenticación con Google
-app.post('/auth', (req, res) => {
+// Endpoint de autenticación con Google
+app.post('/auth', async (req, res) => {
   const { google_id, nombre, email, imagen_perfil } = req.body;
   console.log('Datos recibidos en /api/auth:', { google_id, nombre, email, imagen_perfil });
 
-  // Validar si se recibieron los datos necesarios
   if (!google_id || !email) {
     return res.status(400).json({ message: 'Faltan datos requeridos' });
   }
 
-  // Consultar si el usuario ya existe en la base de datos
-  db.query('SELECT * FROM usuarios WHERE correo = ?', [email], (err, rows) => {
-    if (err) {
-      console.error('Error al consultar el usuario:', err);
-      return res.status(500).json({ message: 'Error en el servidor' });
-    }
+  let connection;
+  try {
+    connection = await db.getConnection();
+
+    console.log('Conexión obtenida desde el pool');
+
+    const [rows] = await connection.execute('SELECT * FROM usuarios WHERE correo = ?', [email]);
 
     let usuario;
-    // Si el usuario no existe, lo creamos
     if (rows.length === 0) {
-      db.query(
-        'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo, puede_vender) VALUES (?, ?, ?, ?, ?, ?)',
-        [google_id, nombre, email, imagen_perfil, 'comprador', false],
-        (err, result) => {
-          if (err) {
-            console.error('Error al insertar el nuevo usuario:', err);
-            return res.status(500).json({ message: 'Error en el servidor' });
-          }
-
-          // Buscar el usuario recién insertado
-          db.query('SELECT * FROM usuarios WHERE correo = ?', [email], (err, newRows) => {
-            if (err) {
-              console.error('Error al buscar el nuevo usuario:', err);
-              return res.status(500).json({ message: 'Error en el servidor' });
-            }
-
-            usuario = newRows[0];
-            // Generar el token y enviar la respuesta
-            const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
-            res.status(200).json({ token, usuario });
-          });
-        }
+      await connection.execute(
+        'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo, puede_vender, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [google_id, nombre, email, imagen_perfil, 'comprador', false, 'vklmeñjvneio4uh9pg8uhve'] // El password predeterminado
       );
+      const [newUser] = await connection.execute('SELECT * FROM usuarios WHERE correo = ?', [email]);
+      usuario = newUser[0];
     } else {
-      // Si el usuario ya existe
       usuario = rows[0];
-      const token = jwt.sign({ id: usuario.id, email: usuario.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
-      res.status(200).json({ token, usuario });
     }
-  });
+
+    const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    // Responder con el token y los datos del usuario
+    res.status(200).json({ token, usuario });
+
+  } catch (error) {
+    console.error('Error en /api/auth:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  } finally {
+    if (connection) connection.release();
+  }
 });
+
 
 
 // Ruta de login
