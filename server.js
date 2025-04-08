@@ -19,7 +19,7 @@ const __dirname = path.resolve();  // Obtener la ruta del directorio actual (cor
 
 // Configura CORS para permitir solicitudes solo desde tu frontend
 const corsOptions = {
-  origin: ['https://sateliterrreno-production.up.railway.app', 'http://localhost:5173'],
+  origin: ['https://sateliterrreno-production.up.railway.app', 'http://localhost:5173', 'http://localhost:5000'],
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
 };
@@ -91,6 +91,60 @@ const verificarToken = (req, res, next) => {
     next();
   });
 };
+
+// Endpoint de autenticación con Google
+// Endpoint de autenticación con Google
+app.post('/auth', (req, res) => {
+  const { google_id, nombre, email, imagen_perfil } = req.body;
+  console.log('Datos recibidos en /api/auth:', { google_id, nombre, email, imagen_perfil });
+
+  // Validar si se recibieron los datos necesarios
+  if (!google_id || !email) {
+    return res.status(400).json({ message: 'Faltan datos requeridos' });
+  }
+
+  // Consultar si el usuario ya existe en la base de datos
+  db.query('SELECT * FROM usuarios WHERE correo = ?', [email], (err, rows) => {
+    if (err) {
+      console.error('Error al consultar el usuario:', err);
+      return res.status(500).json({ message: 'Error en el servidor' });
+    }
+
+    let usuario;
+    // Si el usuario no existe, lo creamos
+    if (rows.length === 0) {
+      db.query(
+        'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo, puede_vender) VALUES (?, ?, ?, ?, ?, ?)',
+        [google_id, nombre, email, imagen_perfil, 'comprador', false],
+        (err, result) => {
+          if (err) {
+            console.error('Error al insertar el nuevo usuario:', err);
+            return res.status(500).json({ message: 'Error en el servidor' });
+          }
+
+          // Buscar el usuario recién insertado
+          db.query('SELECT * FROM usuarios WHERE correo = ?', [email], (err, newRows) => {
+            if (err) {
+              console.error('Error al buscar el nuevo usuario:', err);
+              return res.status(500).json({ message: 'Error en el servidor' });
+            }
+
+            usuario = newRows[0];
+            // Generar el token y enviar la respuesta
+            const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
+            res.status(200).json({ token, usuario });
+          });
+        }
+      );
+    } else {
+      // Si el usuario ya existe
+      usuario = rows[0];
+      const token = jwt.sign({ id: usuario.id, email: usuario.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      res.status(200).json({ token, usuario });
+    }
+  });
+});
+
 
 // Ruta de login
 app.post('/login', (req, res) => {
