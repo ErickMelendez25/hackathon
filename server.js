@@ -101,8 +101,8 @@ app.post('/auth', (req, res) => {
     return res.status(400).json({ message: 'Faltan datos requeridos' });
   }
 
-  // Verifica si el usuario ya existe en la base de datos
-  db.query('SELECT * FROM usuarios WHERE google_id = ?', [correo], (err, result) => {
+  // Verifica si el usuario ya existe en la base de datos usando google_id
+  db.query('SELECT * FROM usuarios WHERE google_id = ?', [google_id], (err, result) => {
     if (err) {
       console.error('Error al consultar el usuario:', err);
       return res.status(500).json({ message: 'Error en el servidor' });
@@ -145,6 +145,7 @@ app.post('/auth', (req, res) => {
     }
   });
 });
+
 
 
 
