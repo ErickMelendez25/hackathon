@@ -92,10 +92,10 @@ const Login = () => {
       localStorage.removeItem('usuario');
       console.log('LocalStorage limpio');
   
-      // Verifica si estás en producción o desarrollo
+      // Definir la URL de la API según el entorno
       const apiUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://sateliterrreno-production.up.railway.app' 
-        : 'http://localhost:5000';
+          ? 'https://sateliterrreno-production.up.railway.app' 
+          : 'http://localhost:5000';
   
       // Enviar los datos de autenticación al backend
       console.log('Enviando datos de autenticación al backend...');
@@ -128,6 +128,7 @@ const Login = () => {
       setErrorMessage('Error al iniciar sesión con Google');
     }
   };
+  
   
   
   
