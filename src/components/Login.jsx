@@ -102,7 +102,7 @@ const Login = () => {
       const { data } = await axios.post(`${apiUrl}/auth`, {
         google_id: userInfo.sub,
         nombre: userInfo.name,
-        email: userInfo.email,
+        correo: userInfo.email,
         imagen_perfil: userInfo.picture,
       });
   

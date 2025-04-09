@@ -122,7 +122,8 @@ app.post('/auth', (req, res) => {
           }
 
           // Recuperamos los datos del usuario insertado
-          const [newUser] = result;
+          const [newUser] = insertResult;
+
           usuario = newUser;
 
           // Generamos el token de autenticación
