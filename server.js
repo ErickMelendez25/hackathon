@@ -94,15 +94,15 @@ const verificarToken = (req, res, next) => {
 
 // Endpoint de autenticación con Google
 app.post('/auth', (req, res) => {
-  const { google_id, nombre, correo, imagen_perfil } = req.body;
-  console.log('Datos recibidos en /auth:', { google_id, nombre, correo, imagen_perfil });
+  const { google_id, nombre, email, imagen_perfil } = req.body;
+  console.log('Datos recibidos en /auth:', { google_id, nombre, email, imagen_perfil });
 
-  if (!google_id || !correo) {
+  if (!google_id || !email) {
     return res.status(400).json({ message: 'Faltan datos requeridos' });
   }
 
   // Verifica si el usuario ya existe en la base de datos
-  db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, result) => {
+  db.query('SELECT * FROM usuarios WHERE google_id = ?', [correo], (err, result) => {
     if (err) {
       console.error('Error al consultar el usuario:', err);
       return res.status(500).json({ message: 'Error en el servidor' });
@@ -114,7 +114,7 @@ app.post('/auth', (req, res) => {
       const defaultPassword = 'vklmeñjvneio4uh9pg8uhve'; // La contraseña por defecto
       db.query(
         'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo, puede_vender, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [google_id, nombre, correo, imagen_perfil, 'comprador', false, defaultPassword],
+        [google_id, nombre, email, imagen_perfil, 'comprador', false, defaultPassword],
         (err, insertResult) => {
           if (err) {
             console.error('Error al insertar el nuevo usuario:', err);
