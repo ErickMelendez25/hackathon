@@ -84,7 +84,7 @@ const Login = () => {
   
     try {
       const { credential } = response;
-      const userInfo = jwt_decode(credential);  
+      const userInfo = jwt_decode(credential);
       console.log('Información del usuario decodificada:', userInfo);
   
       // Limpiar el localStorage antes de guardar nuevos datos
@@ -92,12 +92,12 @@ const Login = () => {
       localStorage.removeItem('usuario');
       console.log('LocalStorage limpio');
   
-      // Verifica si estás en producción (Railway) o en desarrollo (localhost)
+      // Verifica si estás en producción o desarrollo
       const apiUrl = process.env.NODE_ENV === 'production' 
         ? 'https://sateliterrreno-production.up.railway.app' 
         : 'http://localhost:5000';
   
-      // Enviar los datos al backend
+      // Enviar los datos de autenticación al backend
       console.log('Enviando datos de autenticación al backend...');
       const { data } = await axios.post(`${apiUrl}/auth`, {
         google_id: userInfo.sub,
@@ -108,10 +108,17 @@ const Login = () => {
   
       console.log('Respuesta del servidor:', data);
   
-      // Guardar los nuevos datos del usuario
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('usuario', JSON.stringify(data.usuario)); // Asegúrate de que el nombre sea correcto
-      console.log('Datos de usuario y token guardados en localStorage');
+      if (data.token && data.usuario) {
+        // Guardar los nuevos datos del usuario
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('usuario', JSON.stringify(data.usuario)); // Asegúrate de que el nombre sea correcto
+        console.log('Datos de usuario y token guardados en localStorage');
+      } else {
+        console.error('No se recibieron los datos del usuario');
+        setErrorMessage('Error al obtener los datos del usuario');
+        setLoading(false); // Detener carga
+        return;
+      }
   
       setLoading(false); // Detener carga
       navigate('/dashboard');
@@ -121,6 +128,7 @@ const Login = () => {
       setErrorMessage('Error al iniciar sesión con Google');
     }
   };
+  
   
   
 

@@ -120,19 +120,23 @@ app.post('/auth', (req, res) => {
             console.error('Error al insertar el nuevo usuario:', err);
             return res.status(500).json({ message: 'Error al insertar el nuevo usuario' });
           }
-
-          // Recuperamos los datos del usuario insertado
+      
+          // Verifica si la inserción fue exitosa
           const [newUser] = insertResult;
-
+          if (!newUser) {
+            return res.status(400).json({ message: 'No se pudo insertar el usuario correctamente' });
+          }
+      
           usuario = newUser;
-
-          // Generamos el token de autenticación
+      
+          // Genera el token de autenticación
           const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-          // Responder con el token y los datos del usuario
+      
+          // Responde con el token y los datos del usuario
           res.status(200).json({ token, usuario });
         }
       );
+      
     } else {
       // Si el usuario existe, recuperamos los datos
       usuario = result[0];
