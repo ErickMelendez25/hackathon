@@ -116,7 +116,7 @@ function DashboardHeader() {
             <div className="navbar-container">
               <nav className="navbar">
                 <ul className="header-options">
-                  <li><span>Bienvenido, {userName || Nombre || 'Usuario'}</span></li> {/* Mostrar el nombre del usuario */}
+                  <li><span>Bienvenido, {user.nombre}</span></li> {/* Mostrar el nombre del usuario */}
                 </ul>
               </nav>
             </div>
