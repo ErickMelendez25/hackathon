@@ -79,43 +79,49 @@ const Login = () => {
   };
 
   const handleGoogleLoginSuccess = async (response) => {
-    setLoading(true); // Iniciar carga
+    setLoading(true);
     console.log('Google login success response:', response);
   
     try {
       const { credential } = response;
-      const userInfo = jwt_decode(credential);  
+      const userInfo = jwt_decode(credential);
       console.log('Información del usuario decodificada:', userInfo);
   
-      // Limpiar el localStorage antes de guardar nuevos datos
+      // Limpiar localStorage
       localStorage.removeItem('authToken');
       localStorage.removeItem('usuario');
       console.log('LocalStorage limpio');
   
-      // Enviar los datos al backend
+      // Establecer URL de la API según entorno
+      const apiUrl = process.env.NODE_ENV === 'production'
+        ? 'https://sateliterrreno-production.up.railway.app'
+        : 'http://localhost:5173';
+  
+      // Enviar datos al backend
       console.log('Enviando datos de autenticación al backend...');
       const { data } = await axios.post(`${apiUrl}/auth`, {
         google_id: userInfo.sub,
         nombre: userInfo.name,
-        correo: userInfo.email, // Aquí el cambio importante
+        correo: userInfo.email, // Tu backend usa "correo"
         imagen_perfil: userInfo.picture,
       });
   
       console.log('Respuesta del servidor:', data);
   
-      // Guardar los nuevos datos del usuario
+      // Guardar token y usuario en localStorage
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('usuario', JSON.stringify(data.usuario));
-      console.log('Datos de usuario y token guardados en localStorage');
+      console.log('Datos guardados en localStorage');
   
-      setLoading(false); // Detener carga
+      setLoading(false);
       navigate('/dashboard');
     } catch (error) {
       console.error('Error al iniciar sesión con Google:', error);
-      setLoading(false); // Detener carga
+      setLoading(false);
       setErrorMessage('Error al iniciar sesión con Google');
     }
   };
+  
   
   
   
