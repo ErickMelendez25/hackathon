@@ -93,40 +93,52 @@ const verificarToken = (req, res, next) => {
 };
 
 // Endpoint de autenticación con Google
-app.post('/auth', async (req, res) => {
+app.post('/auth', (req, res) => {
   const { google_id, nombre, correo, imagen_perfil } = req.body;
-  console.log('Datos recibidos en /auth:', { google_id, nombre, correo, imagen_perfil });
 
   if (!google_id || !correo) {
     return res.status(400).json({ message: 'Faltan datos requeridos' });
   }
 
-  try {
-    console.log('Ejecutando consulta con db.query');
-
-    const [rows] = await db.query('SELECT * FROM usuarios WHERE correo = ?', [correo]);
-
-    let usuario;
-    if (rows.length === 0) {
-      await db.query(
-        'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo, puede_vender) VALUES (?, ?, ?, ?, ?, ?)',
-        [google_id, nombre, correo, imagen_perfil, 'comprador', false]
-      );
-      const [newUser] = await db.query('SELECT * FROM usuarios WHERE correo = ?', [correo]);
-      usuario = newUser[0];
-    } else {
-      usuario = rows[0];
+  db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, result) => {
+    if (err) {
+      console.error('Error al consultar el usuario:', err);
+      return res.status(500).json({ message: 'Error en el servidor' });
     }
 
-    const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    let usuario;
+    if (result.length === 0) {
+      db.query(
+        'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo, puede_vender) VALUES (?, ?, ?, ?, ?, ?)',
+        [google_id, nombre, correo, imagen_perfil, 'comprador', false],
+        (err, insertResult) => {
+          if (err) {
+            console.error('Error al insertar el nuevo usuario:', err);
+            return res.status(500).json({ message: 'Error en el servidor' });
+          }
 
-    res.status(200).json({ token, usuario });
+          db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, newUserResult) => {
+            if (err) {
+              console.error('Error al consultar el nuevo usuario:', err);
+              return res.status(500).json({ message: 'Error en el servidor' });
+            }
 
-  } catch (error) {
-    console.error('Error en /api/auth:', error);
-    res.status(500).json({ message: 'Error en el servidor' });
-  }
+            usuario = newUserResult[0];
+            const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+            res.status(200).json({ token, usuario });
+          });
+        }
+      );
+    } else {
+      usuario = result[0];
+      const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+      res.status(200).json({ token, usuario });
+    }
+  });
 });
+
 
 
 

@@ -92,23 +92,22 @@ const Login = () => {
       localStorage.removeItem('usuario');
       console.log('LocalStorage limpio');
   
-      // Establecer URL de la API según entorno
+      // URL directa al endpoint sin "/api"
       const apiUrl = process.env.NODE_ENV === 'production'
         ? 'https://sateliterrreno-production.up.railway.app'
-        : 'http://localhost:5173';
+        : 'http://localhost:5000';
   
       // Enviar datos al backend
       console.log('Enviando datos de autenticación al backend...');
       const { data } = await axios.post(`${apiUrl}/auth`, {
         google_id: userInfo.sub,
         nombre: userInfo.name,
-        correo: userInfo.email, // Tu backend usa "correo"
+        correo: userInfo.email, // Correcto según tu backend
         imagen_perfil: userInfo.picture,
       });
   
       console.log('Respuesta del servidor:', data);
   
-      // Guardar token y usuario en localStorage
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('usuario', JSON.stringify(data.usuario));
       console.log('Datos guardados en localStorage');
@@ -121,6 +120,7 @@ const Login = () => {
       setErrorMessage('Error al iniciar sesión con Google');
     }
   };
+  
   
   
   
