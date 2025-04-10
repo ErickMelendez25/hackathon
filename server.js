@@ -93,62 +93,41 @@ const verificarToken = (req, res, next) => {
 };
 
 // Endpoint de autenticación con Google
-app.post('/auth', (req, res) => {
-  const { google_id, nombre, email, imagen_perfil } = req.body;
-  console.log('Datos recibidos en /auth:', { google_id, nombre, email, imagen_perfil });
+app.post('/auth', async (req, res) => {
+  const { google_id, nombre, correo, imagen_perfil } = req.body;
+  console.log('Datos recibidos en /auth:', { google_id, nombre, correo, imagen_perfil });
 
-  if (!google_id || !email) {
+  if (!google_id || !correo) {
     return res.status(400).json({ message: 'Faltan datos requeridos' });
   }
 
-  // Verifica si el usuario ya existe en la base de datos usando google_id
-  db.query('SELECT * FROM usuarios WHERE google_id = ?', [google_id], (err, result) => {
-    if (err) {
-      console.error('Error al consultar el usuario:', err);
-      return res.status(500).json({ message: 'Error en el servidor' });
-    }
+  try {
+    console.log('Ejecutando consulta con db.query');
+
+    const [rows] = await db.query('SELECT * FROM usuarios WHERE correo = ?', [correo]);
 
     let usuario;
-    if (result.length === 0) {
-      // Si no existe, insertamos un nuevo usuario con un password predeterminado
-      const defaultPassword = 'vklmeñjvneio4uh9pg8uhve'; // La contraseña por defecto
-      db.query(
-        'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo, puede_vender, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [google_id, nombre, email, imagen_perfil, 'comprador', false, defaultPassword],
-        (err, insertResult) => {
-          if (err) {
-            console.error('Error al insertar el nuevo usuario:', err);
-            return res.status(500).json({ message: 'Error al insertar el nuevo usuario' });
-          }
-      
-          // Verifica si la inserción fue exitosa
-          const [newUser] = insertResult;
-          if (!newUser) {
-            return res.status(400).json({ message: 'No se pudo insertar el usuario correctamente' });
-          }
-      
-          usuario = newUser;
-      
-          // Genera el token de autenticación
-          const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
-      
-          // Responde con el token y los datos del usuario
-          res.status(200).json({ token, usuario });
-        }
+    if (rows.length === 0) {
+      await db.query(
+        'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo, puede_vender) VALUES (?, ?, ?, ?, ?, ?)',
+        [google_id, nombre, correo, imagen_perfil, 'comprador', false]
       );
-      
+      const [newUser] = await db.query('SELECT * FROM usuarios WHERE correo = ?', [correo]);
+      usuario = newUser[0];
     } else {
-      // Si el usuario existe, recuperamos los datos
-      usuario = result[0];
-
-      // Generamos el token de autenticación
-      const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-      // Responder con el token y los datos del usuario
-      res.status(200).json({ token, usuario });
+      usuario = rows[0];
     }
-  });
+
+    const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(200).json({ token, usuario });
+
+  } catch (error) {
+    console.error('Error en /api/auth:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
 });
+
 
 
 

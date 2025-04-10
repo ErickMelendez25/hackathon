@@ -84,7 +84,7 @@ const Login = () => {
   
     try {
       const { credential } = response;
-      const userInfo = jwt_decode(credential);
+      const userInfo = jwt_decode(credential);  
       console.log('Información del usuario decodificada:', userInfo);
   
       // Limpiar el localStorage antes de guardar nuevos datos
@@ -92,33 +92,21 @@ const Login = () => {
       localStorage.removeItem('usuario');
       console.log('LocalStorage limpio');
   
-      // Verifica si estás en producción o desarrollo
-      const apiUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://sateliterrreno-production.up.railway.app' 
-        : 'http://localhost:5000';
-  
-      // Enviar los datos de autenticación al backend
+      // Enviar los datos al backend
       console.log('Enviando datos de autenticación al backend...');
       const { data } = await axios.post(`${apiUrl}/auth`, {
         google_id: userInfo.sub,
         nombre: userInfo.name,
-        email: userInfo.email,
+        correo: userInfo.email, // Aquí el cambio importante
         imagen_perfil: userInfo.picture,
       });
   
       console.log('Respuesta del servidor:', data);
   
-      if (data.token && data.usuario) {
-        // Guardar los nuevos datos del usuario
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('usuario', JSON.stringify(data.usuario)); // Asegúrate de que el nombre sea correcto
-        console.log('Datos de usuario y token guardados en localStorage');
-      } else {
-        console.error('No se recibieron los datos del usuario');
-        setErrorMessage('Error al obtener los datos del usuario');
-        setLoading(false); // Detener carga
-        return;
-      }
+      // Guardar los nuevos datos del usuario
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('usuario', JSON.stringify(data.usuario));
+      console.log('Datos de usuario y token guardados en localStorage');
   
       setLoading(false); // Detener carga
       navigate('/dashboard');
