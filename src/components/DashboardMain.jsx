@@ -322,24 +322,51 @@ useEffect(() => {
           >
             Casas
           </button>
-        
-        <button
-          className={`category-btn ${categoria === 'vender' ? 'active' : ''}`}
-          onClick={() => { changeCategory('vender'); setShowForm(true)}}
 
-          
-        >
-          ¿Quieres vender?
-        </button>
+          <button
+            className={`category-btn ${categoria === 'departamentos' ? 'active' : ''}`}
+            onClick={() => { changeCategory('departamentos'); }}
+          >
+            Departamentos
+          </button>
+
+          <button
+            className={`category-btn ${categoria === 'ropa' ? 'active' : ''}`}
+            onClick={() => { changeCategory('ropa'); }}
+          >
+            Ropa
+          </button>
+
+          <button
+            className={`category-btn ${categoria === 'celulares' ? 'active' : ''}`}
+            onClick={() => { changeCategory('celulares'); }}
+          >
+            Celulares
+          </button>
+        
+          <button
+            className={`category-btn ${categoria === 'vender' ? 'active' : ''}`}
+            onClick={() => { changeCategory('vender'); setShowForm(true)}}
+
+            
+          >
+            ¿Quieres vender?
+          </button>
         </div>
       </div>
 
       <div className="main-content">
         {categoria === undefined || categoria === '' ? (
           <div className="welcome-message">
-            <h2>Nuestro sitio oficial</h2>
+            <h3>SATELITE PERÚ</h3>
             <p>Bienvenido a nuestro sitio oficial. Aquí puedes encontrar diversos terrenos, casas, y carros a la venta. Si deseas vender, puedes utilizar nuestro formulario de conformidad.</p>
             <p>Explora las categorías disponibles y encuentra lo que necesitas.</p>
+
+            <h3>MISIÓN</h3>
+            <p>Brindar a nuestros clientes una plataforma confiable, ágil y segura para la compra y venta de propiedades y vehículos, conectando personas con oportunidades reales en todo el Perú.</p>
+
+            <h3>VISIÓN</h3>
+            <p>Ser el portal líder en el mercado peruano de bienes raíces y automóviles, destacando por nuestra transparencia, innovación tecnológica y compromiso con la satisfacción del cliente.</p>
           </div>
         ) : showForm ? (
           <div className="sell-form-container">

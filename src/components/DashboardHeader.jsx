@@ -94,8 +94,27 @@ function DashboardHeader() {
     }
   }, []); // Esta dependencia vacía asegura que se ejecute solo al montar el componente
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const menu = document.querySelector('.menu-options');
+      const avatar = document.querySelector('.user-photo-container');
+  
+      if (menu && avatar && !menu.contains(event.target) && !avatar.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+  
+    document.addEventListener('mousedown', handleClickOutside);
+  
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+
   // Verifica que la URL de la imagen esté válida antes de asignarla
-  const imageUrl = user.imagen_perfil; // Imagen predeterminada en caso de no tener foto
+  const imageUrl = userPhoto || (user && user.imagen_perfil) || 'https://i.imgur.com/6VBx3io.png'; // Imagen por defecto si no hay ninguna
+ // Imagen predeterminada en caso de no tener foto
 
   return (
     <header className="dashboard-header">
@@ -126,16 +145,18 @@ function DashboardHeader() {
 
       {/* Mostrar la imagen de perfil de usuario autenticado de Google */}
       <div className="user-photo-container">
-        <img 
-          src={imageUrl} // Foto de perfil de Google o la predeterminada
+      <img 
+          src={imageUrl}
           alt="Foto de usuario"
           className="user-icon"
-          onClick={toggleMenu} 
+          onClick={toggleMenu}
           title="Opciones" 
         />
+
         
         {/* Mostrar el menú de opciones cuando se hace clic en la foto */}
         {isMenuOpen && (
+          
           <div className="menu-options">
             <ul>
               <li onClick={confirmLogout}>Cerrar sesión</li>
@@ -143,7 +164,20 @@ function DashboardHeader() {
           </div>
         )}
       </div>
+      {showConfirmLogout && (
+      <div className="logout-modal">
+        <div className="modal-content">
+          <p>¿Estás seguro de que quieres cerrar sesión?</p>
+          <div className="modal-buttons">
+            <button onClick={confirmAndLogout}>Sí, cerrar sesión</button>
+            <button onClick={cancelLogout}>Cancelar</button>
+          </div>
+        </div>
+      </div>
+    )}
+  
     </header>
+    
   );
 }
 
