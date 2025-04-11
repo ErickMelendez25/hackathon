@@ -34,16 +34,17 @@ if (!fs.existsSync(terrenosDirectory)) {
   fs.mkdirSync(terrenosDirectory, { recursive: true });
 }
 
-// Configuración de almacenamiento de archivos con multer
+// Configuración de Multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, terrenosDirectory),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),  // Usar fecha para nombres únicos
+  destination: (req, file, cb) => {
+    cb(null, 'terrenos/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
 });
 
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 },  // Limitar tamaño a 10MB por archivo
-});
+const upload = multer({ storage: storage });
 
 app.use('/terrenos', express.static(terrenosDirectory)); // Servir archivos estáticos desde 'uploads'
 
@@ -340,6 +341,67 @@ app.get('/api/usuarios/:id', async (req, res) => {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 });
+
+app.post('/Createterrenos',
+  upload.fields([
+    { name: 'imagenes', maxCount: 1 },
+    { name: 'imagen_2', maxCount: 1 },
+    { name: 'imagen_3', maxCount: 1 },
+    { name: 'imagen_4', maxCount: 1 },
+    { name: 'video', maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const {
+        titulo, descripcion, precio,
+        ubicacion_lat, ubicacion_lon,
+        metros_cuadrados, estado, usuario_id
+      } = req.body;
+
+      const files = req.files;
+
+      const imagen = files?.imagenes?.[0]?.filename || null;
+      const imagen2 = files?.imagen_2?.[0]?.filename || null;
+      const imagen3 = files?.imagen_3?.[0]?.filename || null;
+      const imagen4 = files?.imagen_4?.[0]?.filename || null;
+      const video = files?.video?.[0]?.filename || null;
+
+      if (!titulo || !descripcion || !precio || !ubicacion_lat || !ubicacion_lon || !metros_cuadrados || !estado || !usuario_id) {
+        console.error('Faltan campos en el formulario:', req.body);
+        return res.status(400).json({ message: 'Todos los campos son requeridos' });
+      }
+
+      console.log('Datos recibidos:', req.body);
+      console.log('Archivos recibidos:', files);
+
+      const query = `
+        INSERT INTO terrenos
+        (titulo, descripcion, precio, ubicacion_lat, ubicacion_lon, metros_cuadrados, imagenes, imagen_2, imagen_3, imagen_4, video, estado, usuario_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      db.query(query, [
+        titulo, descripcion, precio,
+        ubicacion_lat, ubicacion_lon,
+        metros_cuadrados, imagen, imagen2, imagen3, imagen4, video,
+        estado, usuario_id
+      ], (err, result) => {
+        if (err) {
+          console.error('Error al crear el terreno:', err);
+          return res.status(500).json({ message: 'Error en el servidor', error: err.message });
+        }
+
+        res.status(201).json({
+          message: 'Terreno creado exitosamente',
+          terrenoId: result.insertId,
+        });
+      });
+
+    } catch (error) {
+      console.error('Error al crear el terreno:', error);
+      res.status(500).json({ message: 'Error en el servidor', error: error.message });
+    }
+});
+
 
 
 

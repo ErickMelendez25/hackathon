@@ -2,81 +2,90 @@
 
 /* Estilo general del contenedor */
 .terreno-detalles {
-    max-width: auto;
+    max-width: 1200px;
     margin: auto;
-    padding: 30px;
-    font-family: 'Helvetica Neue', sans-serif;  /* Fuente más elegante */
-    background-color: #ffffff; /* Fondo limpio */
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1); /* Sombras suaves para profundidad */
+    padding: 20px;
+    font-family: 'Helvetica Neue', sans-serif;
+    background-color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
     display: flex;
-    flex-direction: row;
+    flex-wrap: wrap;
     gap: 30px;
-    justify-content: flex-start;
+    justify-content: space-between;
 }
 
 /* Título del terreno */
 .terreno-detalles h2 {
-    font-size: 2.2rem;
+    font-size: 2.4rem;
     color: #2C3E50;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     font-weight: 600;
     text-align: left;
-    line-height: 1.2;
+    line-height: 1.3;
 }
 
-/* Contenedor de la imagen (en la izquierda) */
+/* Contenedor de la imagen o video (en la izquierda) */
 .terreno-imagenes {
-    flex: 1;
-    max-width: 45%;
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    max-height: 200px;
+    height: 100%;
+    padding-top: 0.2%; /* Relación de aspecto 16:9 */
+    background-color: #fdfdfd; /* Fondo negro para cuando no hay video */
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
-    background-color: #f4f4f4; /* Fondo claro */
-    border-radius: 12px;
-    padding: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12); /* Sombras más suaves */
+}
+
+.terreno-imagenes iframe,
+.terreno-imagenes video {
+    position: absolute;
+    top: 100;
+    left: 0;
+    width: 100%;  /* Ajusta el video o imagen al 100% del contenedor */
+    height: 100%;  /* Hace que ocupe el 100% del alto del contenedor */
+   
 }
 
 .terreno-imagenes img {
-    width: 100%;
-    height: auto;
-    border-radius: 12px;
-    object-fit: cover;
-    transition: transform 0.3s ease-in-out;
+    position: absolute;
+    top: 100;
+    left: 0;
+    width: 100%;  /* Ajusta el video o imagen al 100% del contenedor */
+    height:100%;  /* Hace que ocupe el 100% del alto del contenedor */
+    
+    
 }
 
-.terreno-imagenes img:hover {
-    transform: scale(1.05); /* Efecto de hover suave */
-}
 
-.terreno-imagenes p {
-    text-align: center;
-    font-size: 1rem;
-    color: #95a5a6;
-    margin-top: 10px;
-}
 
-/* Estilo para los detalles del terreno (a la derecha) */
+/* Información del terreno (a la derecha) */
 .terreno-info {
     flex: 1;
-    max-width: 55%;
+    max-width: 600px;
     display: flex;
     flex-direction: column;
-}
-
-.terreno-info .info-section {
-    background-color: #ffffff;
     padding: 20px;
+    background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    margin-bottom: 20px;
+}
+
+.terreno-info h2 {
+    font-size: 2rem;
+    color: #2C3E50;
+    margin-bottom: 10px;
+    font-weight: 600;
 }
 
 .terreno-info p {
     font-size: 1rem;
     color: #34495e;
-    line-height: 1.5; /* Interlineado más compacto */
+    line-height: 1.5;
     margin-bottom: 12px;
 }
 
@@ -85,7 +94,7 @@
     font-weight: bold;
 }
 
-/* Detalles del terreno organizados en 2 columnas */
+/* Detalles adicionales en 2 columnas */
 .detalles-adicionales {
     display: flex;
     flex-wrap: wrap;
@@ -95,7 +104,6 @@
 .column {
     flex: 1;
     min-width: 45%; /* Asegura que las columnas sean iguales */
-    margin-bottom: 20px;
 }
 
 /* WhatsApp Button */
@@ -108,13 +116,13 @@
 .whatsapp-button {
     display: flex;
     align-items: center;
-    padding: 10px 20px;
+    padding: 12px 24px;
     background-color: #25D366; /* Color verde de WhatsApp */
     color: #fff;
     font-size: 1.1rem;
     border-radius: 8px;
     text-decoration: none;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s ease;
 }
 
 .whatsapp-button:hover {
@@ -127,6 +135,7 @@
     margin-right: 10px;
 }
 
+/* Cargando */
 .loading {
     text-align: center;
     font-size: 1.4rem;
@@ -134,10 +143,53 @@
     font-weight: 500;
 }
 
-/* Estilos para mensajes de error o sin imágenes */
+/* Mensajes de error o sin imágenes */
 .no-imagenes {
     text-align: center;
     font-size: 1.2rem;
     color: #e74c3c;
     font-weight: 600;
 }
+
+/* Responsive - Ajustes para dispositivos pequeños */
+@media (max-width: 768px) {
+
+    /* Contenedor de la imagen o video (en la izquierda) */
+.terreno-imagenes {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    max-height: 200px;
+    height: 100%;
+    padding-top: 0.2%; /* Relación de aspecto 16:9 */
+    background-color: #fdfdfd; /* Fondo negro para cuando no hay video */
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+    
+    .terreno-detalles {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+
+
+    .terreno-info {
+        max-width: 100%;
+    }
+
+    .detalles-adicionales {
+        gap: 10px;
+    }
+
+    .column {
+        min-width: 100%;
+    }
+}
+
+

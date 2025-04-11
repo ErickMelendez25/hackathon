@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import "../styles/DashboardTerrenos.css";
+import ImageCarousel from './ImageCarousel'; // Asegúrate de que la ruta sea correcta
 
 const DashboardMain = () => {
   const [usuarios, setUsuarios] = useState([]);
 
 
   const [editMode, setEditMode] = useState(false);
+  
 
   const [usuarioLocal, setUsuarioLocal] = useState(null);
   const apiUrl = process.env.NODE_ENV === 'production' 
@@ -49,7 +51,18 @@ const DashboardMain = () => {
     celular: '',
     email: '',
     consentimiento: false,
+    titulo: '',
+    descripcion: '',
+    precio: '',
+    ubicacion_lat: '',
+    ubicacion_lon: '',
+    metros_cuadrados: '',
+    imagenes: null, // Inicializar como null
+    estado: 'disponible',
   });
+  
+
+  
 
 
 
@@ -190,38 +203,50 @@ useEffect(() => {
   const handleCreateTerreno = async (e) => {
     e.preventDefault();
   
-    if (!usuarioLocal || !usuarioLocal.id) {
+    if (!usuarioLocal?.id) {
       console.error('No se encontró el ID del usuario.');
       return;
     }
   
-    const newTerreno = {
-      titulo: formData.titulo,
-      descripcion: formData.descripcion,
-      precio: formData.precio,
-      ubicacion_lat: formData.ubicacion_lat,
-      ubicacion_lon: formData.ubicacion_lon,
-      metros_cuadrados: formData.metros_cuadrados,
-      imagenes: JSON.stringify([formData.imagenes]),
-      estado: formData.estado,
-      usuario_id: usuarioLocal.id,
-    };
+    const formDataImagen = new FormData();
   
-    console.log('Datos enviados al servidor:', newTerreno);
+    // Agregar datos obligatorios
+    formDataImagen.append('titulo', formData.titulo);
+    formDataImagen.append('descripcion', formData.descripcion);
+    formDataImagen.append('precio', formData.precio);
+    formDataImagen.append('ubicacion_lat', formData.ubicacion_lat);
+    formDataImagen.append('ubicacion_lon', formData.ubicacion_lon);
+    formDataImagen.append('metros_cuadrados', formData.metros_cuadrados);
+    formDataImagen.append('estado', formData.estado);
+    formDataImagen.append('usuario_id', usuarioLocal.id);
+  
+    // Imagen principal (obligatoria)
+    if (formData.imagenes) {
+      formDataImagen.append('imagenes', formData.imagenes);
+    }
+  
+    // Imágenes adicionales (opcionales)
+    ['imagen_2', 'imagen_3', 'imagen_4'].forEach((key) => {
+      if (formData[key]) {
+        formDataImagen.append(key, formData[key]);
+      }
+    });
+  
+    // Video (opcional)
+    if (formData.video) {
+      formDataImagen.append('video', formData.video);
+    }
   
     try {
-      const response = await fetch('http://localhost:5000/api/Createterrenos', {
+      const response = await fetch(`${apiUrl}/Createterrenos`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newTerreno),
+        body: formDataImagen,
       });
   
       if (!response.ok) {
         const errorMessage = await response.text();
         console.error('Error al crear el terreno:', errorMessage);
-        throw new Error(errorMessage);
+        return;
       }
   
       const data = await response.json();
@@ -229,32 +254,40 @@ useEffect(() => {
   
       // Limpiar el formulario
       setFormData({
+        tipoDocumento: 'DNI',
+        numeroDocumento: '',
+        emisionDocumento: '',
+        celular: '',
+        email: '',
+        consentimiento: false,
         titulo: '',
         descripcion: '',
         precio: '',
         ubicacion_lat: '',
         ubicacion_lon: '',
         metros_cuadrados: '',
-        imagenes: '',
+        imagenes: null,
+        imagen_2: null,
+        imagen_3: null,
+        imagen_4: null,
+        video: null,
         estado: 'disponible',
       });
   
-      // Cerrar el formulario (ocultar el formulario)
-      setShowForm(false);
+      setShowForm(false); // Cerrar modal
   
-      // Actualizar la lista de terrenos después de crear un nuevo terreno
-      axios.get(`${apiUrl}/api/terrenos`)
-        .then((response) => {
-          setTerrenos(response.data);
-        })
-        .catch((error) => {
-          console.error('Error al obtener terrenos después de la creación:', error);
-        });
+      // Actualizar terrenos
+      const terrenosActualizados = await axios.get(`${apiUrl}/api/terrenos`);
+      setTerrenos(terrenosActualizados.data);
   
     } catch (error) {
       console.error('Error en la creación del terreno:', error);
     }
   };
+  
+
+
+
   
   
   
@@ -442,12 +475,13 @@ useEffect(() => {
                 <p>Cargando datos...</p>
               ) : categoria === 'terrenos' ? (
                 sortedTerrenos.map((terreno, index) => {
-                  const imagenUrl = terreno.imagenes && Array.isArray(terreno.imagenes) ? `/terrenos/${terreno.imagenes[0]}` : '/default-image.jpg';
+                  //const imagenUrl = terreno.imagenes && Array.isArray(terreno.imagenes) ? `/terrenos/${terreno.imagenes[0]}` : '/default-image.jpg';
                   const vendedorNombre = getUsuarioDetails(terreno.usuario_id);
+                  
                   return (
                     <div key={index} className="card">
                       <div className="card-image-container">
-                        <img src={`https://sateliterrreno-production.up.railway.app/terrenos/terrenaid.jpg`} alt={terreno.titulo} className="card-image" />
+                      <ImageCarousel terreno={terreno} apiUrl={apiUrl} />
                         <h3 className="card-title">{terreno.titulo}</h3>
                       </div>
                       <div className="card-details">
@@ -565,14 +599,47 @@ useEffect(() => {
                 required
               />
 
-              <label htmlFor="imagenes">Imágenes (URL):</label>
+              <label htmlFor="imagenes">Imágenes:</label>
               <input
-                type="text"
+                type="file"
                 id="imagenes"
-                value={formData.imagenes}
-                onChange={(e) => setFormData({ ...formData, imagenes: e.target.value })}
+                accept="image/*" // Acepta solo archivos de imagen
+                onChange={(e) => setFormData({ ...formData, imagenes: e.target.files[0] })}
                 required
               />
+
+              <label htmlFor="imagen_2">Imagen 2:</label>
+                    <input
+                      type="file"
+                      id="imagen_2"
+                      accept="image/*"
+                      onChange={(e) => setFormData({ ...formData, imagen_2: e.target.files[0] })}
+                    />
+
+                    <label htmlFor="imagen_3">Imagen 3:</label>
+                    <input
+                      type="file"
+                      id="imagen_3"
+                      accept="image/*"
+                      onChange={(e) => setFormData({ ...formData, imagen_3: e.target.files[0] })}
+                    />
+
+                    <label htmlFor="imagen_4">Imagen 4:</label>
+                    <input
+                      type="file"
+                      id="imagen_4"
+                      accept="image/*"
+                      onChange={(e) => setFormData({ ...formData, imagen_4: e.target.files[0] })}
+                    />
+
+                    <label htmlFor="video">Video:</label>
+                    <input
+                      type="file"
+                      id="video"
+                      accept="video/*"
+                      onChange={(e) => setFormData({ ...formData, video: e.target.files[0] })}
+                    />
+
 
               <label htmlFor="estado">Estado:</label>
               <select
@@ -673,7 +740,7 @@ useEffect(() => {
                   return (
                     <div key={index} className="card">
                       <div className="card-image-container">
-                        <img src={imagenUrl} alt={terreno.titulo} className="card-image" />
+                      <ImageCarousel terreno={terreno} apiUrl={apiUrl} />
                         <h3 className="card-title">{terreno.titulo}</h3>
                       </div>
                       <div className="card-details">
@@ -699,6 +766,7 @@ useEffect(() => {
       </div>
     </div>
   );
+
 
   return usuarioLocal && usuarioLocal.tipo === 'admin' ? renderAdminView() : renderCompradorView();
 };

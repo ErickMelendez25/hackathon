@@ -95,7 +95,7 @@ function DashboardHeader() {
   }, []); // Esta dependencia vacía asegura que se ejecute solo al montar el componente
 
   // Verifica que la URL de la imagen esté válida antes de asignarla
-  const imageUrl = userPhoto ? userPhoto : user.imagen_perfil; // Imagen predeterminada en caso de no tener foto
+  const imageUrl = user.imagen_perfil; // Imagen predeterminada en caso de no tener foto
 
   return (
     <header className="dashboard-header">
@@ -116,7 +116,7 @@ function DashboardHeader() {
             <div className="navbar-container">
               <nav className="navbar">
                 <ul className="header-options">
-                  <li><span>Bienvenido, {user.nombre}</span></li> {/* Mostrar el nombre del usuario */}
+                  <li><span>Hola, {user.nombre}</span></li> {/* Mostrar el nombre del usuario */}
                 </ul>
               </nav>
             </div>
