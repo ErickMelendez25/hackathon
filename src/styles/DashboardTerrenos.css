@@ -58,7 +58,7 @@ select {
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: #00c73c;
+  border-color: #3498db;
   outline: none;
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
@@ -130,7 +130,7 @@ button[type="button"]:hover {
   /* Barra lateral */
   .sidebar {
     width: 200px;
-    background-color: #00c73c;
+    background-color: #0c9790;
     color: white;
     padding: 20px;
     display: flex;
@@ -144,7 +144,7 @@ button[type="button"]:hover {
   }
   
   .category-btn {
-    background-color: #00c73c;
+    background-color: #1fcac2;
     color: white;
     border: none;
     padding: 15px;
