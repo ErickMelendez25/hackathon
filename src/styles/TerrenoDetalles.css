@@ -116,7 +116,7 @@
 }
 
 .terreno-info p {
-    font-size: 0.98rem;
+    font-size: 0.8rem;
     font-weight: bold;
     color: #34495e;
     line-height: 1;
@@ -124,8 +124,10 @@
 }
 
 .terreno-info p strong {
+    font-size: 0.9rem;
     color: #1231e4;
     font-weight: bold;
+
 }
 
 /* Detalles adicionales en 2 columnas */
@@ -274,10 +276,6 @@
         
       }
       
-    
-    .detalles-adicionales {
-      font-size: 0.1rem;
-      grid-template-columns: 1fr; /* o flex-direction: column */
-    }
+
   }
   
