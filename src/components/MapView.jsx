@@ -113,15 +113,17 @@ const MapboxMap = ({ origin, destination }) => {
       style={{
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center', // 👈 Esto centra los elementos horizontalmente
         gap: '20px',
         padding: '10px',
-        fontSize: '16px',
+        fontSize: '14px',
         background: 'white',
-        marginTop: '10px',
+        marginTop: '1px',
         borderRadius: '8px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
         maxWidth: '100%',
-        flexWrap: 'wrap'
+        flexWrap: 'wrap',
+        
       }}
     >
       {/* Mostrar todos los íconos si hay datos, si no, solo Terreno */}
@@ -141,16 +143,16 @@ const MapboxMap = ({ origin, destination }) => {
 
           {/* Mostrar ambos íconos */}
           <span style={{ display: 'flex', alignItems: 'center', color: 'blue', fontWeight: 'bold' }}>
-            <i className="fas fa-map-marker-alt" style={{ marginRight: '4px' }}></i> Mi ubi
+            <i className="fas fa-map-marker-alt" style={{ marginRight: '1px' }}></i> Mi ubi
           </span>
           <span style={{ display: 'flex', alignItems: 'center', color: 'red', fontWeight: 'bold' }}>
-            <i className="fas fa-map-marker-alt" style={{ marginRight: '4px' }}></i> Terreno
+            <i className="fas fa-map-marker-alt" style={{ marginRight: '1px' }}></i> Terreno
           </span>
         </>
       ) : (
         // Solo icono rojo al inicio
         <span style={{ display: 'flex', alignItems: 'center', color: 'red', fontWeight: 'bold' }}>
-          <i className="fas fa-map-marker-alt" style={{ marginRight: '4px' }}></i> Terreno
+          <i className="fas fa-map-marker-alt" style={{ marginRight: '1px' }}></i> Terreno
         </span>
       )}
     </div>

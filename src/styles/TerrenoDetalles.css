@@ -116,27 +116,29 @@
 }
 
 .terreno-info p {
-    font-size: 1rem;
+    font-size: 0.98rem;
+    font-weight: bold;
     color: #34495e;
-    line-height: 1.5;
+    line-height: 1;
     margin-bottom: 0px;
 }
 
 .terreno-info p strong {
-    color: #2C3E50;
+    color: #1231e4;
     font-weight: bold;
 }
 
 /* Detalles adicionales en 2 columnas */
 .detalles-adicionales {
+    font-size: 5rem;
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    
 }
 
 .column {
     flex: 1;
-    min-width: 45%; /* Asegura que las columnas sean iguales */
+    min-width: 30%; /* Asegura que las columnas sean iguales */
 }
 
 /* WhatsApp Button */
@@ -185,7 +187,7 @@
 }
 
 /* Responsive: una sola columna en pantallas pequeñas */
-@media (max-width: 780px) {
+@media (max-width: 900px) {
 
     .terreno-detalles {
     
@@ -196,11 +198,13 @@
     
     .terreno-info {
         margin-left:0px;
-        
+        max-width: 100%;
         margin-top: 35px;
-        margin-bottom: 0px;
+        margin-bottom: 5px;
+        justify-content: center;
         text-indent: 11px; /* 👈 Esto agrega la sangría al inicio del texto */
         border-radius: 0%;
+        background-color: #ffffff;
    
 
     }
@@ -261,16 +265,18 @@
     /* adapta aquí el selector que uses para el mapa */
     .mapa {
         position: relative;   /* conserva esto si necesitas posicionar algo dentro */
-        width: 480px;         /* tu ancho fijo */
+        max-width: 100%;         /* tu ancho fijo */
         height: 260px;
         margin: auto;       /* 0 arriba/abajo, auto izquierda/derecha */
         margin-top: auto;
         border-radius: 1%;
+        justify-content: center;
         
       }
       
     
     .detalles-adicionales {
+      font-size: 0.1rem;
       grid-template-columns: 1fr; /* o flex-direction: column */
     }
   }
