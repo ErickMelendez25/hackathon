@@ -84,7 +84,7 @@ const TerrenoDetalles = () => {
               const nuevaUbicacion = [pos.coords.longitude, pos.coords.latitude];
               const distancia = getDistanceInMeters(lastUbicacion, nuevaUbicacion);
   
-              if (distancia > 15) {
+              if (distancia > 5) {
                 setMiUbicacion(nuevaUbicacion);
                 lastUbicacion = nuevaUbicacion;
               }
