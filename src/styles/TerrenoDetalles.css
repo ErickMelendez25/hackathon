@@ -99,7 +99,7 @@
     margin-left: 20px;
     flex: 1;
     margin-bottom: 0rem;
-    max-width: 710px;
+    max-width: 680px;
     display: flex;
     flex-direction: column;
     padding: 0px;
@@ -186,10 +186,25 @@
 
 /* Responsive: una sola columna en pantallas pequeñas */
 @media (max-width: 780px) {
-    .terreno-info{
-        margin-top: 40px;
-        margin-bottom: 0px; /* Asegura que no haya espacio extra debajo */
+
+    .terreno-detalles {
+    
+
+        font-family: 'Helvetica Neue', sans-serif;
+ 
     }
+    
+    .terreno-info {
+        margin-left:0px;
+        
+        margin-top: 35px;
+        margin-bottom: 0px;
+        text-indent: 11px; /* 👈 Esto agrega la sangría al inicio del texto */
+        border-radius: 0%;
+   
+
+    }
+    
 
     .terreno-detalles {
         margin-bottom: 0vh;
@@ -211,18 +226,22 @@
       width: 100%;         /* ocupa todo el ancho */
       height: 200px;
       border-radius: 0px;
+      margin-top: 0px;
     }
+
+    
 
     .mapear{
 
-        margin-top: 0px;
+        margin-top: -30px;
+        
 
     }
 
     .boton-gps {
         position: absolute;
         top: 16px;
-        left: 16px;
+        left: 1px;
         z-index: 10;
         background-color: #34495e; /* 🔵 color de fondo */
         color: rgb(255, 255, 255);              /* 🎨 color de texto */
@@ -242,10 +261,11 @@
     /* adapta aquí el selector que uses para el mapa */
     .mapa {
         position: relative;   /* conserva esto si necesitas posicionar algo dentro */
-        width: 460px;         /* tu ancho fijo */
-        height: 200px;
+        width: 480px;         /* tu ancho fijo */
+        height: 260px;
         margin: auto;       /* 0 arriba/abajo, auto izquierda/derecha */
         margin-top: auto;
+        border-radius: 1%;
         
       }
       

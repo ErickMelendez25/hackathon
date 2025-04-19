@@ -50,16 +50,56 @@ const TerrenoDetalles = () => {
       alert('Tu navegador no soporta geolocalización.');
       return;
     }
-
+  
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        console.log('Ubicación obtenida:', latitude, longitude); // <-- agrega esto
-        setMiUbicacion([longitude, latitude]);
+        const currentLocation = [longitude, latitude];
+        setMiUbicacion(currentLocation);
         setMostrarRuta(true);
+  
+        let lastUbicacion = currentLocation;
+  
+        const getDistanceInMeters = (coord1, coord2) => {
+          const toRad = (x) => (x * Math.PI) / 180;
+          const [lng1, lat1] = coord1;
+          const [lng2, lat2] = coord2;
+  
+          const R = 6371e3; // metros
+          const dLat = toRad(lat2 - lat1);
+          const dLon = toRad(lng2 - lng1);
+          const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) *
+              Math.cos(toRad(lat2)) *
+              Math.sin(dLon / 2) *
+              Math.sin(dLon / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          return R * c;
+        };
+  
+        const intervalId = setInterval(() => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const nuevaUbicacion = [pos.coords.longitude, pos.coords.latitude];
+              const distancia = getDistanceInMeters(lastUbicacion, nuevaUbicacion);
+  
+              if (distancia > 15) {
+                setMiUbicacion(nuevaUbicacion);
+                lastUbicacion = nuevaUbicacion;
+              }
+            },
+            (error) => {
+              console.error('Error al obtener la ubicación:', error);
+            }
+          );
+        }, 5); // cada 15 segundos
+  
+        // Limpiar intervalo al desmontar el componente
+        return () => clearInterval(intervalId);
       },
       (error) => {
-        console.error('Error al obtener la ubicación:', error); // <-- ya está bien
+        console.error('Error al obtener la ubicación:', error);
         alert('No se pudo obtener tu ubicación.');
       },
       {
@@ -68,8 +108,8 @@ const TerrenoDetalles = () => {
         maximumAge: 0
       }
     );
-    
   };
+  
 
   if (loading) return <p className="loading">Cargando detalles...</p>;
   if (!terreno) return <p>No se encontraron detalles para este terreno.</p>;
@@ -110,6 +150,7 @@ const TerrenoDetalles = () => {
       >
         Activar GPS y ver ruta al terreno
       </button>
+      
 
 
 

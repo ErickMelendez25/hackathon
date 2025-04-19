@@ -18,7 +18,7 @@ const MapboxMap = ({ origin, destination }) => {
         container: containerRef.current,
         style: 'mapbox://styles/mapbox/streets-v11',
         center: origin || [0, 0],
-        zoom: 12,
+        zoom: 14,
       });
     }
 
@@ -46,7 +46,7 @@ const MapboxMap = ({ origin, destination }) => {
     }
 
     if (!bounds.isEmpty()) {
-      map.fitBounds(bounds, { padding: 50, maxZoom: 15 });
+      map.fitBounds(bounds, { padding: 40, maxZoom: 15 });
     }
 
     const fetchRoute = async (mode) => {
@@ -106,15 +106,14 @@ const MapboxMap = ({ origin, destination }) => {
   }, [origin, destination]);
 
   return (
-    <div>
-      <div ref={containerRef} className="mapa" />
+  <div>
+    <div ref={containerRef} className="mapa" />
 
-        {/* Mostrar los tiempos estimados */}
-        <div style={{
-
+    <div
+      style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '20px', // espacio entre cada bloque
+        gap: '20px',
         padding: '10px',
         fontSize: '16px',
         background: 'white',
@@ -122,18 +121,41 @@ const MapboxMap = ({ origin, destination }) => {
         borderRadius: '8px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
         maxWidth: '100%',
-        flexWrap: 'wrap' // opcional, por si el espacio no alcanza
-        }}>
-        {durations.driving !== undefined && (
+        flexWrap: 'wrap'
+      }}
+    >
+      {/* Mostrar todos los íconos si hay datos, si no, solo Terreno */}
+      {durations.driving !== undefined ||
+      durations.walking !== undefined ||
+      durations.cycling !== undefined ? (
+        <>
+          {durations.driving !== undefined && (
             <div>🚗: <strong>{durations.driving} min</strong></div>
-        )}
-        {durations.walking !== undefined && (
+          )}
+          {durations.walking !== undefined && (
             <div>🚶: <strong>{durations.walking} min</strong></div>
-        )}
-        {durations.cycling !== undefined && (
+          )}
+          {durations.cycling !== undefined && (
             <div>🚌: <strong>{durations.cycling} min</strong></div>
-        )}
-        </div>
+          )}
+
+          {/* Mostrar ambos íconos */}
+          <span style={{ display: 'flex', alignItems: 'center', color: 'blue', fontWeight: 'bold' }}>
+            <i className="fas fa-map-marker-alt" style={{ marginRight: '4px' }}></i> Mi ubi
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', color: 'red', fontWeight: 'bold' }}>
+            <i className="fas fa-map-marker-alt" style={{ marginRight: '4px' }}></i> Terreno
+          </span>
+        </>
+      ) : (
+        // Solo icono rojo al inicio
+        <span style={{ display: 'flex', alignItems: 'center', color: 'red', fontWeight: 'bold' }}>
+          <i className="fas fa-map-marker-alt" style={{ marginRight: '4px' }}></i> Terreno
+        </span>
+      )}
+    </div>
+
+
 
     </div>
   );
