@@ -6,16 +6,16 @@ WORKDIR /app
 # Copia dependencias
 COPY package*.json ./
 
-# Instalación limpia
-RUN npm ci
+# Instalar dependencias sin devDependencies
+RUN npm ci --omit=dev
 
-# Copia resto del proyecto
+# Copia el resto del proyecto
 COPY . .
 
-# ⚠️ Forzar recompilación de swc para evitar errores
+# Forzar la recompilación de swc
 RUN npm rebuild @swc/core --build-from-source
 
-# Compila la app con Vite
+# Compilación de la app con Vite
 RUN npm run build
 
 # Etapa de producción
@@ -23,10 +23,10 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Instala un servidor simple
+# Instala el servidor estático
 RUN npm install -g serve
 
-# Copia build final
+# Copia el directorio dist (build) desde la etapa de construcción
 COPY --from=build /app/dist /app/dist
 
 EXPOSE 3000
