@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import ImageCarousel from './ImageCarousel';
+import MapboxMap from './MapView';
 
 import '../styles/TerrenoDetalles.css';
 
@@ -10,6 +11,8 @@ const TerrenoDetalles = () => {
   const [terreno, setTerreno] = useState(null);
   const [vendedorNombre, setVendedorNombre] = useState('');
   const [loading, setLoading] = useState(true);
+  const [miUbicacion, setMiUbicacion] = useState(null);
+  const [mostrarRuta, setMostrarRuta] = useState(false);
 
   const apiUrl =
     process.env.NODE_ENV === 'production'
@@ -20,7 +23,6 @@ const TerrenoDetalles = () => {
     axios
       .get(`${apiUrl}/api/terrenos/${id}`)
       .then((response) => {
-        console.log('Detalles del terreno recibido:', response.data);
         setTerreno(response.data);
         setLoading(false);
       })
@@ -43,8 +45,33 @@ const TerrenoDetalles = () => {
     }
   }, [terreno]);
 
-  if (loading) return <p className="loading">Cargando detalles...</p>;
+  const handleComoLlegar = () => {
+    if (!navigator.geolocation) {
+      alert('Tu navegador no soporta geolocalización.');
+      return;
+    }
 
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        console.log('Ubicación obtenida:', latitude, longitude); // <-- agrega esto
+        setMiUbicacion([longitude, latitude]);
+        setMostrarRuta(true);
+      },
+      (error) => {
+        console.error('Error al obtener la ubicación:', error); // <-- ya está bien
+        alert('No se pudo obtener tu ubicación.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+    
+  };
+
+  if (loading) return <p className="loading">Cargando detalles...</p>;
   if (!terreno) return <p>No se encontraron detalles para este terreno.</p>;
 
   const whatsappUrl = `https://wa.me/51964755083?text=Hola!%20Estoy%20interesado%20en%20el%20terreno%20${encodeURIComponent(
@@ -57,11 +84,17 @@ const TerrenoDetalles = () => {
     terreno.imagen_3,
     terreno.imagen_4,
     terreno.video,
-  ].filter(Boolean); // Solo archivos válidos
+  ].filter(Boolean);
+
+  const destinoCoordenadas = [
+    parseFloat(-75.208278),
+    parseFloat(-12.086275),
+  ];
 
   return (
     <div className="terreno-detalles">
-      {/* Imagen o video del terreno */}
+      {/* Imágenes / Carrusel */}
+
       <div className="terreno-imagenes">
         {archivos.length > 0 ? (
           <ImageCarousel terreno={terreno} apiUrl={apiUrl} />
@@ -70,25 +103,48 @@ const TerrenoDetalles = () => {
         )}
       </div>
 
-      {/* Información del terreno */}
+      <div className="mapear">
+      <button
+        onClick={handleComoLlegar}
+        className="absolute top-4 left-4 z-10 bg-blue-600 text-white px-4 py-2 rounded-xl shadow-lg hover:bg-blue-700 transition"
+      >
+        Activar GPS y ver ruta al terreno
+      </button>
+
+
+      </div>
+
+
+
+      <div className="mapa">
+        <MapboxMap
+          origin={miUbicacion}
+          destination={destinoCoordenadas}
+          showRoute={mostrarRuta}
+        />
+      </div>
+
+
+
+
+
+
+      {/* Detalles */}
       <div className="terreno-info">
         <div className="info-section">
           <h2>{terreno.titulo}</h2>
           <p><strong>Precio:</strong> {terreno.precio}</p>
-          <p><strong>Ubicación:</strong> Lat: {terreno.ubicacion_lat}, Lon: {terreno.ubicacion_lon}</p>
           <p><strong>Descripción:</strong> {terreno.descripcion}</p>
           <p><strong>Estado:</strong> {terreno.estado}</p>
           <p><strong>Vendedor:</strong> {vendedorNombre}</p>
+          <p><strong>Ubicación del terreno:</strong> Lat: {terreno.ubicacion_lat}, Lon: {terreno.ubicacion_lon}</p>
 
           <div className="detalles-adicionales">
             <div className="column">
               <p><strong>Área:</strong> {terreno.area} m²</p>
-              <div className="checklist">
-                <p><strong>Luz:</strong> {terreno.cuenta_luz ? '✔' : '✘'}</p>
-                <p><strong>Agua:</strong> {terreno.cuenta_agua ? '✔' : '✘'}</p>
-              </div>
+              <p><strong>Luz:</strong> {terreno.cuenta_luz ? '✔' : '✘'}</p>
+              <p><strong>Agua:</strong> {terreno.cuenta_agua ? '✔' : '✘'}</p>
             </div>
-
             <div className="column">
               <p><strong>Constancia de Posesión:</strong> {terreno.constancia_posesion ? '✔' : '✘'}</p>
               <p><strong>Registrado en SUNARP:</strong> {terreno.registro_sunarp ? '✔' : '✘'}</p>
@@ -97,7 +153,7 @@ const TerrenoDetalles = () => {
           </div>
         </div>
 
-        {/* Botón de WhatsApp */}
+        {/* Botón WhatsApp */}
         <div className="whatsapp-button-container">
           <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="whatsapp-button">
             <img
@@ -109,6 +165,8 @@ const TerrenoDetalles = () => {
           </a>
         </div>
       </div>
+
+
     </div>
   );
 };

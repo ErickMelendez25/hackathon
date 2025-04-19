@@ -2,9 +2,10 @@
 
 /* Estilo general del contenedor */
 .terreno-detalles {
-    max-width: 1200px;
-    margin: auto;
-    padding: 20px;
+    
+    max-width: 1366px;
+    margin-top: 0%;
+    padding: 5px;
     font-family: 'Helvetica Neue', sans-serif;
     background-color: #ffffff;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
@@ -18,7 +19,6 @@
 .terreno-detalles h2 {
     font-size: 2.4rem;
     color: #2C3E50;
-    margin-bottom: 15px;
     font-weight: 600;
     text-align: left;
     line-height: 1.3;
@@ -26,11 +26,13 @@
 
 /* Contenedor de la imagen o video (en la izquierda) */
 .terreno-imagenes {
-    position: relative;
-    width: 100%;
-    max-width: 600px;
-    max-height: 200px;
-    height: 100%;
+    
+    position: absolute;
+    width: 60%;
+    margin-top: 0%;
+    margin-bottom:0%;
+    max-width:610px;
+    max-height: 600px;
     padding-top: 0.2%; /* Relación de aspecto 16:9 */
     background-color: #fdfdfd; /* Fondo negro para cuando no hay video */
     overflow: hidden;
@@ -41,10 +43,15 @@
     align-items: center;
 }
 
+
+
+
+
+
 .terreno-imagenes iframe,
 .terreno-imagenes video {
     position: absolute;
-    top: 100;
+    top: 0;
     left: 0;
     width: 100%;  /* Ajusta el video o imagen al 100% del contenedor */
     height: 100%;  /* Hace que ocupe el 100% del alto del contenedor */
@@ -61,15 +68,35 @@
     
 }
 
+.mapear{
+    position: relative;
+    margin-top: 210px;
+    margin-bottom: 0%;
+    border-radius: 8px;
+}
+.mapa{
+    margin-top: 120px;
+    margin-left: -107px;
+    margin-right: -90px;
+    width: 610px;
+    height: 150px;
+    border-radius: 8px;
+}
+
+  
+  
+
 
 
 /* Información del terreno (a la derecha) */
 .terreno-info {
+    margin-left: 20px;
     flex: 1;
-    max-width: 600px;
+    margin-bottom: 0rem;
+    max-width: 710px;
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 0px;
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -78,7 +105,7 @@
 .terreno-info h2 {
     font-size: 2rem;
     color: #2C3E50;
-    margin-bottom: 10px;
+    margin-top: 0px;
     font-weight: 600;
 }
 
@@ -86,7 +113,7 @@
     font-size: 1rem;
     color: #34495e;
     line-height: 1.5;
-    margin-bottom: 12px;
+    margin-bottom: 0px;
 }
 
 .terreno-info p strong {
@@ -151,45 +178,38 @@
     font-weight: 600;
 }
 
-/* Responsive - Ajustes para dispositivos pequeños */
-@media (max-width: 768px) {
-
-    /* Contenedor de la imagen o video (en la izquierda) */
-.terreno-imagenes {
-    position: relative;
-    width: 100%;
-    max-width: 600px;
-    max-height: 200px;
-    height: 100%;
-    padding-top: 0.2%; /* Relación de aspecto 16:9 */
-    background-color: #fdfdfd; /* Fondo negro para cuando no hay video */
-    overflow: hidden;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-    
+/* Responsive: una sola columna en pantallas pequeñas */
+@media (max-width: 780px) {
     .terreno-detalles {
-        flex-direction: column;
-        gap: 20px;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      gap: 20px;
+      overflow-x: hidden; /* por si acaso */
+    }
+  
+    .terreno-imagenes {
+      position: relative;  /* ya no absolute */
+      width: 100%;         /* ocupa todo el ancho */
+      height: 200px;
     }
 
+    .mapear{
 
-
-    .terreno-info {
-        max-width: 100%;
+    margin-top: auto;
     }
-
+  
+    /* adapta aquí el selector que uses para el mapa */
+    .mapa {
+        position: relative;   /* conserva esto si necesitas posicionar algo dentro */
+        width: 460px;         /* tu ancho fijo */
+        height: 200px;
+        margin: auto;       /* 0 arriba/abajo, auto izquierda/derecha */
+      }
+      
+    
     .detalles-adicionales {
-        gap: 10px;
+      grid-template-columns: 1fr; /* o flex-direction: column */
     }
-
-    .column {
-        min-width: 100%;
-    }
-}
-
-
+  }
+  

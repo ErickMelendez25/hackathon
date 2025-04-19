@@ -1,9 +1,11 @@
 /* Estilo base para el formulario de login */
 .login-container {
+  height: auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  margin-bottom: 0%;
+  margin-top: 0vh;
   background: linear-gradient(135deg, #2d2c4e, #0c9790); /* Gradiente de colores institucionales */
   font-family: 'Roboto', sans-serif;
   padding: 0 20px;
@@ -15,6 +17,7 @@
   padding: 40px;
   border-radius: 12px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  height: 500px;
   width: 100%;
   max-width: 480px;
   text-align: center;
@@ -86,7 +89,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.3s ease;
-  margin-top: 20px;
+  margin-top: 0px;
 }
 
 .login-form button:hover {
