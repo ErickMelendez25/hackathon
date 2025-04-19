@@ -73,7 +73,7 @@
 /* Responsive: hacer que el pie de página se adapte a pantallas pequeñas */
 @media (max-width: 750px) {
     .dashboard-footer {
-        margin-top: 42%;
+        margin-top: auto;
         margin-bottom: 30px;
        
         padding: 20px 10px; /* Menos espacio en pantallas pequeñas */

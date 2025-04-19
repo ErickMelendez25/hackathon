@@ -106,10 +106,11 @@ const TerrenoDetalles = () => {
       <div className="mapear">
       <button
         onClick={handleComoLlegar}
-        className="absolute top-4 left-4 z-10 bg-blue-600 text-white px-4 py-2 rounded-xl shadow-lg hover:bg-blue-700 transition"
+        className="boton-gps"
       >
         Activar GPS y ver ruta al terreno
       </button>
+
 
 
       </div>

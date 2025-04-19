@@ -111,6 +111,7 @@ const MapboxMap = ({ origin, destination }) => {
 
         {/* Mostrar los tiempos estimados */}
         <div style={{
+
         display: 'flex',
         alignItems: 'center',
         gap: '20px', // espacio entre cada bloque
