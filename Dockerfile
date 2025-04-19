@@ -3,28 +3,30 @@ FROM node:18 AS build
 
 WORKDIR /app
 
-# Copiamos package.json y lock
+# Copia dependencias
 COPY package*.json ./
 
-# Instalación limpia y confiable
+# Instalación limpia
 RUN npm ci
 
-# Copiamos el resto del código
+# Copia resto del proyecto
 COPY . .
 
-# ⚠️ Recompilamos @swc/core para que funcione en entorno Docker/Railway
+# ⚠️ Forzar recompilación de swc para evitar errores
 RUN npm rebuild @swc/core --build-from-source
 
-# Build de la app
+# Compila la app con Vite
 RUN npm run build
 
-# Etapa de ejecución
+# Etapa de producción
 FROM node:18-alpine
 
 WORKDIR /app
 
+# Instala un servidor simple
 RUN npm install -g serve
 
+# Copia build final
 COPY --from=build /app/dist /app/dist
 
 EXPOSE 3000
