@@ -537,7 +537,13 @@ useEffect(() => {
 
   const renderAdminView = () => (
     <div className="dashboard">
-      <div className="sidebar">
+      <button
+        className="sidebar-toggle"
+        onClick={() => setSidebarActive(!sidebarActive)} // Cambiar el estado de la barra lateral
+      >
+        ☰
+      </button>
+      <div className={`sidebar ${sidebarActive ? 'active' : ''}`}>
         <div className="categories">
           <button
             className={`category-btn ${categoria === 'terrenos' ? 'active' : ''}`}
@@ -557,6 +563,36 @@ useEffect(() => {
           >
             Casas
           </button>
+
+          <button
+            className={`category-btn ${categoria === 'departamentos' ? 'active' : ''}`}
+            onClick={() => { changeCategory('departamentos'); }}
+          >
+            Departamentos
+          </button>
+
+          <button
+            className={`category-btn ${categoria === 'ropa' ? 'active' : ''}`}
+            onClick={() => { changeCategory('ropa'); }}
+          >
+            Ropa
+          </button>
+
+          <button
+            className={`category-btn ${categoria === 'celulares' ? 'active' : ''}`}
+            onClick={() => { changeCategory('celulares'); }}
+          >
+            Celulares
+          </button>
+        
+          <button
+            className={`category-btn ${categoria === 'vender' ? 'active' : ''}`}
+            onClick={() => { changeCategory('vender'); setShowForm(true)}}
+
+            
+          >
+            ¿Quieres vender?
+          </button>
         </div>
       </div>
 
@@ -568,121 +604,81 @@ useEffect(() => {
           </div>
         ) : showForm ? (
           <div className="modal">
-          <div className="modal-content">
-            <h2>{editMode ? 'Editar Terreno' : 'Agregar Terreno'}</h2>
-            <form onSubmit={editMode ? handleUpdateTerreno : handleCreateTerreno}>
-              <label htmlFor="titulo">Título:</label>
-              <input
-                type="text"
-                id="titulo"
-                value={formData.titulo}
-                onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-                required
-              />
 
-              <label htmlFor="descripcion">Descripción:</label>
-              <textarea
-                id="descripcion"
-                value={formData.descripcion}
-                onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                required
-              />
-
-              <label htmlFor="precio">Precio:</label>
-              <input
-                type="number"
-                id="precio"
-                value={formData.precio}
-                onChange={(e) => setFormData({ ...formData, precio: e.target.value })}
-                required
-              />
-
-              <label htmlFor="ubicacion_lat">Latitud:</label>
-              <input
-                type="number"
-                id="ubicacion_lat"
-                step="any"
-                value={formData.ubicacion_lat}
-                onChange={(e) => setFormData({ ...formData, ubicacion_lat: e.target.value })}
-                required
-              />
-
-              <label htmlFor="ubicacion_lon">Longitud:</label>
-              <input
-                type="number"
-                id="ubicacion_lon"
-                step="any"
-                value={formData.ubicacion_lon}
-                onChange={(e) => setFormData({ ...formData, ubicacion_lon: e.target.value })}
-                required
-              />
-
-              <label htmlFor="metros_cuadrados">Metros cuadrados:</label>
-              <input
-                type="number"
-                id="metros_cuadrados"
-                value={formData.metros_cuadrados}
-                onChange={(e) => setFormData({ ...formData, metros_cuadrados: e.target.value })}
-                required
-              />
-
-              <label htmlFor="imagenes">Imágenes:</label>
-              <input
-                type="file"
-                id="imagenes"
-                accept="image/*" // Acepta solo archivos de imagen
-                onChange={(e) => setFormData({ ...formData, imagenes: e.target.files[0] })}
-                required
-              />
-
-              <label htmlFor="imagen_2">Imagen 2:</label>
-                    <input
-                      type="file"
-                      id="imagen_2"
-                      accept="image/*"
-                      onChange={(e) => setFormData({ ...formData, imagen_2: e.target.files[0] })}
-                    />
-
-                    <label htmlFor="imagen_3">Imagen 3:</label>
-                    <input
-                      type="file"
-                      id="imagen_3"
-                      accept="image/*"
-                      onChange={(e) => setFormData({ ...formData, imagen_3: e.target.files[0] })}
-                    />
-
-                    <label htmlFor="imagen_4">Imagen 4:</label>
-                    <input
-                      type="file"
-                      id="imagen_4"
-                      accept="image/*"
-                      onChange={(e) => setFormData({ ...formData, imagen_4: e.target.files[0] })}
-                    />
-
-                    <label htmlFor="video">Video:</label>
-                    <input
-                      type="file"
-                      id="video"
-                      accept="video/*"
-                      onChange={(e) => setFormData({ ...formData, video: e.target.files[0] })}
-                    />
-
-
-              <label htmlFor="estado">Estado:</label>
-              <select
-                id="estado"
-                value={formData.estado}
-                onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
-              >
-                <option value="disponible">Disponible</option>
-                <option value="vendido">Vendido</option>
-              </select>
-
-              <button type="submit">{editMode ? 'Confirmar' : 'Guardar Terreno'}</button>
-              <button type="button" onClick={() => setShowForm(false)}>Cancelar</button>
+            
+            <form onSubmit={editMode ? handleUpdateTerreno : handleCreateTerreno} className="form-grid">
+              {/* Campo 1 */}
+              <div>
+                <label htmlFor="titulo">Título:</label>
+                <input type="text" id="titulo" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} required />
+              </div>
+      
+              <div>
+                <label htmlFor="descripcion">Descripción:</label>
+                <textarea id="descripcion" value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} required />
+              </div>
+      
+              <div>
+                <label htmlFor="precio">Precio:</label>
+                <input type="number" id="precio" value={formData.precio} onChange={(e) => setFormData({ ...formData, precio: e.target.value })} required />
+              </div>
+      
+              <div>
+                <label htmlFor="ubicacion_lat">Latitud:</label>
+                <input type="number" id="ubicacion_lat" step="any" value={formData.ubicacion_lat} onChange={(e) => setFormData({ ...formData, ubicacion_lat: e.target.value })} required />
+              </div>
+      
+              <div>
+                <label htmlFor="ubicacion_lon">Longitud:</label>
+                <input type="number" id="ubicacion_lon" step="any" value={formData.ubicacion_lon} onChange={(e) => setFormData({ ...formData, ubicacion_lon: e.target.value })} required />
+              </div>
+      
+              <div>
+                <label htmlFor="metros_cuadrados">Metros cuadrados:</label>
+                <input type="number" id="metros_cuadrados" value={formData.metros_cuadrados} onChange={(e) => setFormData({ ...formData, metros_cuadrados: e.target.value })} required />
+              </div>
+      
+              <div>
+                <label htmlFor="imagenes">Imagen 1:</label>
+                <input type="file" id="imagenes" accept="image/*" onChange={(e) => setFormData({ ...formData, imagenes: e.target.files[0] })} required />
+              </div>
+      
+              <div>
+                <label htmlFor="imagen_2">Imagen 2:</label>
+                <input type="file" id="imagen_2" accept="image/*" onChange={(e) => setFormData({ ...formData, imagen_2: e.target.files[0] })} />
+              </div>
+      
+              <div>
+                <label htmlFor="imagen_3">Imagen 3:</label>
+                <input type="file" id="imagen_3" accept="image/*" onChange={(e) => setFormData({ ...formData, imagen_3: e.target.files[0] })} />
+              </div>
+      
+              <div>
+                <label htmlFor="imagen_4">Imagen 4:</label>
+                <input type="file" id="imagen_4" accept="image/*" onChange={(e) => setFormData({ ...formData, imagen_4: e.target.files[0] })} />
+              </div>
+      
+              <div>
+                <label htmlFor="video">Video:</label>
+                <input type="file" id="video" accept="video/*" onChange={(e) => setFormData({ ...formData, video: e.target.files[0] })} />
+              </div>
+      
+              <div>
+                <label htmlFor="estado">Estado:</label>
+                <select id="estado" value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })}>
+                  <option value="disponible">Disponible</option>
+                  <option value="vendido">Vendido</option>
+                </select>
+              </div>
+      
+              {/* BOTONES */}
+              <div className="form-actions">
+                <button type="submit">{editMode ? 'Confirmar' : 'Guardar Terreno'}</button>
+                <button type="button" onClick={() => setShowForm(false)}>Cancelar</button>
+              </div>
             </form>
           </div>
-        </div>
+
         ) : (
           <>
             {categoria === 'terrenos' && (

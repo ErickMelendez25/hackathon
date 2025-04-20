@@ -164,7 +164,7 @@ const Login = () => {
         </button>
 
         <div className="google-login-container">
-          <h1 className="or-text">ó</h1>
+          <h1 className="or-text"> </h1>
           <GoogleLogin 
             onSuccess={handleGoogleLoginSuccess} 
             onError={handleGoogleLoginFailure}
