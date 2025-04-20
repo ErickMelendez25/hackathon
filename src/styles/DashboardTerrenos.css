@@ -289,7 +289,7 @@ button[type="button"]:hover {
   /* Galería de Cards */
   .gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 30px;
     margin-top: 30px;
   }
@@ -312,9 +312,10 @@ button[type="button"]:hover {
   .card-image-container {
     position: relative; /* Permite colocar el título dentro de la imagen */
     width: 100%;
-    height: 200px;
+    height: 199px;
     overflow: hidden;
     border-bottom: 2px solid #BDC3C7;
+    margin-bottom: -10px;
   }
   
   /* Imagen de la Card */
@@ -322,6 +323,15 @@ button[type="button"]:hover {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  .card-image-container iframe,
+  .card-image-container .carousel-clase,
+  .card-image-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+
   }
   
   /* Título de la Card */
@@ -338,6 +348,8 @@ button[type="button"]:hover {
     padding: 5px;
     border-radius: 5px;
   }
+
+
   
   /* Detalles de la Card */
   .card-details {
@@ -514,6 +526,40 @@ button[type="button"]:hover {
 @media (max-width: 599px) {
     /* Barra lateral (sidebar) */    /* Barra lateral (sidebar) */
 
+    
+
+    .card-image-container {
+      position: relative; /* Permite colocar el título dentro de la imagen */
+      width: 100%;
+      height: 249px;
+      overflow: hidden;
+      border-bottom: 2px solid #BDC3C7;
+      margin-bottom: -10px;
+    }
+    
+      /* Imagen de la Card */
+    .card-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  
+
+    
+    .card-image-container iframe,
+    .card-image-container .carousel-clase,
+    .card-image-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+
+    }
+
+    
+
+    
+
+
 
     .sidebar {
       overflow-x: scroll;
@@ -651,15 +697,6 @@ button[type="button"]:hover {
       margin-top: 20px;
     }
   
-    /* Galería de Cards */
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 30px;
-      margin-top: 30px;
-
-      
-    }
 
 }
 

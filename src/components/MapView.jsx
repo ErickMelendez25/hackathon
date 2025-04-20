@@ -119,7 +119,7 @@ const MapboxMap = ({ origin, destination }) => {
         fontSize: '14px',
         background: 'white',
         marginTop: '1px',
-        borderRadius: '8px',
+        borderRadius: '0px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
         maxWidth: '100%',
         flexWrap: 'wrap',

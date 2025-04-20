@@ -1,6 +1,7 @@
 /* Estilos para el pie de página */
 .dashboard-footer {
-    height: max-content;
+    margin-top: 0px;
+    
     background: #2C3E50; /* Gradiente verde institucional de la UNCP */
     padding: 30px 20px; /* Añadido más espacio para hacerlo más elegante */
     color: white;
@@ -74,7 +75,7 @@
 /* Responsive: hacer que el pie de página se adapte a pantallas pequeñas */
 @media (max-width: 750px) {
     .dashboard-footer {
-        margin-top: auto;
+        margin-top: 10%;
         margin-bottom: 30px;
        
         padding: 20px 10px; /* Menos espacio en pantallas pequeñas */
@@ -97,13 +98,26 @@
 }
 
 /* Para pantallas aún más pequeñas (como teléfonos muy pequeños) */
-@media (max-width: 480px) {
+@media (max-width: 500px) {
+    .dashboard-footer {
+        margin-top: 395px;
+        margin-bottom: 30px;
+       
+        padding: 20px 10px; /* Menos espacio en pantallas pequeñas */
+    }
+
+    .footer-options {
+        flex-direction: column; /* Los items se alinean verticalmente */
+        gap: 15px;
+    }
+
     .footer-item {
-        font-size: 0.8rem; /* Reduce aún más el tamaño de los botones */
-        padding: 7px 12px; /* Ajuste de padding */
+        font-size: 0.9rem; /* Reducción del tamaño de la fuente para pantallas más pequeñas */
+        padding: 8px 15px; /* Ajustar el tamaño de los botones */
     }
 
     .footer-text h3 {
-        font-size: 0.9rem; /* Reduce el tamaño de fuente en pantallas más pequeñas */
+        font-size: 1rem; /* Reducir el tamaño de fuente en pantallas pequeñas */
+        margin-top: 5px; /* Asegura que no haya mucho espacio debajo de las opciones */
     }
 }
