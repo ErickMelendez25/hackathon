@@ -127,8 +127,12 @@ const TerrenoDetalles = () => {
   ].filter(Boolean);
 
   const destinoCoordenadas = [
-    parseFloat(-75.208278),
-    parseFloat(-12.086275),
+    parseFloat(-75.229133),
+    parseFloat(-12.038325),
+
+    
+
+
   ];
 
   return (
