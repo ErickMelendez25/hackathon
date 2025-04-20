@@ -613,10 +613,11 @@ useEffect(() => {
                 <input type="text" id="titulo" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} required />
               </div>
       
-              <div>
-                <label htmlFor="descripcion">Descripción:</label>
-                <textarea id="descripcion" value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} required />
+              <div class="form-group-full">
+                <label for="descripcion">Descripción:</label>
+                <textarea id="descripcion" name="descripcion"></textarea>
               </div>
+
       
               <div>
                 <label htmlFor="precio">Precio:</label>
