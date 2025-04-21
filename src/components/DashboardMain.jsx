@@ -684,10 +684,56 @@ useEffect(() => {
                       <ImageCarousel terreno={terreno} apiUrl={apiUrl} />
                         <h3 className="card-title">{terreno.titulo}</h3>
                       </div>
-                      <div className="card-details">
-                        <p className="card-price">
+                      <div
+                        key={index}
+                        className="card-details"
+                        ref={el => detailRefs.current[index] = el}
+                      >
+
+
+                      {/* Corazón */}
+
+                        <i
+                          className={`fas fa-heart heart-icon ${liked[index] ? 'liked' : ''}`}
+                          onClick={(e) => {
+                            const willLike = !liked[index];
+                            toggleLike(index);
+                            if (willLike) burstHearts(index, e);
+                          }}
+                        />            
+
+
+
+                      <p className="card-price">
                           {filters.moneda === 'soles' ? `S/ ${terreno.precio}` : `$ ${terreno.precio}`}
-                        </p>
+                      </p>
+
+                      {/* Ojito */}
+
+                      <i className="fas fa-eye view-icon"/>
+
+                      <i
+                        className="fas fa-share-alt share-icon"
+                        onClick={() => handleShare(index)} 
+                      />
+
+                            {/* Mostrar el menú de compartir cuando showShareMenu sea true */}
+                            {activeShareIndex === index &&(
+                              <div className="share-menu" ref={shareMenuRef}> {/* <-- aquí va el ref */}
+                                <FacebookShareButton url={url} quote={text}>
+                                  <FacebookIcon size={28} round />
+                                </FacebookShareButton>
+                                <TwitterShareButton url={url} title={text}>
+                                  <TwitterIcon size={28} round />
+                                </TwitterShareButton>
+                                <WhatsappShareButton url={url} title={text}>
+                                  <WhatsappIcon size={28} round />
+                                </WhatsappShareButton>
+                              </div>
+                            )}
+
+
+
                         <p className="card-location">
                           <i className="fas fa-location-pin"></i> Lat: {terreno.ubicacion_lat}, Lon: {terreno.ubicacion_lon}
                         </p>
