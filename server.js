@@ -407,6 +407,108 @@ app.post('/Createterrenos',
     }
 });
 
+app.put('/UpdateTerreno/:id',
+  upload.fields([
+    { name: 'imagenes', maxCount: 1 },
+    { name: 'imagen_2', maxCount: 1 },
+    { name: 'imagen_3', maxCount: 1 },
+    { name: 'imagen_4', maxCount: 1 },
+    { name: 'video', maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const { id } = req.params;  // Obtener el ID del terreno desde la URL
+      const {
+        titulo, descripcion, precio,
+        ubicacion_lat, ubicacion_lon,
+        metros_cuadrados, estado, usuario_id
+      } = req.body;
+
+      const files = req.files;
+
+      // Verificar si hay archivos y asignarlos
+      const imagen = files?.imagenes?.[0]?.filename || null;
+      const imagen2 = files?.imagen_2?.[0]?.filename || null;
+      const imagen3 = files?.imagen_3?.[0]?.filename || null;
+      const imagen4 = files?.imagen_4?.[0]?.filename || null;
+      const video = files?.video?.[0]?.filename || null;
+
+      if (!titulo || !descripcion || !precio || !ubicacion_lat || !ubicacion_lon || !metros_cuadrados || !estado || !usuario_id) {
+        console.error('Faltan campos en el formulario:', req.body);
+        return res.status(400).json({ message: 'Todos los campos son requeridos' });
+      }
+
+      console.log('Datos recibidos:', req.body);
+      console.log('Archivos recibidos:', files);
+
+      // Consulta SQL para actualizar el terreno
+      const query = `
+        UPDATE terrenos
+        SET 
+          titulo = ?, descripcion = ?, precio = ?, 
+          ubicacion_lat = ?, ubicacion_lon = ?, 
+          metros_cuadrados = ?, imagenes = ?, imagen_2 = ?, 
+          imagen_3 = ?, imagen_4 = ?, video = ?, 
+          estado = ?, usuario_id = ?
+        WHERE id = ?`;
+
+      db.query(query, [
+        titulo, descripcion, precio,
+        ubicacion_lat, ubicacion_lon,
+        metros_cuadrados, imagen, imagen2, imagen3, imagen4, video,
+        estado, usuario_id, id  // ID del terreno para actualizar
+      ], (err, result) => {
+        if (err) {
+          console.error('Error al actualizar el terreno:', err);
+          return res.status(500).json({ message: 'Error en el servidor', error: err.message });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: 'Terreno no encontrado' });
+        }
+
+        res.status(200).json({
+          message: 'Terreno actualizado exitosamente',
+          terrenoId: id,
+        });
+      });
+
+    } catch (error) {
+      console.error('Error al actualizar el terreno:', error);
+      res.status(500).json({ message: 'Error en el servidor', error: error.message });
+    }
+  });
+
+  app.delete('/DeleteTerreno/:id', async (req, res) => {
+    try {
+      const { id } = req.params;  // Obtener el ID del terreno desde la URL
+  
+      // Consulta SQL para eliminar el terreno
+      const query = `DELETE FROM terrenos WHERE id = ?`;
+  
+      db.query(query, [id], (err, result) => {
+        if (err) {
+          console.error('Error al eliminar el terreno:', err);
+          return res.status(500).json({ message: 'Error en el servidor', error: err.message });
+        }
+  
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: 'Terreno no encontrado' });
+        }
+  
+        res.status(200).json({
+          message: 'Terreno eliminado exitosamente',
+          terrenoId: id,
+        });
+      });
+  
+    } catch (error) {
+      console.error('Error al eliminar el terreno:', error);
+      res.status(500).json({ message: 'Error en el servidor', error: error.message });
+    }
+  });
+  
+
 
 
 

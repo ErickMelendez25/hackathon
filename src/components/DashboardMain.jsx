@@ -11,11 +11,31 @@ import { FacebookIcon, TwitterIcon, WhatsappIcon } from 'react-share';
 
 const DashboardMain = () => {
 
-  const [showShareMenu, setShowShareMenu] = useState(false);
+// Estado para el índice del terreno que tiene abierto el menú de compartir
+  const [activeShareIndex, setActiveShareIndex] = useState(null);
+ 
+  const shareMenuRef = useRef(null); // Referencia al menú
 
-  const handleShare = () => {
-    setShowShareMenu(!showShareMenu); // Alterna la visibilidad del menú
+// Función para abrir/cerrar menú
+  const handleShare = (index) => {
+    setActiveShareIndex(prev => (prev === index ? null : index));
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target)) {
+        setActiveShareIndex(null); // ✅ ¡Esto es lo importante!
+      }
+    };
+  
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+
+
 
   const url = window.location.href;  // Puedes cambiar esto según lo que quieras compartir
   const text = "¡Mira este producto interesante!";
@@ -203,40 +223,38 @@ useEffect(() => {
 
 
   // Obtener terrenos desde la API basados en la categoría
+  const fetchTerrenos = () => {
+    const token = localStorage.getItem('authToken');
+  
+    axios.get(`${apiUrl}/api/terrenos`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response) => {
+      const terrenosData = Array.isArray(response.data) ? response.data : [];
+      setTerrenos(terrenosData);
+      setLoading(false);
+    })
+    .catch((error) => {
+      console.error('Error al obtener terrenos:', error);
+      setTerrenos([]);
+      setLoading(false);
+    });
+  };
+
   useEffect(() => {
-    const apiUrl = process.env.NODE_ENV === 'production'
-      ? 'https://sateliterrreno-production.up.railway.app'
-      : 'http://localhost:5000';
-
     if (categoria === 'terrenos') {
-      const token = localStorage.getItem('authToken');
-
-      console.log("Token obtenido: ", token); // Verifica si el token está siendo correctamente extraído
-
-      axios.get(`${apiUrl}/api/terrenos`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        console.log("Respuesta de la API:", response); // Verifica la respuesta completa de la API
-        // Verifica si la respuesta es un array antes de establecer el estado
-        const terrenosData = Array.isArray(response.data) ? response.data : [];
-        console.log("Terrenos obtenidos:", terrenosData); // Verifica los terrenos obtenidos
-        setTerrenos(terrenosData);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error al obtener terrenos:', error); // Muestra el error si ocurre
-        setTerrenos([]); // Asegúrate de que los terrenos sean un array vacío en caso de error
-        setLoading(false);
-      });
+      fetchTerrenos();
     } else {
-      console.log("Categoría no es terrenos, limpiando terrenos...");
-      setTerrenos([]); // Limpiar si no es la categoría 'terrenos'
+      setTerrenos([]);
       setLoading(false);
     }
-  }, [categoria]);
+  }, [categoria,terrenos]);
+  
+
+
+
 
   
   
@@ -257,7 +275,8 @@ useEffect(() => {
     return precioValido && estadoValido && ubicacionValida && searchValido;
   });
 
-  const sortedTerrenos = filteredTerrenos.sort((a, b) => new Date(b.fecha_publicacion) - new Date(a.fecha_publicacion));
+  const sortedTerrenos = [...filteredTerrenos].sort((a, b) => new Date(b.fecha_publicacion) - new Date(a.fecha_publicacion));
+
 
 
 
@@ -317,6 +336,7 @@ useEffect(() => {
   
       const data = await response.json();
       console.log('Terreno creado exitosamente:', data);
+      fetchTerrenos(); // <-- Recarga los datos actualizados
   
       // Limpiar el formulario
       setFormData({
@@ -350,6 +370,93 @@ useEffect(() => {
       console.error('Error en la creación del terreno:', error);
     }
   };
+
+
+  //PARA EDITAR EL TERRENO
+
+  const [selectedTerreno, setSelectedTerreno] = useState(null);
+
+  
+
+
+  const handleUpdateTerreno = async (e) => {
+    e.preventDefault();
+  
+    if (!usuarioLocal?.id || !selectedTerreno) {
+      console.error('No se encontró el ID del usuario o terreno.');
+      return;
+    }
+  
+    const formDataImagen = new FormData();
+    formDataImagen.append('titulo', formData.titulo);
+    formDataImagen.append('descripcion', formData.descripcion);
+    formDataImagen.append('precio', formData.precio);
+    formDataImagen.append('ubicacion_lat', formData.ubicacion_lat);
+    formDataImagen.append('ubicacion_lon', formData.ubicacion_lon);
+    formDataImagen.append('metros_cuadrados', formData.metros_cuadrados);
+    formDataImagen.append('estado', formData.estado);
+    formDataImagen.append('usuario_id', usuarioLocal.id);
+  
+    if (formData.imagenes) {
+      formDataImagen.append('imagenes', formData.imagenes);
+    }
+  
+    ['imagen_2', 'imagen_3', 'imagen_4'].forEach((key) => {
+      if (formData[key]) {
+        formDataImagen.append(key, formData[key]);
+      }
+    });
+  
+    if (formData.video) {
+      formDataImagen.append('video', formData.video);
+    }
+  
+    try {
+      const response = await fetch(`${apiUrl}/UpdateTerreno/${selectedTerreno.id}`, {
+        method: 'PUT',
+        body: formDataImagen,
+      });
+  
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        console.error('Error al actualizar el terreno:', errorMessage);
+        return;
+      }
+  
+      const data = await response.json();
+      console.log('Terreno actualizado exitosamente:', data);
+      fetchTerrenos(); // <-- Recarga los datos actualizados
+  
+      setShowForm(false); // Cerrar formulario
+      const terrenosActualizados = await axios.get(`${apiUrl}/api/terrenos`);
+      setTerrenos(terrenosActualizados.data);
+  
+    } catch (error) {
+      console.error('Error al actualizar el terreno:', error);
+    }
+  };
+  
+  
+  
+  const handleDeleteTerreno = (terreno) => {
+    if (window.confirm(`¿Estás seguro de eliminar el terreno: "${terreno.titulo}"?`)) {
+      fetch(`${apiUrl}/DeleteTerreno/${terreno.id}`, {
+        method: 'DELETE',
+      })
+        .then((res) => {
+          if (res.ok) {
+            // Filtrar el terreno eliminado de la lista de terrenos
+            setTerrenos((prevTerrenos) => 
+              prevTerrenos.filter((t) => t.id !== terreno.id)
+            );
+            console.log('Terreno eliminado');
+            fetchTerrenos(); // <-- Recarga los datos actualizados
+          }
+        })
+        .catch((err) => console.error('Error eliminando terreno:', err));
+    }
+  };
+  
   
 
 
@@ -819,8 +926,22 @@ useEffect(() => {
               <button
                 className="add-button"
                 onClick={() => {
-                  setShowForm(true);
-                  setEditMode(false); // Agregar un nuevo terreno
+                  setShowForm(true); // Mostrar el formulario
+                  setEditMode(false); // Establecer el modo de agregar (vacío)
+                  setFormData({ // Limpiar los campos del formulario
+                    titulo: '',
+                    descripcion: '',
+                    precio: '',
+                    ubicacion_lat: '',
+                    ubicacion_lon: '',
+                    metros_cuadrados: '',
+                    estado: 'disponible',
+                    imagenes: null, // Inicializar las imágenes como null
+                    imagen_2: null,
+                    imagen_3: null,
+                    imagen_4: null,
+                    video: null,
+                  });
                 }}
               >
                 Agregar Terreno
@@ -839,9 +960,42 @@ useEffect(() => {
                     <div key={index} className="card">
                     <div className="card-image-container">
                       <ImageCarousel terreno={terreno} apiUrl={apiUrl} />
-                      
                       <h3 className="card-title">{terreno.titulo}</h3>
+
+                      {/* Íconos de editar y eliminar */}
+                      <div className="icon-buttons">
+                        <i
+                          className="fas fa-edit edit-icon"
+                          onClick={() => {
+                            setShowForm(true); // Mostrar el formulario
+                            setEditMode(true); // Establecer el modo de edición
+                            setFormData({ // Llenar el formulario con los datos del terreno a editar
+                              titulo: terreno.titulo,
+                              descripcion: terreno.descripcion,
+                              precio: terreno.precio,
+                              ubicacion_lat: terreno.ubicacion_lat,
+                              ubicacion_lon: terreno.ubicacion_lon,
+                              metros_cuadrados: terreno.metros_cuadrados,
+                              estado: terreno.estado,
+                              imagenes: terreno.imagenes,
+                              imagen_2: terreno.imagen_2,
+                              imagen_3: terreno.imagen_3,
+                              imagen_4: terreno.imagen_4,
+                              video: terreno.video
+                            });
+                            setSelectedTerreno(terreno); // Asegúrate de guardar el terreno seleccionado
+                          }}
+                        ></i>
+                        
+                        <i
+                          className="fas fa-trash delete-icon"
+                          onClick={() => handleDeleteTerreno(terreno)}
+                        ></i>
+                      </div>
+
                     </div>
+
+
 
                     <div
                         key={index}
@@ -873,20 +1027,20 @@ useEffect(() => {
 
                       <i
                         className="fas fa-share-alt share-icon"
-                        onClick={() => handleShare()}
+                        onClick={() => handleShare(index)} 
                       />
 
                             {/* Mostrar el menú de compartir cuando showShareMenu sea true */}
-                            {showShareMenu && (
-                              <div className="share-menu">
+                            {activeShareIndex === index &&(
+                              <div className="share-menu" ref={shareMenuRef}> {/* <-- aquí va el ref */}
                                 <FacebookShareButton url={url} quote={text}>
-                                  <FacebookIcon size={32} round />
+                                  <FacebookIcon size={28} round />
                                 </FacebookShareButton>
                                 <TwitterShareButton url={url} title={text}>
-                                  <TwitterIcon size={32} round />
+                                  <TwitterIcon size={28} round />
                                 </TwitterShareButton>
                                 <WhatsappShareButton url={url} title={text}>
-                                  <WhatsappIcon size={32} round />
+                                  <WhatsappIcon size={28} round />
                                 </WhatsappShareButton>
                               </div>
                             )}

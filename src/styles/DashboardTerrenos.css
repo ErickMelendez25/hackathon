@@ -17,6 +17,9 @@
   padding: 1rem;
 }
 
+ /*PARA EL LAPIC Y EL TACHO*/
+
+ 
 
 
 .modal h2 {
@@ -296,7 +299,7 @@ button[type="button"]:hover {
   
   /* Card - Contenedor */
   .card {
-    background-color: #FFFFFF;
+    background-color: #ffffff;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -316,6 +319,41 @@ button[type="button"]:hover {
     overflow: hidden;
     border-bottom: 2px solid #BDC3C7;
     margin-bottom: -10px;
+  }
+
+  .icon-buttons {
+    position: absolute; /* Lo posicionamos absolutamente dentro del contenedor */
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 10px;
+    z-index: 10; /* Para asegurarse de que se muestren encima de otros elementos */
+  }
+  
+  .edit-icon{
+    cursor: pointer;
+    font-size: 20px; /* Tamaño adecuado */
+    color: #ffffff; /* Color del ícono */
+    padding: 8px; /* Espaciado alrededor del ícono */
+    border: 2px solid #ffffff; /* Borde verde alrededor del ícono */
+    border-radius: 50%; /* Hacer el borde redondeado */
+    background-color: #1900ff; /* Fondo blanco para resaltar el ícono */
+    transition: all 0.3s ease; /* Suaviza las transiciones cuando interactúas */
+
+  } .delete-icon {
+    cursor: pointer;
+    font-size: 20px; /* Tamaño adecuado */
+    color: #ffffff; /* Color del ícono */
+    padding: 8px; /* Espaciado alrededor del ícono */
+    border: 2px solid #ffffff; /* Borde verde alrededor del ícono */
+    border-radius: 50%; /* Hacer el borde redondeado */
+    background-color: #ff0000; /* Fondo blanco para resaltar el ícono */
+    transition: all 0.3s ease; /* Suaviza las transiciones cuando interactúas */
+  }
+  .edit-icon:hover, .delete-icon:hover {
+    color: #fff; /* Cambiar color del ícono al hacer hover */
+    background-color: #07f507; /* Fondo verde cuando pasa el mouse */
+    border-color: #07f507; /* Borde verde más marcado */
   }
   
   /* Imagen de la Card */
@@ -353,12 +391,21 @@ button[type="button"]:hover {
 
 
 /* Posicionar los íconos a la derecha y alineados */
-.card-details .heart-icon,
+.card-details .heart-icon{
+  position: absolute;
+  top: 10px;
+  font-size: 1.6rem;
+  color: #928585; /* Color por defecto */
+  background-color: #fff;
+  padding: 4px;
+  border-radius: 50%;
+
+}
 .card-details .view-icon {
   position: absolute;
   top: 10px;
   font-size: 1.6rem;
-  color: #a19f9f; /* Color por defecto */
+  color: #080808; /* Color por defecto */
   background-color: #fff;
   padding: 4px;
   border-radius: 50%;
@@ -375,7 +422,7 @@ button[type="button"]:hover {
   top: 10px;
   right: 120px;  /* Ajusta la distancia a la derecha */
   font-size: 1.6rem;
-  color: #a19f9f; /* Color por defecto */
+  color: #091dd3; /* Color por defecto */
   background-color: #fff;
   padding: 4px;
   border-radius: 50%;
@@ -432,6 +479,21 @@ button[type="button"]:hover {
   background-color: transparent;  
   border-color: transparent;
   animation: pop-heart 0.35s ease;
+}
+
+/* Menú de compartir flotante */
+.share-menu {
+  position: absolute;
+  top: 13px;
+  right: 153px;
+  display: flex;
+  flex-direction: row;
+  background-color: transparent; /* Sin fondo */
+  padding: 0;                     /* Sin padding */
+  border-radius: 0;              /* Sin bordes redondeados */
+  gap: 5px;                      /* Espacio entre iconos */
+  z-index: 5;
+  box-shadow: none;              /* Sin sombra */
 }
 
 
@@ -618,6 +680,20 @@ button[type="button"]:hover {
 /* Para pantallas pequeñas (móviles) */
 @media (max-width: 599px) {
     /* Barra lateral (sidebar) */    /* Barra lateral (sidebar) */
+
+    .share-menu {
+      position: absolute;
+      top: 28px;
+      right: 153px;
+      display: flex;
+      flex-direction: row;
+      background-color: transparent; /* Sin fondo */
+      padding: 0;                     /* Sin padding */
+      border-radius: 0;              /* Sin bordes redondeados */
+      gap: 5px;                      /* Espacio entre iconos */
+      z-index: 5;
+      box-shadow: none;              /* Sin sombra */
+    }
 
     
 
