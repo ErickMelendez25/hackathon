@@ -438,27 +438,66 @@ useEffect(() => {
   
   
   
-  const handleDeleteTerreno = (terreno) => {
-    if (window.confirm(`¿Estás seguro de eliminar el terreno: "${terreno.titulo}"?`)) {
-      fetch(`${apiUrl}/DeleteTerreno/${terreno.id}`, {
-        method: 'DELETE',
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [terrenoAEliminar, setTerrenoAEliminar] = useState(null);
+
+
+  // Mostrar el formulario de confirmación
+  const handleDeleteClick = (terreno) => {
+    setTerrenoAEliminar(terreno); // Establecer el terreno a eliminar
+    setIsConfirmOpen(true); // Mostrar el formulario de confirmación
+  };
+
+
+  // Confirmar la eliminación
+  const confirmDelete = () => {
+    fetch(`${apiUrl}/DeleteTerreno/${terrenoAEliminar.id}`, {
+      method: 'DELETE',
+    })
+      .then((res) => {
+        if (res.ok) {
+          setTerrenos((prevTerrenos) =>
+            prevTerrenos.filter((t) => t.id !== terrenoAEliminar.id)
+          );
+          console.log('Terreno eliminado');
+          fetchTerrenos();
+        }
       })
-        .then((res) => {
-          if (res.ok) {
-            // Filtrar el terreno eliminado de la lista de terrenos
-            setTerrenos((prevTerrenos) => 
-              prevTerrenos.filter((t) => t.id !== terreno.id)
-            );
-            console.log('Terreno eliminado');
-            fetchTerrenos(); // <-- Recarga los datos actualizados
-          }
-        })
-        .catch((err) => console.error('Error eliminando terreno:', err));
+      .catch((err) => console.error('Error eliminando terreno:', err));
+    setIsConfirmOpen(false); // Cerrar el formulario de confirmación
+  };
+
+  // Cancelar la eliminación
+  const cancelDelete = () => {
+    setIsConfirmOpen(false); // Cerrar el formulario de confirmación
+    setTerrenoAEliminar(null); // Limpiar el terreno seleccionado
+  };
+
+  // Asegúrate de cerrar el modal si se hace clic fuera
+  const handleClickOutside = (event) => {
+    if (
+      isConfirmOpen &&
+      terrenoAEliminar &&
+      !event.target.closest('.confirm-form') &&
+      !event.target.closest('.delete-icon')
+    ) {
+      setIsConfirmOpen(false); // Cierra el modal si se hace clic fuera
+      setTerrenoAEliminar(null); // Limpiar el terreno seleccionado
     }
   };
-  
-  
 
+  // Usar useEffect para añadir el listener
+  React.useEffect(() => {
+    if (isConfirmOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside); // Limpiar el listener al desmontar
+    };
+  }, [isConfirmOpen]);
 
 
   
@@ -901,7 +940,7 @@ useEffect(() => {
       
               {/* BOTONES */}
               <div className="form-actions">
-                <button type="submit">{editMode ? 'Confirmar' : 'Guardar Terreno'}</button>
+                <button type="submit">{editMode ? 'Actualizar' : 'Guardar Terreno'}</button>
                 <button type="button" onClick={() => setShowForm(false)}>Cancelar</button>
               </div>
             </form>
@@ -1009,7 +1048,7 @@ useEffect(() => {
                       <h3 className="card-title">{terreno.titulo}</h3>
 
                       {/* Íconos de editar y eliminar */}
-                      <div className="icon-buttons">
+                      <div key={index} className="icon-buttons">
                         <i
                           className="fas fa-edit edit-icon"
                           onClick={() => {
@@ -1035,12 +1074,12 @@ useEffect(() => {
                         
                         <i
                           className="fas fa-trash delete-icon"
-                          onClick={() => handleDeleteTerreno(terreno)}
+                          onClick={() => handleDeleteClick(terreno)}
                         ></i>
                       </div>
 
                     </div>
-
+                    
 
 
                     <div
@@ -1059,7 +1098,11 @@ useEffect(() => {
                             toggleLike(index);
                             if (willLike) burstHearts(index, e);
                           }}
-                        />            
+                        />    
+
+
+                        
+                                
 
 
 
@@ -1100,11 +1143,31 @@ useEffect(() => {
                         <p className="card-vendedor"><strong>Vendedor:</strong> {vendedorNombre}</p>
                         <Link to={`/dashboard/terrenos/${terreno.id}`} target="_blank" rel="noopener noreferrer" className="card-button">Ver más</Link>
                       </div>
+                      
+                      
+                          
+
                     </div>
+                    
+                    
                   );
                 })
-              ) : (
-                <p>No hay datos disponibles para esta categoría  .</p>
+                
+    
+              ) : <p>No hay datos disponibles para esta categoría.</p>}
+              
+            
+              {/* ✅ Modal global fuera del .map() */}
+              {isConfirmOpen && terrenoAEliminar && (
+                <div className="modal-backdrop">
+                  <div className="confirm-form">
+                    <p>¿Deseas eliminar el terreno: "{terrenoAEliminar.titulo}"?</p>
+                    <div className="confirm-buttons">
+                      <button onClick={confirmDelete}>Eliminar</button>
+                      <button onClick={cancelDelete}>Cancelar</button>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </>

@@ -675,6 +675,39 @@ button[type="button"]:hover {
   margin-top: 2px;
  }
 
+ /* Estilos del formulario de confirmación */
+.confirm-form {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  z-index: 1000;
+}
+
+/* Botones del formulario de confirmación */
+.confirm-form button {
+  margin: 10px;
+  padding: 10px 20px;
+  background-color: #ff0000;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.confirm-form button:hover {
+  background-color: #cc0000;
+}
+
+.confirm-form button:focus {
+  outline: none;
+}
+
  
 
 /* Para pantallas pequeñas (móviles) */
