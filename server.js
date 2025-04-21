@@ -48,6 +48,11 @@ const upload = multer({ storage: storage });
 
 app.use('/terrenos', express.static(terrenosDirectory)); // Servir archivos estáticos desde 'uploads'
 
+console.log("HOST:", process.env.DB_HOST);
+console.log("PORT:", process.env.DB_PORT);
+console.log("USER:", process.env.DB_USER);
+console.log("NAME:", process.env.DB_NAME);
+
 // Configuración de la base de datos
 const db = mysql.createPool({
   host: process.env.DB_HOST,
