@@ -350,9 +350,66 @@ button[type="button"]:hover {
   }
 
 
+
+
+/* Posicionar los íconos a la derecha y alineados */
+.card-details .heart-icon,
+.card-details .view-icon {
+  position: absolute;
+  top: 10px;
+  font-size: 1.6rem;
+  color: #a19f9f; /* Color por defecto */
+  background-color: #fff;
+  padding: 4px;
+  border-radius: 50%;
+}
+
+.card-details .view-icon {
+  right: 60px;  /* Ajusta la distancia del ojo respecto al corazón */
+
+}
+
+/* Posicionar el ícono de compartir */
+.card-details .share-icon {
+  position: absolute;
+  top: 10px;
+  right: 120px;  /* Ajusta la distancia a la derecha */
+  font-size: 1.6rem;
+  color: #a19f9f; /* Color por defecto */
+  background-color: #fff;
+  padding: 4px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color 0.3s ease, background-color 0.3s ease;
+  z-index: 2;
+}
+
+/* Hover para compartir */
+.card-details .share-icon:hover {
+  color: #3498db;  /* Color azul al pasar el mouse */
+  background-color: #f0f0f0;  /* Fondo gris claro al pasar el mouse */
+}
+
+
+
+.card-details .heart-icon {
+  right: 10px;
+}
+
+/* Cambiar el color del corazón cuando es 'liked' */
+.card-details .heart-icon.liked {
+  color: #e74c3c;  /* Rojo */
+  background-color: transparent;
+}
+
+
+  
+
+
   
   /* Detalles de la Card */
   .card-details {
+    position: relative;
     padding: 15px;
     display: flex;
     flex-direction: column;
@@ -360,6 +417,40 @@ button[type="button"]:hover {
     height: auto;
     gap: 5px;
   }
+
+
+
+
+/* Hover: mantenemos el borde y fondo, y damos feedback “pop” */
+.card-details .heart-icon:hover {
+  animation: pop-heart 0.35s ease;
+}
+
+/* Estado “liked”: corazón rojo, sin borde */
+.card-details .heart-icon.liked {
+  color: #e74c3c;                 /* Rojo Instagram */
+  background-color: transparent;  
+  border-color: transparent;
+  animation: pop-heart 0.35s ease;
+}
+
+
+/* Animación: flotar hacia arriba, crecer y desvanecer */
+@keyframes float-heart {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-50px) scale(1);
+    opacity: 0;
+  }
+}
+
   
   /* Descripción de la Card */
   .card-description {
@@ -521,6 +612,8 @@ button[type="button"]:hover {
  .add-button{
   margin-top: 2px;
  }
+
+ 
 
 /* Para pantallas pequeñas (móviles) */
 @media (max-width: 599px) {
@@ -810,4 +903,19 @@ button[type="button"]:hover {
     gap: 30px;
     margin-top: 30px;
   }
+}
+
+/* corazones del “burst” */
+.burst-heart {
+  width: 14px;
+  height: 14px;
+  background-image: url("data:image/svg+xml;charset=UTF-8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 29.6'>\
+<path fill='%23e74c3c' d='M23.6,0C20.9,0,18.4,1.4,16,3.7C13.6,1.4,11.1,0,8.4,0\
+C3.8,0,0,3.8,0,8.4c0,4.9,4.2,8.9,10.6,14.7L16,29.6l5.4-6.5\
+C27.8,17.3,32,13.3,32,8.4C32,3.8,28.2,0,23.6,0z'/>\
+</svg>");
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;   /* que no interfieran con clicks */
 }

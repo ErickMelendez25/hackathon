@@ -4,7 +4,21 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import "../styles/DashboardTerrenos.css";
 import ImageCarousel from './ImageCarousel'; // Asegúrate de que la ruta sea correcta
 
+import { useRef } from 'react'; //para corazones
+
+import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share';
+import { FacebookIcon, TwitterIcon, WhatsappIcon } from 'react-share';
+
 const DashboardMain = () => {
+
+  const [showShareMenu, setShowShareMenu] = useState(false);
+
+  const handleShare = () => {
+    setShowShareMenu(!showShareMenu); // Alterna la visibilidad del menú
+  };
+
+  const url = window.location.href;  // Puedes cambiar esto según lo que quieras compartir
+  const text = "¡Mira este producto interesante!";
   const [usuarios, setUsuarios] = useState([]);
 
 
@@ -18,7 +32,59 @@ const DashboardMain = () => {
 
   // Obtener elementos necesarios
 
+
   const [sidebarActive, setSidebarActive] = useState(false);  
+  
+  //para corazones
+  const [liked, setLiked] = useState([]);
+  const toggleLike = (i) => {
+    setLiked(prev => {
+      const copy = [...prev];
+      copy[i] = !copy[i];
+      return copy;
+    });
+  };
+
+  const detailRefs = useRef([]);
+
+  const burstHearts = (idx, e) => {
+    const container = detailRefs.current[idx];
+    if (!container) return;
+  
+    // Calcula posición relativa del click dentro del container
+    const rect = container.getBoundingClientRect();
+    const startX = e.clientX - rect.left;
+    const startY = e.clientY - rect.top;
+  
+    for (let i = 0; i < 8; i++) {
+      const heart = document.createElement('span');
+      heart.className = 'burst-heart';
+      heart.style.position = 'absolute';
+      heart.style.left = `${startX}px`;
+      heart.style.top = `${startY}px`;
+      heart.style.transform = 'translate(0,0) scale(0.5)';
+      heart.style.opacity = '1';
+      heart.style.transition = 'transform 0.8s ease-out, opacity 0.8s ease-out';
+  
+      // crea desplazamientos aleatorios
+      const dx = (Math.random() - 0.5) * 120;   // entre -60 y +60 px
+      const dy = (Math.random() - 1) * 120;     // entre -120 y 0 px (suben)
+  
+      container.appendChild(heart);
+  
+      // dispara la animación en el siguiente frame
+      requestAnimationFrame(() => {
+        heart.style.transform = `translate(${dx}px, ${dy}px) scale(1)`;
+        heart.style.opacity = '0';
+      });
+  
+      // elimina tras completar la transición
+      heart.addEventListener('transitionend', () => heart.remove());
+    }
+  };
+  
+  const [likeCounts, setLikeCounts] = useState([]);
+
 
   const changeCategory = (newCategory) => {
     navigate(`/dashboard/${newCategory}`);  // Navega usando `navigate`
@@ -771,14 +837,62 @@ useEffect(() => {
                   const vendedorNombre = getUsuarioDetails(terreno.usuario_id);
                   return (
                     <div key={index} className="card">
-                      <div className="card-image-container">
+                    <div className="card-image-container">
                       <ImageCarousel terreno={terreno} apiUrl={apiUrl} />
-                        <h3 className="card-title">{terreno.titulo}</h3>
-                      </div>
-                      <div className="card-details">
-                        <p className="card-price">
+                      
+                      <h3 className="card-title">{terreno.titulo}</h3>
+                    </div>
+
+                    <div
+                        key={index}
+                        className="card-details"
+                        ref={el => detailRefs.current[index] = el}
+                      >
+
+
+                      {/* Corazón */}
+
+                        <i
+                          className={`fas fa-heart heart-icon ${liked[index] ? 'liked' : ''}`}
+                          onClick={(e) => {
+                            const willLike = !liked[index];
+                            toggleLike(index);
+                            if (willLike) burstHearts(index, e);
+                          }}
+                        />            
+
+
+
+                      <p className="card-price">
                           {filters.moneda === 'soles' ? `S/ ${terreno.precio}` : `$ ${terreno.precio}`}
-                        </p>
+                      </p>
+
+                      {/* Ojito */}
+
+                      <i className="fas fa-eye view-icon"/>
+
+                      <i
+                        className="fas fa-share-alt share-icon"
+                        onClick={() => handleShare()}
+                      />
+
+                            {/* Mostrar el menú de compartir cuando showShareMenu sea true */}
+                            {showShareMenu && (
+                              <div className="share-menu">
+                                <FacebookShareButton url={url} quote={text}>
+                                  <FacebookIcon size={32} round />
+                                </FacebookShareButton>
+                                <TwitterShareButton url={url} title={text}>
+                                  <TwitterIcon size={32} round />
+                                </TwitterShareButton>
+                                <WhatsappShareButton url={url} title={text}>
+                                  <WhatsappIcon size={32} round />
+                                </WhatsappShareButton>
+                              </div>
+                            )}
+
+
+
                         <p className="card-location">
                           <i className="fas fa-location-pin"></i> Lat: {terreno.ubicacion_lat}, Lon: {terreno.ubicacion_lon}
                         </p>
