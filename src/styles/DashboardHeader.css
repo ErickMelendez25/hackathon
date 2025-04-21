@@ -367,6 +367,26 @@ body {
         font-size: 11px;
         text-align: center;
     }
+
+
+    
+    .modal-buttons button {
+        padding: 15px 25px;
+        border: none;
+        background-color: #00c73c;
+        color: white;
+        font-size: 2vh;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+      }
+      
+      .modal-buttons button:hover {
+        background-color: #009d30;
+      }
+    
+    
 }
 
 
@@ -438,6 +458,22 @@ body {
         height: auto;
         transition: transform 0.3s ease-in-out, opacity 0.5s ease-in-out;
     }
+
+    .modal-buttons button {
+        padding: 15px 25px;
+        border: none;
+        background-color: #00c73c;
+        color: white;
+        font-size: 2vh;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+      }
+      
+      .modal-buttons button:hover {
+        background-color: #009d30;
+      }
     
     
 }
