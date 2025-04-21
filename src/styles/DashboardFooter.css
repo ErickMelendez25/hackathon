@@ -100,8 +100,9 @@
 /* Para pantallas aún más pequeñas (como teléfonos muy pequeños) */
 @media (max-width: 500px) {
     .dashboard-footer {
-        margin-top: 340px;
-        margin-bottom: 30px;
+        position: absolute;
+        margin-top: 27px;
+        
        
         padding: 20px 10px; /* Menos espacio en pantallas pequeñas */
     }
