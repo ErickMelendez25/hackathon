@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+
 import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import "../styles/DashboardTerrenos.css";
 import ImageCarousel from './ImageCarousel'; // Asegúrate de que la ruta sea correcta
 
-import { useRef } from 'react'; //para corazones
+
 
 import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share';
 import { FacebookIcon, TwitterIcon, WhatsappIcon } from 'react-share';
@@ -122,13 +123,28 @@ const DashboardMain = () => {
   const [terrenos, setTerrenos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    precioMin: 0,
-    precioMax: 10000000,
     estado: 'todos',
     ubicacion: '',
-    search: '',
+    precioMin: 0,
+    precioMax: Infinity,
     moneda: 'soles',
+    calificacion: 'todas',
+    masVisitados: false,
+    rangos: [], // aquí van los valores como '0-500', etc.
+    search: '',
+    moneda:'',
   });
+
+  const toggleRango = (rango) => {
+    setFilters((prevFilters) => {
+      const yaExiste = prevFilters.rangos.includes(rango);
+      const nuevosRangos = yaExiste
+        ? prevFilters.rangos.filter(r => r !== rango)
+        : [...prevFilters.rangos, rango];
+      return { ...prevFilters, rangos: nuevosRangos };
+    });
+  };
+  
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     tipoDocumento: 'DNI',
@@ -145,8 +161,16 @@ const DashboardMain = () => {
     metros_cuadrados: '',
     imagenes: null, // Inicializar como null
     estado: 'disponible',
+    masVistas: false,
+    masReacciones: false,
+    masCompartido: false,
   });
   
+  const [vendedorFormData, setVendedorFormData] = useState({
+    tipoDocumento: 'DNI',
+    numeroDocumento: '',
+    consentimiento: false,
+  });
 
   
 
@@ -218,40 +242,40 @@ useEffect(() => {
   }
 }, [usuarios]); // Este useEffect se ejecuta cuando `usuarios` cambia
 
+
+
+
   
 
 
 
   // Obtener terrenos desde la API basados en la categoría
-  const fetchTerrenos = () => {
-    const token = localStorage.getItem('authToken');
-  
-    axios.get(`${apiUrl}/api/terrenos`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    .then((response) => {
-      const terrenosData = Array.isArray(response.data) ? response.data : [];
-      setTerrenos(terrenosData);
-      setLoading(false);
-    })
-    .catch((error) => {
-      console.error('Error al obtener terrenos:', error);
+  const fetchTerrenos = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const res   = await axios.get(`${apiUrl}/api/terrenos`, {
+        headers:{ Authorization: `Bearer ${token}` }
+      });
+      setTerrenos(Array.isArray(res.data)? res.data : []);
+    } catch (err) {
+      console.error('Error al obtener terrenos:', err);
       setTerrenos([]);
-      setLoading(false);
-    });
-  };
-
-  useEffect(() => {
-    if (categoria === 'terrenos') {
-      fetchTerrenos();
-    } else {
-      setTerrenos([]);
+    } finally {
       setLoading(false);
     }
-  }, [categoria,terrenos]);
+  }, [apiUrl]);
+
+
+
+
+  useEffect(() => {
+    if (categoria==='terrenos') {
+      fetchTerrenos();
+    }
+  }, [categoria, fetchTerrenos]);
   
+
 
 
 
@@ -265,25 +289,120 @@ useEffect(() => {
   };
 
   const filteredTerrenos = terrenos.filter(terreno => {
-    const precioValido = terreno.precio >= filters.precioMin && terreno.precio <= filters.precioMax;
+    // Filtro por estado
     const estadoValido = filters.estado === 'todos' || terreno.estado === filters.estado;
-    const ubicacionValida = terreno.ubicacion_lat && terreno.ubicacion_lon && (
-      terreno.ubicacion_lat.toString().includes(filters.ubicacion) || terreno.ubicacion_lon.toString().includes(filters.ubicacion)
-    );
-    const searchValido = (terreno.titulo && (terreno.titulo.toLowerCase().includes(filters.search.toLowerCase()) || terreno.descripcion.toLowerCase().includes(filters.search.toLowerCase())));
+  
+    // Filtro por ubicación
+    const ubicacionValida =
+      !filters.ubicacion ||
+      (terreno.ubicacion_lat?.toString().includes(filters.ubicacion) ||
+       terreno.ubicacion_lon?.toString().includes(filters.ubicacion));
+  
+    // Filtro por texto
+    const searchValido = terreno.titulo &&
+      (terreno.titulo.toLowerCase().includes(filters.search.toLowerCase()) ||
+       terreno.descripcion.toLowerCase().includes(filters.search.toLowerCase()));
+  
+    // Filtro por rango de checkbox
+    const precio = terreno.precio;
+    const rangoCheckboxValido = filters.rangos.length === 0 || filters.rangos.some(rango => {
+      if (rango === '0-500') return precio >= 0 && precio <= 500;
+      if (rango === '500-2000') return precio > 500 && precio <= 2000;
+      if (rango === '2000-5000') return precio > 2000 && precio <= 5000;
+      if (rango === '5000+') return precio > 5000;
+      return false;
+    });
+  
+    // Filtro por rango manual
+ 
+    const precioMinOk = filters.precioMin === null || precio >= filters.precioMin;
+    const precioMaxOk = filters.precioMax === null || precio <= filters.precioMax;
+  
+    // Filtro por calificación
+    const calificacionValida = filters.calificacion === 'todas' || terreno.calificacion >= parseInt(filters.calificacion);
+  
+    // Filtro por moneda
+    const monedaValida = filters.moneda === '' || terreno.moneda === filters.moneda;
 
-    return precioValido && estadoValido && ubicacionValida && searchValido;
+    return precioMinOk && precioMaxOk && estadoValido && ubicacionValida && searchValido && rangoCheckboxValido && calificacionValida && monedaValida;
   });
+  
 
-  const sortedTerrenos = [...filteredTerrenos].sort((a, b) => new Date(b.fecha_publicacion) - new Date(a.fecha_publicacion));
+  let sortedTerrenos = [...filteredTerrenos];
+
+  // Ordenar según los filtros activados
+  if (filters.masVistas) {
+    sortedTerrenos.sort((a, b) => b.vistas - a.vistas);
+  } else if (filters.masReacciones) {
+    sortedTerrenos.sort((a, b) => b.reacciones - a.reacciones);
+  } else if (filters.masCompartido) {
+    sortedTerrenos.sort((a, b) => b.compartido - a.compartido);
+  } else {
+    // Orden por defecto: más recientes primero
+    sortedTerrenos.sort((a, b) => new Date(b.fecha_publicacion) - new Date(a.fecha_publicacion));
+  }
+  
+  
 
 
 
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Datos del formulario:', formData);
+  
+    if (!usuarioLocal) {
+      alert("Usuario no identificado.");
+      return;
+    }
+  
+    // Verifica los valores de vendedorFormData antes de enviarlos
+    console.log("Datos del vendedor:", vendedorFormData);
+  
+    // Combina los datos del formulario con los datos del vendedor
+    const formToSend = {
+      // Datos generales del formulario
+      nombre:usuarioLocal.nombre,
+      usuario_id: usuarioLocal.id, // ID del usuario logueado
+      correo: usuarioLocal.correo,    // Email del usuario logueado
+      tipo_documento: vendedorFormData.tipoDocumento,  // Tipo de documento del vendedor
+      numero_documento: vendedorFormData.numeroDocumento,  // Número de documento del vendedor
+      consentimiento: vendedorFormData.consentimiento,  // Consentimiento del vendedor
+    };
+  
+    // Verifica los datos antes de enviarlos
+    console.log("Formulario a enviar:", formToSend);
+  
+    // Verifica si hay datos faltantes
+    for (const key in formToSend) {
+      if (!formToSend[key]) {
+        console.warn(`Falta el campo: ${key}`);
+      }
+    }
+  
+    try {
+      const token = localStorage.getItem('authToken');
+      console.log("Token de autenticación:", token);  // Verifica si el token está correctamente guardado
+      console.log("Formulario a enviar:", formToSend);
+
+      // Realiza la solicitud
+      const response = await axios.post(`${apiUrl}/api/solicitud`, formToSend, {
+        headers: { Authorization: `Bearer ${token}` }  // Si es necesario enviar el token
+      });
+  
+      console.log("Respuesta del servidor:", response.data);  // Log de la respuesta del servidor
+  
+      // Alerta de éxito
+      alert("Solicitud enviada con éxito.");
+      // Opcional: Realiza cualquier acción adicional, como recargar la lista de solicitudes
+      // fetchSolicitudes(); // Recargar solicitudes, si es necesario
+  
+    } catch (err) {
+      // Muestra más detalles del error en consola para facilitar la depuración
+      console.error("Error al enviar formulario:", err.response ? err.response.data : err);
+      alert("Ocurrió un error al enviar la solicitud.");
+    }
   };
+  
+  
 
   const handleCreateTerreno = async (e) => {
     e.preventDefault();
@@ -336,7 +455,7 @@ useEffect(() => {
   
       const data = await response.json();
       console.log('Terreno creado exitosamente:', data);
-      fetchTerrenos(); // <-- Recarga los datos actualizados
+      await fetchTerrenos(); // <-- Recarga los datos actualizados
   
       // Limpiar el formulario
       setFormData({
@@ -425,11 +544,8 @@ useEffect(() => {
   
       const data = await response.json();
       console.log('Terreno actualizado exitosamente:', data);
-      fetchTerrenos(); // <-- Recarga los datos actualizados
-  
-      setShowForm(false); // Cerrar formulario
-      const terrenosActualizados = await axios.get(`${apiUrl}/api/terrenos`);
-      setTerrenos(terrenosActualizados.data);
+      await fetchTerrenos();      // ← recarga la lista
+      setShowForm(false);         // ← cierra el form
   
     } catch (error) {
       console.error('Error al actualizar el terreno:', error);
@@ -450,22 +566,27 @@ useEffect(() => {
 
 
   // Confirmar la eliminación
-  const confirmDelete = () => {
-    fetch(`${apiUrl}/DeleteTerreno/${terrenoAEliminar.id}`, {
-      method: 'DELETE',
-    })
-      .then((res) => {
-        if (res.ok) {
-          setTerrenos((prevTerrenos) =>
-            prevTerrenos.filter((t) => t.id !== terrenoAEliminar.id)
-          );
-          console.log('Terreno eliminado');
-          fetchTerrenos();
-        }
-      })
-      .catch((err) => console.error('Error eliminando terreno:', err));
-    setIsConfirmOpen(false); // Cerrar el formulario de confirmación
+  const confirmDelete = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/DeleteTerreno/${terrenoAEliminar.id}`, {
+        method: 'DELETE',
+      });
+  
+      if (res.ok) {
+        setTerrenos((prevTerrenos) =>
+          prevTerrenos.filter((t) => t.id !== terrenoAEliminar.id)
+        );
+        console.log('Terreno eliminado');
+  
+        await fetchTerrenos(); // Ahora sí puedes usar await aquí
+      }
+    } catch (err) {
+      console.error('Error eliminando terreno:', err);
+    } finally {
+      setIsConfirmOpen(false); // Cerrar el formulario de confirmación
+    }
   };
+  
 
   // Cancelar la eliminación
   const cancelDelete = () => {
@@ -498,6 +619,117 @@ useEffect(() => {
       document.removeEventListener('mousedown', handleClickOutside); // Limpiar el listener al desmontar
     };
   }, [isConfirmOpen]);
+
+
+
+  const [showSolicitudes, setShowSolicitudes] = useState(false);
+
+  const [solicitudes, setSolicitudes] = useState([]);
+
+  const [error, setError] = useState(null);
+
+
+  // Función para obtener solicitudes
+  const fetchSolicitudes = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      setLoading(true);
+      const res = await fetch(`${apiUrl}/api/solicitudes`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error('Error al cargar solicitudes');
+      }
+
+      const data = await res.json();
+      setSolicitudes(data);
+    } catch (err) {
+      setError('Hubo un error al cargar las solicitudes');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSolicitudes();
+  }, [fetchSolicitudes]);
+
+  // Función para aprobar la solicitud
+  const aprobarSolicitud = async (id) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${apiUrl}/api/verificarsolicitud`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          solicitud_id: id,
+          estado: 'aprobada',
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Error al aprobar la solicitud');
+      }
+
+      const updatedSolicitudes = solicitudes.map((solicitud) =>
+        solicitud.id === id
+          ? { ...solicitud, estado: 'aprobada', fecha_respuesta: new Date().toLocaleString() }
+          : solicitud
+      );
+      setSolicitudes(updatedSolicitudes);
+
+      alert('Solicitud aprobada');
+    } catch (err) {
+      setError('Hubo un error al aprobar la solicitud');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función para rechazar la solicitud
+  const rechazarSolicitud = async (id) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${apiUrl}/api/verificarsolicitud`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          solicitud_id: id,
+          estado: 'rechazada',
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Error al rechazar la solicitud');
+      }
+
+      const updatedSolicitudes = solicitudes.map((solicitud) =>
+        solicitud.id === id
+          ? { ...solicitud, estado: 'rechazado', fecha_respuesta: new Date().toLocaleString() }
+          : solicitud
+      );
+      setSolicitudes(updatedSolicitudes);
+
+      alert('Solicitud rechazada');
+    } catch (err) {
+      setError('Hubo un error al rechazar la solicitud');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
 
 
   
@@ -581,75 +813,61 @@ useEffect(() => {
             <p>Ser el portal líder en el mercado peruano de bienes raíces y automóviles, destacando por nuestra transparencia, innovación tecnológica y compromiso con la satisfacción del cliente.</p>
           </div>
         ) : showForm ? (
-          <div className="sell-form-container">
-            <form className="sell-form" onSubmit={handleSubmit}>
-              <h3>Formulario de Conformidad</h3>
+        <div className="sell-form-container">
+          <form className="sell-form" onSubmit={handleSubmit}>
+            <h3>Solicitud para ser Vendedor</h3>
+            <p>
+              Para poder vender en nuestra plataforma, requerimos tus datos reales y una aceptación expresa
+              de nuestras condiciones. Tu solicitud será revisada por nuestro equipo antes de ser aprobada.
+            </p>
 
-              <label htmlFor="tipoDocumento">Tipo de Documento:</label>
-              <select
-                id="tipoDocumento"
-                value={formData.tipoDocumento}
-                onChange={(e) => setFormData({ ...formData, tipoDocumento: e.target.value })}
-              >
-                <option value="DNI">DNI</option>
-                <option value="RUC">RUC</option>
-                <option value="Carnet Extranjero">Carnet Extranjero</option>
-              </select>
+            <label htmlFor="tipoDocumento">Tipo de Documento:</label>
+            <select
+              id="tipoDocumento"
+              value={vendedorFormData.tipoDocumento}
+              onChange={(e) => setVendedorFormData({ ...vendedorFormData, tipoDocumento: e.target.value })}
+              required
+            >
+              <option value="">Seleccione un tipo</option>
+              <option value="DNI">DNI</option>
+              <option value="RUC">RUC</option>
+              <option value="Carnet Extranjero">Carnet de Extranjería</option>
+            </select>
 
-              <label htmlFor="numeroDocumento">Número de Documento:</label>
+            <label htmlFor="numeroDocumento">Número de Documento:</label>
+            <input
+              type="text"
+              id="numeroDocumento"
+              placeholder={`Ingrese su ${vendedorFormData.tipoDocumento || 'documento'}`}
+              value={vendedorFormData.numeroDocumento}
+              onChange={(e) => setVendedorFormData({ ...vendedorFormData, numeroDocumento: e.target.value })}
+              required
+            />
+
+            <div className="legal-terms">
+              <h4>Términos y Condiciones del Vendedor</h4>
+              <p>
+                Al aceptar este formulario, usted declara que los productos que desea publicar son reales,
+                legales y están bajo su responsabilidad. El incumplimiento de estas condiciones puede
+                conllevar la suspensión de su cuenta y la toma de acciones legales por parte de nuestra empresa.
+              </p>
+            </div>
+
+            <label htmlFor="consentimiento">
               <input
-                type="text"
-                id="numeroDocumento"
-                placeholder={`Ingrese su ${formData.tipoDocumento}`}
-                value={formData.numeroDocumento}
-                onChange={(e) => setFormData({ ...formData, numeroDocumento: e.target.value })}
+                type="checkbox"
+                id="consentimiento"
+                checked={vendedorFormData.consentimiento}
+                onChange={(e) => setVendedorFormData({ ...vendedorFormData, consentimiento: e.target.checked })}
                 required
               />
+              Acepto los términos y condiciones para convertirme en vendedor, y autorizo el uso de mis datos para fines de verificación.
+            </label>
 
-              <label htmlFor="emisionDocumento">Emisión de Documento:</label>
-              <input
-                type="text"
-                id="emisionDocumento"
-                placeholder="Ingrese la fecha de emisión"
-                value={formData.emisionDocumento}
-                onChange={(e) => setFormData({ ...formData, emisionDocumento: e.target.value })}
-                required
-              />
+            <button type="submit" className="sell-form-submit">Enviar solicitud</button>
+          </form>
+        </div>
 
-              <label htmlFor="celular">Celular:</label>
-              <input
-                type="text"
-                id="celular"
-                placeholder="Ingrese su número de celular"
-                value={formData.celular}
-                onChange={(e) => setFormData({ ...formData, celular: e.target.value })}
-                required
-              />
-
-              <label htmlFor="email">Correo Electrónico:</label>
-              <input
-                type="email"
-                id="email"
-                placeholder="Correo Electrónico"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-
-              <label htmlFor="consentimiento">
-                <input
-                  type="checkbox"
-                  id="consentimiento"
-                  checked={formData.consentimiento}
-                  onChange={(e) => setFormData({ ...formData, consentimiento: e.target.checked })}
-                  required
-                />
-                Acepto que mis datos serán utilizados para formalizar todo tipo de venta.
-              </label>
-
-              <button type="submit" className="sell-form-submit">Enviar</button>
-            </form>
-          </div>
         ) : (
           <>
             {categoria === 'terrenos' && (
@@ -842,15 +1060,16 @@ useEffect(() => {
           >
             Celulares
           </button>
-        
-          <button
-            className={`category-btn ${categoria === 'vender' ? 'active' : ''}`}
-            onClick={() => { changeCategory('vender'); setShowForm(true)}}
 
-            
+          <button
+            className={`category-btn${categoria === 'solicitudes' ? 'active' : ''}`}
+              onClick={() => {changeCategory('solicitudes');
+                setShowSolicitudes(true);}}
           >
-            ¿Quieres vender?
+            Solicitudes
           </button>
+
+
         </div>
       </div>
 
@@ -948,61 +1167,164 @@ useEffect(() => {
 
         ) : (
           <>
+          {categoria === 'solicitudes' && showSolicitudes &&(
+            <div className="solicitudes-container">
+              <h2>Solicitudes</h2>
+              <table className="solicitudes-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Tipo DOC</th>
+                    <th>Documento</th>
+                    <th>Estado</th>
+                    <th>Fech. Soli</th>
+                    <th>Fech. Resp</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {solicitudes.map((solicitud) => (
+                    <tr key={solicitud.id}>
+                      <td>{solicitud.nombre}</td>
+                      <td>{solicitud.correo}</td>
+                      <td>{solicitud.tipo_documento}</td>
+                      <td>{solicitud.numero_documento}</td>
+                      <td>{solicitud.estado}</td>
+                      <td>{solicitud.fecha_solicitud}</td>
+                      <td>{solicitud.fecha_respuesta}</td>
+                      <td>
+                        <button onClick={() => aprobarSolicitud(solicitud.id)} className="btn-aprobar">Aprobar</button>
+                        <button onClick={() => rechazarSolicitud(solicitud.id)} className="btn-rechazar">Rechazar</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
             {categoria === 'terrenos' && (
               <div className="filters">
-                <div className="filter-item">
-                  <select
-                    value={filters.estado}
-                    onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
-                    className="filter-select"
-                  >
-                    <option value="todos">Todos los estados</option>
-                    <option value="disponible">Disponible</option>
-                    <option value="vendido">Vendido</option>
-                  </select>
-                </div>
-
-                <div className="filter-item">
-                  <input
-                    type="text"
-                    placeholder="Ubicación"
-                    value={filters.ubicacion}
-                    onChange={(e) => setFilters({ ...filters, ubicacion: e.target.value })}
-                    className="filter-input"
-                  />
-                </div>
-
-                <div className="filter-item">
-                  <input
-                    type="number"
-                    placeholder="Precio mínimo"
-                    value={filters.precioMin}
-                    onChange={(e) => setFilters({ ...filters, precioMin: Math.max(0, e.target.value) })}
-                    className="filter-input"
-                  />
-                </div>
-
-                <div className="filter-item">
-                  <input
-                    type="number"
-                    placeholder="Precio máximo"
-                    value={filters.precioMax}
-                    onChange={(e) => setFilters({ ...filters, precioMax: Math.max(filters.precioMin, e.target.value) })}
-                    className="filter-input"
-                  />
-                </div>
-
-                <div className="filter-item">
-                  <select
-                    value={filters.moneda}
-                    onChange={(e) => setFilters({ ...filters, moneda: e.target.value })}
-                    className="filter-select"
-                  >
-                    <option value="soles">Soles</option>
-                    <option value="dolares">Dólares</option>
-                  </select>
-                </div>
+              {/* Filtro por estado */}
+              <div className="filter-item">
+                <select
+                  value={filters.estado}
+                  onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
+                  className="filter-select"
+                >
+                  <option value="todos">Todos los estados</option>
+                  <option value="disponible">Disponible</option>
+                  <option value="vendido">Vendido</option>
+                </select>
               </div>
+
+              {/* Filtro por ubicación */}
+              <div className="filter-item">
+                <input
+                  type="text"
+                  placeholder="Ubicación"
+                  value={filters.ubicacion}
+                  onChange={(e) => setFilters({ ...filters, ubicacion: e.target.value })}
+                  className="filter-input"
+                />
+              </div>
+
+              {/* Filtros de rango por checkbox */}
+              <div className="filter-item">
+                <label><input type="checkbox" checked={filters.rangos.includes('0-500')} onChange={() => toggleRango('0-500')} /> S/ 0 - 500</label>
+                <label><input type="checkbox" checked={filters.rangos.includes('500-2000')} onChange={() => toggleRango('500-2000')} /> S/ 500 - 2000</label>
+                <label><input type="checkbox" checked={filters.rangos.includes('2000-5000')} onChange={() => toggleRango('2000-5000')} /> S/ 2000 - 5000</label>
+                <label><input type="checkbox" checked={filters.rangos.includes('5000+')} onChange={() => toggleRango('5000+')} /> Desde S/ 5000</label>
+              </div>
+
+              {/* Precio manual */}
+              <div className="filter-item">
+              <input
+                type="number"
+                placeholder="Precio mínimo"
+                value={filters.precioMin === null ? '' : filters.precioMin}
+                onChange={(e) =>
+                  setFilters({
+                    ...filters,
+                    precioMin: e.target.value === '' ? null : parseFloat(e.target.value)
+                  })
+                }
+                className="filter-input"
+              />
+            </div>
+
+            <div className="filter-item">
+              <input
+                type="number"
+                placeholder="Precio máximo"
+                value={filters.precioMax === null ? '' : filters.precioMax}
+                onChange={(e) =>
+                  setFilters({
+                    ...filters,
+                    precioMax: e.target.value === '' ? null : parseFloat(e.target.value)
+                  })
+                }
+                className="filter-input"
+              />
+            </div>
+
+              {/* Moneda */}
+              <div className="filter-item">
+                <select
+                  value={filters.moneda}
+                  onChange={(e) => setFilters({ ...filters, moneda: e.target.value })}
+                  className="filter-select"
+                >
+                  <option value="soles">Soles</option>
+                  <option value="dolares">Dólares</option>
+                </select>
+              </div>
+
+              {/* Filtro por calificación */}
+              <div className="filter-item">
+                <select
+                  value={filters.calificacion}
+                  onChange={(e) => setFilters({ ...filters, calificacion: e.target.value })}
+                  className="filter-select"
+                >
+                  <option value="todas">Todas las calificaciones</option>
+                  <option value="5">5 estrellas</option>
+                  <option value="4">4 estrellas o más</option>
+                  <option value="3">3 estrellas o más</option>
+                </select>
+              </div>
+
+              {/* Filtros de popularidad */}
+              <div className="filter-item">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.masVistas}
+                    onChange={(e) => setFilters({ ...filters, masVistas: e.target.checked })}
+                  />
+                  Más vistas
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.masReacciones}
+                    onChange={(e) => setFilters({ ...filters, masReacciones: e.target.checked })}
+                  />
+                  Más reacciones
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.masCompartido}
+                    onChange={(e) => setFilters({ ...filters, masCompartido: e.target.checked })}
+                  />
+                  Más compartido
+                </label>
+
+              </div>
+
+            </div>
             )}
 
             {/* Botón Agregar solo visible para admin en la categoría terrenos */}
@@ -1035,9 +1357,9 @@ useEffect(() => {
             )}
 
             <div className="gallery">
-              {loading ? (
+              {categoria === 'terrenos' && loading ? (
                 <p>Cargando datos...</p>
-              ) : categoria === 'terrenos' ? (
+              ) : categoria === 'terrenos' ?  (
                 sortedTerrenos.map((terreno, index) => {
                   const imagenUrl = terreno.imagenes && Array.isArray(terreno.imagenes) ? terreno.imagenes[0] : '/default-image.jpg';
                   const vendedorNombre = getUsuarioDetails(terreno.usuario_id);
@@ -1153,8 +1475,8 @@ useEffect(() => {
                   );
                 })
                 
-    
-              ) : <p>No hay datos disponibles para esta categoría.</p>}
+              ) : null}
+
               
             
               {/* ✅ Modal global fuera del .map() */}

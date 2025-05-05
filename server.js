@@ -507,6 +507,148 @@ app.put('/UpdateTerreno/:id',
       res.status(500).json({ message: 'Error en el servidor', error: error.message });
     }
   });
+
+
+  app.post('/api/solicitud', (req, res) => {
+    console.log('Datos recibidos en el servidor:', req.body);
+    const { nombre, usuario_id, correo, tipo_documento, numero_documento, consentimiento } = req.body;
+  
+    // Validación de los datos
+    if (!nombre || !usuario_id || !correo || !tipo_documento || !numero_documento || consentimiento === undefined) {
+      return res.status(400).json({ message: 'Faltan datos obligatorios' });
+    }
+  
+    // Agregar los datos a la base de datos
+    const query = `
+      INSERT INTO solicitudes_vendedor (nombre, usuario_id, correo, tipo_documento, numero_documento)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    
+    db.query(query, [nombre, usuario_id, correo, tipo_documento, numero_documento, consentimiento], (err, result) => {
+      if (err) {
+        console.error('Error al agregar la solicitud:', err);
+        return res.status(500).json({ message: 'Error en el servidor', error: err.message });
+      }
+  
+      console.log('Solicitud agregada correctamente a la base de datos:', result);
+  
+      // Enviar el correo después de insertar los datos en la base de datos
+      try {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER, // ejemplo: 'tucorreo@gmail.com'
+            pass: process.env.EMAIL_PASS, // contraseña generada de aplicación
+          }
+        });
+  
+        const mailOptions = {
+          from: correo,
+          to: ['72848846@continental.edu.pe', correo], // correo del administrador
+          subject: `Solicitud-Vendedor de ${nombre}`,
+          text: `📝 *Solicitud para ser Vendedor*\n\n👤 *Nombre del Solicitante:* ${nombre}\n📧 *Correo Electrónico:* ${correo}\n🆔 *Tipo de Documento:* ${tipo_documento}\n🔢 *Número de Documento:* ${numero_documento}\n🆔 *ID de Vendedor:* ${usuario_id}\n✅ *Consentimiento:* ${consentimiento ? "Otorgado" : "No otorgado"}\n\nPor favor revise esta solicitud y proceda con la validación correspondiente.\n\n🔗 *Validar solicitud:* http://localhost:5173/dashboard/vender`
+        };
+  
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.error('Error al enviar el correo:', error);
+            return res.status(500).json({ message: 'Error al enviar el correo', error: error.message });
+          }
+  
+          console.log('Correo enviado correctamente:', info.response);
+          res.status(200).json({ message: 'Solicitud agregada y correo enviado correctamente' });
+        });
+        
+      } catch (error) {
+        console.error('Error al enviar el correo:', error);
+        res.status(500).json({ message: 'Error al enviar el correo', error: error.message });
+      }
+    });
+  });
+  
+
+  app.get('/api/solicitudes', (req, res) => {
+    db.query('SELECT * FROM solicitudes_vendedor', (err, results) => {
+      if (err) {
+        console.error('Error al obtener solicitudes:', err);
+        return res.status(500).json({ message: 'Error en el servidor', error: err.message });
+      }
+      res.json(results); // Respuesta en JSON correcta
+    });
+  });
+
+  app.put('/api/verificarsolicitud', (req, res) => {
+    const { solicitud_id, estado } = req.body;
+  
+    // Verifica que el estado sea válido
+    if (estado !== 'aprobada' && estado !== 'rechazada') {
+      return res.status(400).json({ error: 'Estado inválido, debe ser "aprobado" o "rechazado".' });
+    }
+  
+    // Actualizar el estado en la base de datos
+    db.query(
+      'UPDATE solicitudes_vendedor SET estado = ? WHERE id = ?',
+      [estado, solicitud_id],
+      (error, results) => {
+        if (error) {
+          console.error(error);
+          return res.status(500).json({ error: 'Error al actualizar el estado de la solicitud.' });
+        }
+  
+        // Obtener la información del comprador para enviar el correo
+        db.query(
+          'SELECT * FROM solicitudes_vendedor WHERE id = ?',
+          [solicitud_id],
+          (err, rows) => {
+            if (err || rows.length === 0) {
+              return res.status(404).json({ error: 'Solicitud no encontrada.' });
+            }
+  
+            const solicitud = rows[0];
+            const { nombre, correo } = solicitud;
+  
+            // Definir el transporter antes de usarlo
+            const transporter = nodemailer.createTransport({
+              service: 'gmail',
+              auth: {
+                user: process.env.EMAIL_USER, // ejemplo: 'tucorreo@gmail.com'
+                pass: process.env.EMAIL_PASS, // contraseña generada de aplicación
+              }
+            });
+
+            let asunto = 'Resultado de tu solicitud para ser Vendedor';
+            let mensaje = '';
+
+            if (estado === 'aprobada') {
+              asunto = '🎉 ¡Felicidades! Has sido aprobado como vendedor en SatelitePeru';
+              mensaje = `Hola ${nombre},\n\n¡Estamos muy felices de darte la bienvenida a nuestro equipo de vendedores en SatelitePeru! 🎊🎉\n\nTu solicitud ha sido *aprobada* y ahora puedes comenzar a disfrutar de todos los beneficios de nuestra plataforma.\n\nGracias por confiar en nosotros. Estamos seguros de que juntos lograremos grandes cosas.\n\n¡Bienvenido a bordo!\n\nEl equipo de SatelitePeru 🌐`;
+            } else if (estado === 'rechazada') {
+              asunto = 'Resultado de tu solicitud en SatelitePeru';
+              mensaje = `Hola ${nombre},\n\nLamentamos informarte que, tras una revisión detallada, tu solicitud para ser vendedor en SatelitePeru ha sido *rechazada*.\n\nSabemos que esta noticia puede no ser la esperada, pero queremos animarte a seguir preparándote y no rendirte. Puedes volver a postular más adelante si lo deseas.\n\nGracias por tu interés y por confiar en SatelitePeru. ¡Te esperamos pronto!\n\nEl equipo de SatelitePeru 💙`;
+            }
+  
+            // Enviar el correo de notificación al comprador
+            const mailOptions = {
+              from: 'correo', // Asegúrate de cambiar esto a un correo real
+              to: correo,
+              subject: asunto,
+              text: mensaje
+            };
+  
+            transporter.sendMail(mailOptions, (mailError, info) => {
+              if (mailError) {
+                console.error(mailError);
+                return res.status(500).json({ error: 'Error al enviar el correo de notificación.' });
+              }
+  
+              return res.status(200).json({ message: 'Estado actualizado y correo enviado correctamente.' });
+            });
+          }
+        );
+      }
+    );
+  });
+  
   
 
 
