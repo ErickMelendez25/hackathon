@@ -52,6 +52,10 @@ const DashboardMain = () => {
   : 'http://localhost:5000';
 
   // Obtener elementos necesarios
+  useEffect(() => {
+    console.log('usuarioLocal ha cambiado:', usuarioLocal);
+  }, [usuarioLocal]);
+  
 
 
   const [sidebarActive, setSidebarActive] = useState(false);  
@@ -883,6 +887,12 @@ useEffect(() => {
                     <option value="vendido">Vendido</option>
                   </select>
                 </div>
+                {usuarioLocal?.rol === 'vendedor' && (
+                  <>
+                    <BotonAgregarProducto />
+                    <MisProductos />
+                  </>
+                )}
 
                 <div className="filter-item">
                   <input
@@ -1498,8 +1508,293 @@ useEffect(() => {
     </div>
   );
 
+  const renderVendedorView = () => (
+    <div className="dashboard">
+      <button
+        className="sidebar-toggle"
+        onClick={() => setSidebarActive(!sidebarActive)} // Cambiar el estado de la barra lateral
+      >
+        ☰
+      </button>
+      <div className={`sidebar ${sidebarActive ? 'active' : ''}`}>
+        <div className="categories">
+          <button
+            className={`category-btn ${categoria === 'terrenos' ? 'active' : ''}`}
+            onClick={() => { changeCategory('terrenos'); }}
+          >
+            Terrenos
+          </button>
+          <button
+            className={`category-btn ${categoria === 'carros' ? 'active' : ''}`}
+            onClick={() => { changeCategory('carros'); }}
+          >
+            Carros
+          </button>
+          <button
+            className={`category-btn ${categoria === 'casas' ? 'active' : ''}`}
+            onClick={() => { changeCategory('casas'); }}
+          >
+            Casas
+          </button>
 
-  return usuarioLocal && usuarioLocal.tipo === 'admin' ? renderAdminView() : renderCompradorView();
+          <button
+            className={`category-btn ${categoria === 'departamentos' ? 'active' : ''}`}
+            onClick={() => { changeCategory('departamentos'); }}
+          >
+            Departamentos
+          </button>
+
+          <button
+            className={`category-btn ${categoria === 'ropa' ? 'active' : ''}`}
+            onClick={() => { changeCategory('ropa'); }}
+          >
+            Ropa
+          </button>
+
+          <button
+            className={`category-btn ${categoria === 'celulares' ? 'active' : ''}`}
+            onClick={() => { changeCategory('celulares'); }}
+          >
+            Celulares
+          </button>
+        
+          <button
+            className={`category-btn ${categoria === 'vender' ? 'active' : ''}`}
+            onClick={() => { changeCategory('vender'); setShowForm(true)}}
+
+            
+          >
+            ¿Quieres vender?
+          </button>
+        </div>
+      </div>
+
+      <div className="main-content">
+        {categoria === undefined || categoria === '' ? (
+          <div className="welcome-message">
+            <h3>SATELITE PERÚ</h3>
+            <p>Bienvenido a nuestro sitio oficial. Aquí puedes encontrar diversos terrenos, casas, y carros a la venta. Si deseas vender, puedes utilizar nuestro formulario de conformidad.</p>
+            <p>Explora las categorías disponibles y encuentra lo que necesitas.</p>
+
+            <h3>MISIÓN</h3>
+            <p>Brindar a nuestros clientes una plataforma confiable, ágil y segura para la compra y venta de propiedades y vehículos, conectando personas con oportunidades reales en todo el Perú.</p>
+
+            <h3>VISIÓN</h3>
+            <p>Ser el portal líder en el mercado peruano de bienes raíces y automóviles, destacando por nuestra transparencia, innovación tecnológica y compromiso con la satisfacción del cliente.</p>
+          </div>
+        ) : showForm ? (
+        <div className="sell-form-container">
+          <form className="sell-form" onSubmit={handleSubmit}>
+            <h3>Solicitud para ser Vendedor</h3>
+            <p>
+              Para poder vender en nuestra plataforma, requerimos tus datos reales y una aceptación expresa
+              de nuestras condiciones. Tu solicitud será revisada por nuestro equipo antes de ser aprobada.
+            </p>
+
+            <label htmlFor="tipoDocumento">Tipo de Documento:</label>
+            <select
+              id="tipoDocumento"
+              value={vendedorFormData.tipoDocumento}
+              onChange={(e) => setVendedorFormData({ ...vendedorFormData, tipoDocumento: e.target.value })}
+              required
+            >
+              <option value="">Seleccione un tipo</option>
+              <option value="DNI">DNI</option>
+              <option value="RUC">RUC</option>
+              <option value="Carnet Extranjero">Carnet de Extranjería</option>
+            </select>
+
+            <label htmlFor="numeroDocumento">Número de Documento:</label>
+            <input
+              type="text"
+              id="numeroDocumento"
+              placeholder={`Ingrese su ${vendedorFormData.tipoDocumento || 'documento'}`}
+              value={vendedorFormData.numeroDocumento}
+              onChange={(e) => setVendedorFormData({ ...vendedorFormData, numeroDocumento: e.target.value })}
+              required
+            />
+
+            <div className="legal-terms">
+              <h4>Términos y Condiciones del Vendedor</h4>
+              <p>
+                Al aceptar este formulario, usted declara que los productos que desea publicar son reales,
+                legales y están bajo su responsabilidad. El incumplimiento de estas condiciones puede
+                conllevar la suspensión de su cuenta y la toma de acciones legales por parte de nuestra empresa.
+              </p>
+            </div>
+
+            <label htmlFor="consentimiento">
+              <input
+                type="checkbox"
+                id="consentimiento"
+                checked={vendedorFormData.consentimiento}
+                onChange={(e) => setVendedorFormData({ ...vendedorFormData, consentimiento: e.target.checked })}
+                required
+              />
+              Acepto los términos y condiciones para convertirme en vendedor, y autorizo el uso de mis datos para fines de verificación.
+            </label>
+
+            <button type="submit" className="sell-form-submit">Enviar solicitud</button>
+          </form>
+        </div>
+
+        ) : (
+          <>
+            {categoria === 'terrenos' && (
+              <div className={`filters ${sidebarActive ? 'active' : ''}`}>
+                <div className="vendedor-actions">
+                  <button onClick={() => navigate('/mis-ventas')}>Mis Ventas</button>
+                  <button onClick={() => navigate('/agregar-producto')}>Agregar Producto</button>
+                </div>
+                <div className="filter-item">
+                  <select
+                    value={filters.estado}
+                    onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
+                    className="filter-select"
+                  >
+                    <option value="todos">Todos los estados</option>
+                    <option value="disponible">Disponible</option>
+                    <option value="vendido">Vendido</option>
+                  </select>
+                </div>
+                <div className="filter-item">
+                  <input
+                    type="text"
+                    placeholder="Ubicación"
+                    value={filters.ubicacion}
+                    onChange={(e) => setFilters({ ...filters, ubicacion: e.target.value })}
+                    className="filter-input"
+                  />
+                </div>
+
+                <div className="filter-item">
+                  <input
+                    type="number"
+                    placeholder="Precio mínimo"
+                    value={filters.precioMin}
+                    onChange={(e) => setFilters({ ...filters, precioMin: Math.max(0, e.target.value) })}
+                    className="filter-input"
+                  />
+                </div>
+
+                <div className="filter-item">
+                  <input
+                    type="number"
+                    placeholder="Precio máximo"
+                    value={filters.precioMax}
+                    onChange={(e) => setFilters({ ...filters, precioMax: Math.max(filters.precioMin, e.target.value) })}
+                    className="filter-input"
+                  />
+                </div>
+
+                <div className="filter-item">
+                  <select
+                    value={filters.moneda}
+                    onChange={(e) => setFilters({ ...filters, moneda: e.target.value })}
+                    className="filter-select"
+                  >
+                    <option value="soles">Soles</option>
+                    <option value="dolares">Dólares</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            <div className="gallery">
+              {loading ? (
+                <p>Cargando datos...</p>
+              ) : categoria === 'terrenos' ? (
+                sortedTerrenos.map((terreno, index) => {
+                  //const imagenUrl = terreno.imagenes && Array.isArray(terreno.imagenes) ? `/terrenos/${terreno.imagenes[0]}` : '/default-image.jpg';
+                  const vendedorNombre = getUsuarioDetails(terreno.usuario_id);
+                  
+                  return (
+                    <div key={index} className="card">
+                      <div className="card-image-container">
+                      <ImageCarousel terreno={terreno} apiUrl={apiUrl} />
+                        <h3 className="card-title">{terreno.titulo}</h3>
+                      </div>
+                      <div
+                        key={index}
+                        className="card-details"
+                        ref={el => detailRefs.current[index] = el}
+                      >
+
+
+                      {/* Corazón */}
+
+                        <i
+                          className={`fas fa-heart heart-icon ${liked[index] ? 'liked' : ''}`}
+                          onClick={(e) => {
+                            const willLike = !liked[index];
+                            toggleLike(index);
+                            if (willLike) burstHearts(index, e);
+                          }}
+                        />            
+
+
+
+                      <p className="card-price">
+                          {filters.moneda === 'soles' ? `S/ ${terreno.precio}` : `$ ${terreno.precio}`}
+                      </p>
+
+                      {/* Ojito */}
+
+                      <i className="fas fa-eye view-icon"/>
+
+                      <i
+                        className="fas fa-share-alt share-icon"
+                        onClick={() => handleShare(index)} 
+                      />
+
+                            {/* Mostrar el menú de compartir cuando showShareMenu sea true */}
+                            {activeShareIndex === index &&(
+                              <div className="share-menu" ref={shareMenuRef}> {/* <-- aquí va el ref */}
+                                <FacebookShareButton url={url} quote={text}>
+                                  <FacebookIcon size={28} round />
+                                </FacebookShareButton>
+                                <TwitterShareButton url={url} title={text}>
+                                  <TwitterIcon size={28} round />
+                                </TwitterShareButton>
+                                <WhatsappShareButton url={url} title={text}>
+                                  <WhatsappIcon size={28} round />
+                                </WhatsappShareButton>
+                              </div>
+                            )}
+
+
+
+                        <p className="card-location">
+                          <i className="fas fa-location-pin"></i> Lat: {terreno.ubicacion_lat}, Lon: {terreno.ubicacion_lon}
+                        </p>
+                        <p className="card-estado"><strong>Estado:</strong> {terreno.estado}</p>
+                        <p className="card-vendedor"><strong>Vendedor:</strong> {vendedorNombre}</p>
+                        <Link to={`/dashboard/terrenos/${terreno.id}`} target="_blank" rel="noopener noreferrer" className="card-button">Ver más</Link>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p>No hay datos disponibles para esta categoría.</p>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+
+  );
+  
+
+
+  return usuarioLocal && usuarioLocal.tipo
+  ? usuarioLocal.tipo === 'admin'
+    ? renderAdminView()
+    : usuarioLocal.tipo === 'vendedor'
+    ? renderVendedorView()
+    : renderCompradorView()
+  : null; // o puedes mostrar un <Loader />
+
 };
 
 export default DashboardMain;

@@ -582,7 +582,7 @@ app.put('/UpdateTerreno/:id',
   
     // Verifica que el estado sea válido
     if (estado !== 'aprobada' && estado !== 'rechazada') {
-      return res.status(400).json({ error: 'Estado inválido, debe ser "aprobado" o "rechazado".' });
+      return res.status(400).json({ error: 'Estado inválido, debe ser "aprobada" o "rechazada".' });
     }
   
     // Actualizar el estado en la base de datos
@@ -591,11 +591,11 @@ app.put('/UpdateTerreno/:id',
       [estado, solicitud_id],
       (error, results) => {
         if (error) {
-          console.error(error);
+          console.error('Error al actualizar el estado de la solicitud:', error);
           return res.status(500).json({ error: 'Error al actualizar el estado de la solicitud.' });
         }
   
-        // Obtener la información del comprador para enviar el correo
+        // Obtener la información del comprador para enviar el correo y actualizar tipo si es necesario
         db.query(
           'SELECT * FROM solicitudes_vendedor WHERE id = ?',
           [solicitud_id],
@@ -605,50 +605,76 @@ app.put('/UpdateTerreno/:id',
             }
   
             const solicitud = rows[0];
-            const { nombre, correo } = solicitud;
+            const { nombre, correo, usuario_id } = solicitud;
   
-            // Definir el transporter antes de usarlo
-            const transporter = nodemailer.createTransport({
-              service: 'gmail',
-              auth: {
-                user: process.env.EMAIL_USER, // ejemplo: 'tucorreo@gmail.com'
-                pass: process.env.EMAIL_PASS, // contraseña generada de aplicación
-              }
-            });
-
-            let asunto = 'Resultado de tu solicitud para ser Vendedor';
-            let mensaje = '';
-
+            console.log('usuario_id extraído de la base de datos:', usuario_id); // Log para verificar el id_usuario
+  
+            // Si está aprobada, actualizar tipo del usuario a 'vendedor'
             if (estado === 'aprobada') {
-              asunto = '🎉 ¡Felicidades! Has sido aprobado como vendedor en SatelitePeru';
-              mensaje = `Hola ${nombre},\n\n¡Estamos muy felices de darte la bienvenida a nuestro equipo de vendedores en SatelitePeru! 🎊🎉\n\nTu solicitud ha sido *aprobada* y ahora puedes comenzar a disfrutar de todos los beneficios de nuestra plataforma.\n\nGracias por confiar en nosotros. Estamos seguros de que juntos lograremos grandes cosas.\n\n¡Bienvenido a bordo!\n\nEl equipo de SatelitePeru 🌐`;
-            } else if (estado === 'rechazada') {
-              asunto = 'Resultado de tu solicitud en SatelitePeru';
-              mensaje = `Hola ${nombre},\n\nLamentamos informarte que, tras una revisión detallada, tu solicitud para ser vendedor en SatelitePeru ha sido *rechazada*.\n\nSabemos que esta noticia puede no ser la esperada, pero queremos animarte a seguir preparándote y no rendirte. Puedes volver a postular más adelante si lo deseas.\n\nGracias por tu interés y por confiar en SatelitePeru. ¡Te esperamos pronto!\n\nEl equipo de SatelitePeru 💙`;
+              console.log('Intentando actualizar tipo de usuario con id:', usuario_id);
+  
+              db.query(
+                'UPDATE usuarios SET tipo = ? WHERE id = ?',
+                ['vendedor', usuario_id],
+                (errUpdate, resultsUpdate) => {
+                  if (errUpdate) {
+                    console.error('Error al actualizar tipo de usuario:', errUpdate);
+                    return res.status(500).json({ error: 'Error al actualizar el tipo de usuario.' });
+                  }
+  
+                  console.log('Resultados del UPDATE tipo de usuario:', resultsUpdate); // Log para ver los resultados de la consulta UPDATE
+  
+                  // Enviar el correo después de la actualización
+                  enviarCorreoYResponder(nombre, correo);
+                }
+              );
+            } else {
+              // Si fue rechazada, solo enviar correo
+              enviarCorreoYResponder(nombre, correo);
             }
   
-            // Enviar el correo de notificación al comprador
-            const mailOptions = {
-              from: 'correo', // Asegúrate de cambiar esto a un correo real
-              to: correo,
-              subject: asunto,
-              text: mensaje
-            };
+            // Función para enviar el correo y devolver la respuesta
+            function enviarCorreoYResponder(nombre, correo) {
+              const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                  user: process.env.EMAIL_USER,
+                  pass: process.env.EMAIL_PASS,
+                },
+              });
   
-            transporter.sendMail(mailOptions, (mailError, info) => {
-              if (mailError) {
-                console.error(mailError);
-                return res.status(500).json({ error: 'Error al enviar el correo de notificación.' });
+              let asunto = '';
+              let mensaje = '';
+  
+              if (estado === 'aprobada') {
+                asunto = '🎉 ¡Felicidades! Has sido aprobado como vendedor en SatelitePeru';
+                mensaje = `Hola ${nombre},\n\n¡Estamos muy felices de darte la bienvenida a nuestro equipo de vendedores en SatelitePeru! 🎊🎉\n\nTu solicitud ha sido *aprobada* y ahora puedes comenzar a disfrutar de todos los beneficios de nuestra plataforma.\n\nGracias por confiar en nosotros. Estamos seguros de que juntos lograremos grandes cosas.\n\n¡Bienvenido a bordo!\n\nEl equipo de SatelitePeru 🌐 inicia sesion paraver los cambios https://sateliterrreno-production.up.railway.app/`;
+              } else {
+                asunto = 'Resultado de tu solicitud en SatelitePeru';
+                mensaje = `Hola ${nombre},\n\nLamentamos informarte que, tras una revisión detallada, tu solicitud para ser vendedor en SatelitePeru ha sido *rechazada*.\n\nSabemos que esta noticia puede no ser la esperada, pero queremos animarte a seguir preparándote y no rendirte. Puedes volver a postular más adelante si lo deseas.\n\nGracias por tu interés y por confiar en SatelitePeru. ¡Te esperamos pronto!\n\nEl equipo de SatelitePeru 💙`;
               }
   
-              return res.status(200).json({ message: 'Estado actualizado y correo enviado correctamente.' });
-            });
+              const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: correo,
+                subject: asunto,
+                text: mensaje,
+              };
+  
+              transporter.sendMail(mailOptions, (mailError, info) => {
+                if (mailError) {
+                  console.error(mailError);
+                  return res.status(500).json({ error: 'Error al enviar el correo de notificación.' });
+                }
+  
+                return res.status(200).json({ message: 'Estado actualizado y correo enviado correctamente.' });
+              });
+            }
           }
         );
       }
     );
   });
-  
   
 
 
