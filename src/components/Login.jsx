@@ -32,7 +32,7 @@ const Login = () => {
     try {
       // Verifica si estás en producción (Railway) o en desarrollo (localhost)
       const apiUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://hackathon-production.up.railway.app/login' 
+      ? 'https://hackathon-production-8277.up.railway.app/login' 
       : 'http://localhost:5000/login';
 
       console.log("API URL:", apiUrl);  // Verifica si la URL es correcta
@@ -74,7 +74,7 @@ const Login = () => {
   
       // URL directa al endpoint sin "/api"
       const apiUrl = process.env.NODE_ENV === 'production'
-        ? 'https://hackathon-production.up.railway.app'
+        ? 'https://hackathon-production-8277.up.railway.app'
         : 'http://localhost:5000';
   
       // Enviar datos al backend

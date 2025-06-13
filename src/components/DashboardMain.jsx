@@ -135,7 +135,7 @@ const DashboardMain = () => {
 
   const [usuarioLocal, setUsuarioLocal] = useState(null);
   const apiUrl = process.env.NODE_ENV === 'production' 
-  ? 'https://sateliterrreno-production.up.railway.app' 
+  ? 'https://hackathon-production-8277.up.railway.app' 
   : 'http://localhost:5000';
 
   // Obtener elementos necesarios
@@ -287,7 +287,7 @@ const updateParticipante = (index, campo, valor) => {
   useEffect(() => {
     // Establecer la URL de la API según el entorno (producción o desarrollo)
     const apiUrl = process.env.NODE_ENV === 'production'
-      ? 'https://sateliterrreno-production.up.railway.app'
+      ? 'https://hackathon-production-8277.up.railway.app'
       : 'http://localhost:5000';
   
     // Obtener el token desde localStorage para incluirlo en el encabezado de autorización
