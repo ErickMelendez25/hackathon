@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 
+
 dotenv.config(); // Carga las variables de entorno desde el archivo .env
 
 const app = express();
@@ -19,7 +20,7 @@ const __dirname = path.resolve();  // Obtener la ruta del directorio actual (cor
 
 // Configura CORS para permitir solicitudes solo desde tu frontend
 const corsOptions = {
-  origin: ['https://sateliterrreno-production.up.railway.app', 'http://localhost:5173', 'http://localhost:5000'],
+  origin: ['https://hackathon-production.up.railway.app', 'http://localhost:5173', 'http://localhost:5000'],
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
 };
@@ -106,6 +107,15 @@ app.post('/auth', (req, res) => {
     return res.status(400).json({ message: 'Faltan datos requeridos' });
   }
 
+  // Verificar si el correo es institucional de una universidad peruana
+  const dominiosPermitidos = ['.edu.pe']; // puedes agregar '@uncp.edu.pe', '@pucp.edu.pe', etc.
+
+  const esCorreoValido = dominiosPermitidos.some(dominio => correo.endsWith(dominio));
+
+  if (!esCorreoValido) {
+    return res.status(403).json({ message: 'Solo se permiten correos institucionales de universidades peruanas (.edu.pe)' });
+  }
+
   db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, result) => {
     if (err) {
       console.error('Error al consultar el usuario:', err);
@@ -130,7 +140,11 @@ app.post('/auth', (req, res) => {
             }
 
             usuario = newUserResult[0];
-            const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
+            const token = jwt.sign(
+              { id: usuario.id, correo: usuario.correo },
+              process.env.JWT_SECRET,
+              { expiresIn: '7d' }
+            );
 
             res.status(200).json({ token, usuario });
           });
@@ -138,14 +152,16 @@ app.post('/auth', (req, res) => {
       );
     } else {
       usuario = result[0];
-      const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      const token = jwt.sign(
+        { id: usuario.id, correo: usuario.correo },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
 
       res.status(200).json({ token, usuario });
     }
   });
 });
-
-
 
 
 
@@ -509,73 +525,164 @@ app.put('/UpdateTerreno/:id',
   });
 
 
-  app.post('/api/solicitud', (req, res) => {
-    console.log('Datos recibidos en el servidor:', req.body);
-    const { nombre, usuario_id, correo, tipo_documento, numero_documento, consentimiento } = req.body;
-  
-    // Validación de los datos
-    if (!nombre || !usuario_id || !correo || !tipo_documento || !numero_documento || consentimiento === undefined) {
-      return res.status(400).json({ message: 'Faltan datos obligatorios' });
-    }
-  
-    // Agregar los datos a la base de datos
-    const query = `
-      INSERT INTO solicitudes_vendedor (nombre, usuario_id, correo, tipo_documento, numero_documento)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    
-    db.query(query, [nombre, usuario_id, correo, tipo_documento, numero_documento, consentimiento], (err, result) => {
+app.post('/api/solicitud', (req, res) => {
+  console.log('Datos recibidos en el servidor:', req.body);
+
+  const {
+    usuario_id,
+    nombre_usuario,
+    correo_usuario,
+
+    nombre_equipo,
+    nombre_representante,
+    correo_contacto,
+    tipo_documento,
+    numero_documento,
+    universidad,
+    departamento,
+    provincia,
+    distrito,
+    cantidad_integrantes,
+    tecnologias_usadas,
+    nombre_proyecto,
+    descripcion_proyecto,
+    acepta_terminos,
+    participantes
+  } = req.body;
+
+  // Validación básica
+  if (
+    !usuario_id || !nombre_usuario || !correo_usuario ||
+    !nombre_equipo || !nombre_representante || !correo_contacto ||
+    !tipo_documento || !numero_documento || !universidad ||
+    !departamento || !provincia || !distrito ||
+    !cantidad_integrantes || !nombre_proyecto || !descripcion_proyecto ||
+    typeof acepta_terminos !== 'boolean' || !Array.isArray(participantes)
+  ) {
+    return res.status(400).json({ message: 'Faltan datos obligatorios o el formato es incorrecto.' });
+  }
+
+  // Insertar datos principales en tabla `inscripciones`
+  const insertQuery = `
+    INSERT INTO solicitudes_vendedor (
+      usuario_id, nombre_usuario, correo_usuario,
+      nombre_equipo, nombre_representante, correo_contacto,
+      tipo_documento, numero_documento, universidad,
+      departamento, provincia, distrito, cantidad_integrantes,
+      tecnologias_usadas, nombre_proyecto, descripcion_proyecto,
+      acepta_terminos
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(
+    insertQuery,
+    [
+      usuario_id, nombre_usuario, correo_usuario,
+      nombre_equipo, nombre_representante, correo_contacto,
+      tipo_documento, numero_documento, universidad,
+      departamento, provincia, distrito, cantidad_integrantes,
+      JSON.stringify(tecnologias_usadas), // se guarda como string JSON
+      nombre_proyecto, descripcion_proyecto, acepta_terminos
+    ],
+    (err, result) => {
       if (err) {
-        console.error('Error al agregar la solicitud:', err);
+        console.error('Error al registrar inscripción:', err);
         return res.status(500).json({ message: 'Error en el servidor', error: err.message });
       }
-  
-      console.log('Solicitud agregada correctamente a la base de datos:', result);
-  
-      // Enviar el correo después de insertar los datos en la base de datos
-      try {
-        const transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: {
-            user: process.env.EMAIL_USER, // ejemplo: 'tucorreo@gmail.com'
-            pass: process.env.EMAIL_PASS, // contraseña generada de aplicación
-          }
-        });
-  
-        const mailOptions = {
-          from: correo,
-          to: ['72848846@continental.edu.pe', correo], // correo del administrador
-          subject: `Solicitud-Vendedor de ${nombre}`,
-          text: `📝 *Solicitud para ser Vendedor*\n\n👤 *Nombre del Solicitante:* ${nombre}\n📧 *Correo Electrónico:* ${correo}\n🆔 *Tipo de Documento:* ${tipo_documento}\n🔢 *Número de Documento:* ${numero_documento}\n🆔 *ID de Vendedor:* ${usuario_id}\n✅ *Consentimiento:* ${consentimiento ? "Otorgado" : "No otorgado"}\n\nPor favor revise esta solicitud y proceda con la validación correspondiente.\n\n🔗 *Validar solicitud:* http://localhost:5173/dashboard/vender`
-        };
-  
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.error('Error al enviar el correo:', error);
-            return res.status(500).json({ message: 'Error al enviar el correo', error: error.message });
-          }
-  
-          console.log('Correo enviado correctamente:', info.response);
-          res.status(200).json({ message: 'Solicitud agregada y correo enviado correctamente' });
-        });
-        
-      } catch (error) {
-        console.error('Error al enviar el correo:', error);
-        res.status(500).json({ message: 'Error al enviar el correo', error: error.message });
-      }
-    });
-  });
-  
+
+      const inscripcionId = result.insertId;
+
+      // Insertar participantes en tabla relacionada `participantes`
+      const participantesQuery = `
+        INSERT INTO participantes (solicitud_id, nombre, dni)
+        VALUES ?
+      `;
+      const participantesValues = participantes.map(p => [inscripcionId, p.nombre, p.dni]);
+
+      db.query(participantesQuery, [participantesValues], (err2) => {
+        if (err2) {
+          console.error('Error al registrar participantes:', err2);
+          return res.status(500).json({ message: 'Error al registrar participantes', error: err2.message });
+        }
+
+        // Enviar correo de confirmación
+        try {
+          const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: process.env.EMAIL_USER,
+              pass: process.env.EMAIL_PASS,
+            }
+          });
+
+          const mailOptions = {
+            from: correo_usuario,
+            to: ['72848846@continental.edu.pe', correo_contacto],
+            subject: `📩 Nueva Inscripción de equipo: ${nombre_equipo}`,
+            text: `
+📝 *Inscripción al Hackatón*
+
+👥 *Nombre del equipo:* ${nombre_equipo}
+👤 *Representante:* ${nombre_representante}
+📧 *Correo de contacto:* ${correo_contacto}
+🆔 *Tipo y número de documento:* ${tipo_documento} - ${numero_documento}
+🏫 *Universidad:* ${universidad}
+📍 *Ubicación:* ${distrito}, ${provincia}, ${departamento}
+👨‍👩‍👧‍👦 *Cantidad de integrantes:* ${cantidad_integrantes}
+🛠️ *Tecnologías utilizadas:* ${tecnologias_usadas.join(', ')}
+🚀 *Proyecto:* ${nombre_proyecto}
+🗒️ *Descripción:* ${descripcion_proyecto}
+✅ *Acepta términos:* ${acepta_terminos ? "Sí" : "No"}
+
+👥 *Participantes:*
+${participantes.map((p, i) => `${i + 1}. ${p.nombre} - DNI: ${p.dni}`).join('\n')}
+
+🔗 *Ver en plataforma:* http://localhost:5173/dashboard/inscripciones
+            `
+          };
+
+          transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.error('Error al enviar el correo:', error);
+              return res.status(500).json({ message: 'Inscripción registrada, pero no se pudo enviar el correo.', error: error.message });
+            }
+
+            console.log('Correo enviado correctamente:', info.response);
+            res.status(200).json({ message: 'Inscripción registrada y correo enviado correctamente.' });
+          });
+
+        } catch (error) {
+          console.error('Error al enviar el correo:', error);
+          res.status(500).json({ message: 'Inscripción registrada, pero no se pudo enviar el correo.', error: error.message });
+        }
+      });
+    }
+  );
+});
+
 
   app.get('/api/solicitudes', (req, res) => {
-    db.query('SELECT * FROM solicitudes_vendedor', (err, results) => {
+    const query = `
+      SELECT sv.*
+      FROM solicitudes_vendedor sv
+      INNER JOIN (
+        SELECT correo_usuario, MAX(fecha_solicitud) AS max_fecha
+        FROM solicitudes_vendedor
+        GROUP BY correo_usuario
+      ) ultimas
+      ON sv.correo_usuario = ultimas.correo_usuario AND sv.fecha_solicitud = ultimas.max_fecha
+      ORDER BY sv.fecha_solicitud DESC
+    `;
+
+    db.query(query, (err, results) => {
       if (err) {
         console.error('Error al obtener solicitudes:', err);
         return res.status(500).json({ message: 'Error en el servidor', error: err.message });
       }
-      res.json(results); // Respuesta en JSON correcta
+      res.json(results);
     });
   });
+
 
   app.put('/api/verificarsolicitud', (req, res) => {
     const { solicitud_id, estado } = req.body;
@@ -605,7 +712,8 @@ app.put('/UpdateTerreno/:id',
             }
   
             const solicitud = rows[0];
-            const { nombre, correo, usuario_id } = solicitud;
+            const { nombre_usuario, correo_usuario, usuario_id } = solicitud;
+
   
             console.log('usuario_id extraído de la base de datos:', usuario_id); // Log para verificar el id_usuario
   
@@ -625,16 +733,18 @@ app.put('/UpdateTerreno/:id',
                   console.log('Resultados del UPDATE tipo de usuario:', resultsUpdate); // Log para ver los resultados de la consulta UPDATE
   
                   // Enviar el correo después de la actualización
-                  enviarCorreoYResponder(nombre, correo);
+                  enviarCorreoYResponder(nombre_usuario, correo_usuario);
+
                 }
               );
             } else {
               // Si fue rechazada, solo enviar correo
-              enviarCorreoYResponder(nombre, correo);
+              enviarCorreoYResponder(nombre_usuario, correo_usuario);
+
             }
   
             // Función para enviar el correo y devolver la respuesta
-            function enviarCorreoYResponder(nombre, correo) {
+            function enviarCorreoYResponder(nombre_usuario, correo_usuario) {
               const transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
@@ -648,15 +758,15 @@ app.put('/UpdateTerreno/:id',
   
               if (estado === 'aprobada') {
                 asunto = '🎉 ¡Felicidades! Has sido aprobado como vendedor en SatelitePeru';
-                mensaje = `Hola ${nombre},\n\n¡Estamos muy felices de darte la bienvenida a nuestro equipo de vendedores en SatelitePeru! 🎊🎉\n\nTu solicitud ha sido *aprobada* y ahora puedes comenzar a disfrutar de todos los beneficios de nuestra plataforma.\n\nGracias por confiar en nosotros. Estamos seguros de que juntos lograremos grandes cosas.\n\n¡Bienvenido a bordo!\n\nEl equipo de SatelitePeru 🌐 inicia sesion paraver los cambios https://sateliterrreno-production.up.railway.app/`;
+                mensaje = `Hola ${nombre_usuario},\n\n¡Estamos muy felices de darte la bienvenida a nuestro equipo de vendedores en SatelitePeru! 🎊🎉\n\nTu solicitud ha sido *aprobada* y ahora puedes comenzar a disfrutar de todos los beneficios de nuestra plataforma.\n\nGracias por confiar en nosotros. Estamos seguros de que juntos lograremos grandes cosas.\n\n¡Bienvenido a bordo!\n\nEl equipo de SatelitePeru 🌐 inicia sesion paraver los cambios https://sateliterrreno-production.up.railway.app/`;
               } else {
                 asunto = 'Resultado de tu solicitud en SatelitePeru';
-                mensaje = `Hola ${nombre},\n\nLamentamos informarte que, tras una revisión detallada, tu solicitud para ser vendedor en SatelitePeru ha sido *rechazada*.\n\nSabemos que esta noticia puede no ser la esperada, pero queremos animarte a seguir preparándote y no rendirte. Puedes volver a postular más adelante si lo deseas.\n\nGracias por tu interés y por confiar en SatelitePeru. ¡Te esperamos pronto!\n\nEl equipo de SatelitePeru 💙`;
+                mensaje = `Hola ${nombre_usuario},\n\nLamentamos informarte que, tras una revisión detallada, tu solicitud para ser vendedor en SatelitePeru ha sido *rechazada*.\n\nSabemos que esta noticia puede no ser la esperada, pero queremos animarte a seguir preparándote y no rendirte. Puedes volver a postular más adelante si lo deseas.\n\nGracias por tu interés y por confiar en SatelitePeru. ¡Te esperamos pronto!\n\nEl equipo de SatelitePeru 💙`;
               }
   
               const mailOptions = {
                 from: process.env.EMAIL_USER,
-                to: correo,
+                to: correo_usuario,
                 subject: asunto,
                 text: mensaje,
               };

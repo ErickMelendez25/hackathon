@@ -32,7 +32,7 @@ const Login = () => {
     try {
       // Verifica si estás en producción (Railway) o en desarrollo (localhost)
       const apiUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://sateliterrreno-production.up.railway.app/login' 
+      ? 'https://hackathon-production.up.railway.app/login' 
       : 'http://localhost:5000/login';
 
       console.log("API URL:", apiUrl);  // Verifica si la URL es correcta
@@ -56,27 +56,7 @@ const Login = () => {
     }
   };
 
-  // Función para obtener la lista de terrenos
-  const obtenerTerrenos = async (token) => {
-    try {
-      // Verifica si estás en producción (Railway) o en desarrollo (localhost)
-      const apiUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://sateliterrreno-production.up.railway.app/api/terrenos' 
-      : 'http://localhost:5173/api/terrenos';
 
-      const response = await axios.get(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setTerrenos(response.data); // Guarda los terrenos en el estado
-      console.log('Terrenos obtenidos:', response.data); // Depuración
-    } catch (error) {
-      console.error('Error al obtener terrenos:', error);
-      setErrorMessage('Hubo un error al obtener los terrenos');
-    }
-  };
 
   const handleGoogleLoginSuccess = async (response) => {
     setLoading(true);
@@ -94,7 +74,7 @@ const Login = () => {
   
       // URL directa al endpoint sin "/api"
       const apiUrl = process.env.NODE_ENV === 'production'
-        ? 'https://sateliterrreno-production.up.railway.app'
+        ? 'https://hackathon-production.up.railway.app'
         : 'http://localhost:5000';
   
       // Enviar datos al backend
@@ -117,7 +97,8 @@ const Login = () => {
     } catch (error) {
       console.error('Error al iniciar sesión con Google:', error);
       setLoading(false);
-      setErrorMessage('Error al iniciar sesión con Google');
+      setErrorMessage(error.response?.data?.message || 'Error al iniciar sesión con Google');
+
     }
   };
   
@@ -127,13 +108,14 @@ const Login = () => {
   
 
   const handleGoogleLoginFailure = (error) => {
-    setErrorMessage('Error al iniciar sesión con Google');
+      setErrorMessage(error.response?.data?.message || 'Error al iniciar sesión con Google');
+
   };
 
   return (
     <div className="login-container">
       <form className="login-form" onSubmit={handleLogin}>
-        <h1>Satélite Perú</h1>
+        <h1>Hack UNCP</h1>
         
         <div>
           <label htmlFor="username">Correo</label>

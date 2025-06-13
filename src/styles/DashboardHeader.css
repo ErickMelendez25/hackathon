@@ -4,7 +4,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px;
-    background-color:   #34495E;
+    background-color:   #1A237E;
     color: rgb(255, 255, 255);
     position: relative; /* Cambiar de 'fixed' a 'relative' */
     top: 0;
@@ -52,7 +52,7 @@
   .modal-buttons button {
     padding: 10px 20px;
     border: none;
-    background-color: #00c73c;
+    background-color: #1A237E;
     color: white;
     font-size: 2vh;
     font-weight: bold;
@@ -62,7 +62,8 @@
   }
   
   .modal-buttons button:hover {
-    background-color: #009d30;
+    background-color: #330be2;
+    color: #ffffff;
   }
   
 
@@ -75,7 +76,7 @@
 }
 
 .logo-container img {
-    height: 80px;
+    height: 60px;
     transition: transform 0.3s ease-in-out, opacity 0.5s ease-in-out;
 }
 
@@ -150,8 +151,9 @@
     padding: 0;
 }
 
-.menu-options li {
+.menu-options li { 
     padding: 12px 0;
+    width: 100px;
     color: #333;
     cursor: pointer;
     font-size: 15px;
@@ -161,8 +163,9 @@
 }
 
 .menu-options li:hover {
+    width: 100px;
     border-radius: 8px;
-    background-color: #00c73c;
+    background-color: #a7aab6;
     color: white;
 }
 

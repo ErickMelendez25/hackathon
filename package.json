@@ -25,7 +25,9 @@
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
     "express": "^4.21.1",
+    "file-saver": "^2.0.5",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^3.1.2",
     "leaflet": "^1.9.4",
@@ -45,6 +47,7 @@
     "react-map-gl": "^6.1.16",
     "react-router-dom": "^6.28.0",
     "react-share": "^5.2.2",
+    "react-toastify": "^11.0.5",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
   },

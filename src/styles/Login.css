@@ -4,19 +4,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 0%;
-  margin-top: 0vh;
-  background: linear-gradient(135deg, #2d2c4e, #0c9790); /* Gradiente de colores institucionales */
+  margin: 0;
+  background: linear-gradient(135deg, #006494, #28a745); /* Azul UNCP + Verde institucional */
   font-family: 'Roboto', sans-serif;
   padding: 0 20px;
 }
 
 /* Formulario */
 .login-form {
-  background-color: #fff;
+  background-color: #ffffff;
   padding: 40px;
   border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   height: 530px;
   width: 100%;
   max-width: 480px;
@@ -28,7 +27,7 @@
 }
 
 .login-form:hover {
-  transform: translateY(-10px);
+  transform: translateY(-8px);
 }
 
 /* Título */
@@ -36,52 +35,51 @@
   margin-bottom: 30px;
   font-size: 32px;
   font-weight: 700;
-  color: #107a2a; /* Color institucional más fuerte */
+  color: #007f5f; /* Verde profesional fuerte */
   text-transform: uppercase;
   letter-spacing: 1px;
   font-family: 'Poppins', sans-serif;
 }
 
-/* Etiquetas de los campos */
+/* Etiquetas */
 .login-form label {
   display: block;
   text-align: left;
   font-size: 16px;
   margin-bottom: 8px;
-  color: #333;
+  color: #333333;
   font-weight: 600;
   width: 100%;
 }
 
-/* Campos de entrada para el correo y la contraseña */
+/* Inputs */
 .login-form input[type="email"],
 .login-form input[type="password"] {
   width: 100%;
   padding: 16px;
   margin: 16px 0;
-  border: 1px solid #ddd;
+  border: 1px solid #cccccc;
   border-radius: 8px;
   font-size: 18px;
-  background-color: #f4f4f4;
+  background-color: #f8f9fa;
   box-sizing: border-box;
   transition: all 0.3s ease;
   font-family: 'Roboto', sans-serif;
 }
 
-/* Enfoque en los campos (correo y contraseña) */
 .login-form input[type="email"]:focus,
 .login-form input[type="password"]:focus {
-  border-color: #3fb9ff;
+  border-color: #0077b6;
   outline: none;
-  box-shadow: 0 0 8px rgba(24, 178, 224, 0.5); /* Resaltado verde */
-  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 119, 182, 0.3); /* Azul claro brillante */
+  background-color: #ffffff;
 }
 
 /* Botón de login */
 .login-form button {
   width: 100%;
   padding: 16px;
-  background-color: #154e6e;
+  background-color: #1b4332; /* Verde oscuro UNCP */
   border: none;
   border-radius: 8px;
   color: white;
@@ -89,12 +87,12 @@
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.3s ease;
-  margin-top: 0px;
+  margin-top: 10px;
 }
 
 .login-form button:hover {
-  background-color: #1e8ebb;
-  color: rgb(255, 255, 255);
+  background-color: #2d6a4f;
+  color: #ffffff;
   transform: translateY(-4px);
 }
 
@@ -103,40 +101,38 @@
   display: block;
   margin-top: 15px;
   font-size: 14px;
-  color: #0069A5;
+  color: #0077b6;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
-/* Efecto hover en el enlace */
 .login-form .link:hover {
-  color: #47b905;
+  color: #38b000; /* Verde más vibrante */
   text-decoration: underline;
 }
 
-/* Estilos para el mensaje de error */
+/* Mensaje de error */
 .error-message {
-  color: #e74c3c;
+  color: #e63946; /* Rojo suave */
   font-size: 14px;
   margin-top: 10px;
   font-weight: 600;
 }
 
-/* Contenedor del login con Google */
+/* Contenedor de login con Google */
 .google-login-container {
-
   text-align: center;
 }
 
 .or-text {
   font-size: 14px;
-  color: #777;
+  color: #666666;
   margin-bottom: 10px;
   font-weight: 600;
 }
 
-/* Personalización del botón de Google */
+/* Botón de Google */
 .google-login-button {
   width: 100%;
   background-color: #4285F4;
@@ -154,7 +150,7 @@
   background-color: #3367D6;
 }
 
-/* Respuesta móvil */
+/* Responsive para móviles */
 @media (max-width: 600px) {
   .login-form {
     padding: 20px;

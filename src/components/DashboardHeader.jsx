@@ -119,9 +119,10 @@ function DashboardHeader() {
   return (
     <header className="dashboard-header">
       <div className="logo-container">
-        <Link to="/dashboard" className="logo-link">
-          <img src="https://sateliterrreno-production.up.railway.app/terrenos/logo.png" alt="Logo" className={titleVisible ? 'logo-animate' : ''} />
-        </Link>
+      <Link to="/dashboard" className="logo-link">
+        <img src="/images/logotipo.png" alt="Logo" className={titleVisible ? 'logo-animate' : ''} />
+      </Link>
+
       </div>
 
       {/* Mostrar el título de la opción seleccionada o el menú, dependiendo de la ruta */}

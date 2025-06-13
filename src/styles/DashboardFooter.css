@@ -1,18 +1,20 @@
 /* Estilos para el pie de página */
 .dashboard-footer {
-    margin-top: 0px;
-    
-    background: #2C3E50; /* Gradiente verde institucional de la UNCP */
-    padding: 30px 20px; /* Añadido más espacio para hacerlo más elegante */
+    position: fixed; /* <-- cambia esto */
+    bottom: 0;        /* <-- agrega esto */
+    left: 0;          /* <-- agrega esto */
+    width: 100%;      /* <-- agrega esto */
+    background: #1A237E;
+    padding: 30px 20px;
     color: white;
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column; /* Asegura que los elementos estén apilados verticalmente */
-    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1); /* Sombra sutil en la parte superior */
-    position: relative;
+    flex-direction: column;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
     z-index: 10;
 }
+
 
 /* Contenedor de las opciones del pie de página */
 .footer-options {
@@ -53,7 +55,7 @@
 .footer-text h3 {
     font-family: 'Playfair Display', serif; /* Aplica la nueva fuente */
     font-size: 1.2rem; /* Aumento del tamaño para hacerlo más visible */
-    color: rgb(255, 251, 0); /* Mantienes el color dorado */
+    color: #ffffff; /* Mantienes el color dorado */
     text-align: center;
     font-weight: 500; /* Peso de fuente un poco más fuerte para darle elegancia */
     font-style: italic; /* Si deseas que tenga un estilo itálico */

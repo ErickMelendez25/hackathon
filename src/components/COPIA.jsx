@@ -5,90 +5,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import "../styles/DashboardTerrenos.css";
 import ImageCarousel from './ImageCarousel'; // Asegúrate de que la ruta sea correcta
 
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
-
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
-
-
-const exportarAExcel = async (solicitudes) => {
-  if (!Array.isArray(solicitudes) || solicitudes.length === 0) {
-    console.error('No hay datos para exportar');
-    return;
-  }
-
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Solicitudes');
-
-  worksheet.columns = [
-    { header: 'ID', key: 'id' },
-    { header: 'ID Usuario', key: 'usuario_id' },
-    { header: 'Nombre Usuario', key: 'nombre_usuario' },
-    { header: 'Correo Usuario', key: 'correo_usuario' },
-    { header: 'Nombre', key: 'nombre' },
-    { header: 'Correo', key: 'correo' },
-    { header: 'Nombre Equipo', key: 'nombre_equipo' },
-    { header: 'Nombre Representante', key: 'nombre_representante' },
-    { header: 'Correo Contacto', key: 'correo_contacto' },
-    { header: 'Universidad', key: 'universidad' },
-    { header: 'Departamento', key: 'departamento' },
-    { header: 'Provincia', key: 'provincia' },
-    { header: 'Distrito', key: 'distrito' },
-    { header: 'Cantidad Integrantes', key: 'cantidad_integrantes' },
-    { header: 'Tecnologías Usadas', key: 'tecnologias_usadas' },
-    { header: 'Nombre Proyecto', key: 'nombre_proyecto' },
-    { header: 'Descripción Proyecto', key: 'descripcion_proyecto' },
-    { header: 'Acepta Términos', key: 'acepta_terminos' },
-    { header: 'Tipo Documento', key: 'tipo_documento' },
-    { header: 'Número Documento', key: 'numero_documento' },
-    { header: 'Estado', key: 'estado' },
-    { header: 'Fecha Solicitud', key: 'fecha_solicitud' },
-    { header: 'Fecha Respuesta', key: 'fecha_respuesta' },
-  ];
-
-  solicitudes.forEach((s) => {
-    worksheet.addRow({
-      id: s.id,
-      usuario_id: s.usuario_id,
-      nombre_usuario: s.nombre_usuario,
-      correo_usuario: s.correo_usuario,
-      nombre: s.nombre,
-      correo: s.correo,
-      nombre_equipo: s.nombre_equipo,
-      nombre_representante: s.nombre_representante,
-      correo_contacto: s.correo_contacto,
-      universidad: s.universidad,
-      departamento: s.departamento,
-      provincia: s.provincia,
-      distrito: s.distrito,
-      cantidad_integrantes: s.cantidad_integrantes,
-      tecnologias_usadas: Array.isArray(s.tecnologias_usadas)
-        ? s.tecnologias_usadas.join(', ')
-        : s.tecnologias_usadas,
-      nombre_proyecto: s.nombre_proyecto,
-      descripcion_proyecto: s.descripcion_proyecto,
-      acepta_terminos: s.acepta_terminos === 1 ? 'Sí' : 'No',
-      tipo_documento: s.tipo_documento,
-      numero_documento: s.numero_documento,
-      estado: s.estado,
-      fecha_solicitud: s.fecha_solicitud
-        ? new Date(s.fecha_solicitud).toLocaleString()
-        : '',
-      fecha_respuesta: s.fecha_respuesta
-        ? new Date(s.fecha_respuesta).toLocaleString()
-        : '',
-    });
-  });
-
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-  saveAs(blob, 'Solicitudes_Hackathon.xlsx');
-};
-
 //PARA LAS SOLICITUDES:
 
 
@@ -776,79 +692,76 @@ const handleSubmit = async (e) => {
   }, [fetchSolicitudes]);
 
   // Función para aprobar la solicitud
-const aprobarSolicitud = async (id) => {
-  try {
-    setLoading(true);
-    const token = localStorage.getItem('authToken');
-    const res = await fetch(`${apiUrl}/api/verificarsolicitud`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        solicitud_id: id,
-        estado: 'aprobada',
-      }),
-    });
+  const aprobarSolicitud = async (id) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${apiUrl}/api/verificarsolicitud`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          solicitud_id: id,
+          estado: 'aprobada',
+        }),
+      });
 
-    if (!res.ok) {
-      const errorMsg = await res.text();
-      throw new Error(errorMsg || 'Error al aprobar la solicitud');
+      if (!res.ok) {
+        throw new Error('Error al aprobar la solicitud');
+      }
+
+      const updatedSolicitudes = solicitudes.map((solicitud) =>
+        solicitud.id === id
+          ? { ...solicitud, estado: 'aprobada', fecha_respuesta: new Date().toLocaleString() }
+          : solicitud
+      );
+      setSolicitudes(updatedSolicitudes);
+
+      alert('Solicitud aprobada');
+    } catch (err) {
+      setError('Hubo un error al aprobar la solicitud');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const updatedSolicitudes = solicitudes.map((solicitud) =>
-      solicitud.id === id
-        ? { ...solicitud, estado: 'aprobada', fecha_respuesta: new Date().toLocaleString() }
-        : solicitud
-    );
-    setSolicitudes(updatedSolicitudes);
+  // Función para rechazar la solicitud
+  const rechazarSolicitud = async (id) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${apiUrl}/api/verificarsolicitud`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          solicitud_id: id,
+          estado: 'rechazada',
+        }),
+      });
 
-    toast.success('✅ Solicitud aprobada exitosamente');
-  } catch (err) {
-    console.error(err);
-    toast.error('❌ Hubo un error al aprobar la solicitud');
-  } finally {
-    setLoading(false);
-  }
-};
+      if (!res.ok) {
+        throw new Error('Error al rechazar la solicitud');
+      }
 
-const rechazarSolicitud = async (id) => {
-  try {
-    setLoading(true);
-    const token = localStorage.getItem('authToken');
-    const res = await fetch(`${apiUrl}/api/verificarsolicitud`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        solicitud_id: id,
-        estado: 'rechazada',
-      }),
-    });
+      const updatedSolicitudes = solicitudes.map((solicitud) =>
+        solicitud.id === id
+          ? { ...solicitud, estado: 'rechazado', fecha_respuesta: new Date().toLocaleString() }
+          : solicitud
+      );
+      setSolicitudes(updatedSolicitudes);
 
-    if (!res.ok) {
-      const errorMsg = await res.text();
-      throw new Error(errorMsg || 'Error al rechazar la solicitud');
+      alert('Solicitud rechazada');
+    } catch (err) {
+      setError('Hubo un error al rechazar la solicitud');
+    } finally {
+      setLoading(false);
     }
-
-    const updatedSolicitudes = solicitudes.map((solicitud) =>
-      solicitud.id === id
-        ? { ...solicitud, estado: 'rechazada', fecha_respuesta: new Date().toLocaleString() }
-        : solicitud
-    );
-    setSolicitudes(updatedSolicitudes);
-
-    toast.success('🛑 Solicitud rechazada correctamente');
-  } catch (err) {
-    console.error(err);
-    toast.error('❌ Hubo un error al rechazar la solicitud');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   
   
 
@@ -859,356 +772,8 @@ const rechazarSolicitud = async (id) => {
   
 
 
-const renderCompradorView = () => {
-  // Buscar la solicitud del usuario actual
-  const solicitudUsuario = solicitudes.find(
-    (s) => s.usuario_id === usuarioLocal?.id
-  );
-
-  // Estado de la solicitud: 'pendiente', 'aprobada', 'rechazada', o undefined si no hay
-  const estado = solicitudUsuario?.estado;
-
-  // Render de los círculos de fases
-  const renderFases = () => (
-    <div className="fases-container">
-      {/* Fase 1: Inscripción */}
-      <div className={`fase ${!estado || estado === 'pendiente' ? 'activa' : ''}`}>
-        <div className="circulo">1</div>
-        <p>Inscripción</p>
-      </div>
-      {/* Fase 2: Preselección solo activa si aprobado */}
-      <div className={`fase ${estado === 'aprobada' ? 'activa' : ''}`}>
-        <div className="circulo">2</div>
-        <p>Preselección</p>
-      </div>
-      {/* Fase Rechazo solo activa si rechazado */}
-      <div className={`fase ${estado === 'rechazada' ? 'activa' : ''}`}>
-        <div className="circulo">✖</div>
-        <p>Rechazado</p>
-      </div>
-    </div>
-  );
-
-  // Render de la fase Inscripción: muestra el formulario
-  const renderFaseInscripcion = () => (
-    <div className="fase-container">
-      <h2 className="fase-titulo">Fase 1: Inscripción</h2>
-      <p>Completa el formulario para inscribirte en el Hackatón.</p>
-      <div className="sell-form-container">
-        <form className="hackathon-form" onSubmit={handleSubmit}>
-          <h3>Formulario de Inscripción al Hackatón</h3>
-
-          <label>Nombre del Equipo:</label>
-          <input
-            type="text"
-            value={formData.nombreEquipo}
-            onChange={(e) => setFormData({ ...formData, nombreEquipo: e.target.value })}
-            required
-          />
-
-          <label>Nombre del Representante:</label>
-          <input
-            type="text"
-            value={formData.nombreRepresentante}
-            onChange={(e) => setFormData({ ...formData, nombreRepresentante: e.target.value })}
-            required
-          />
-
-          <label>Correo Electrónico:</label>
-          <input
-            type="email"
-            value={formData.correo}
-            onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
-            required
-          />
-
-          <label>Tipo de Documento:</label>
-          <select
-            value={formData.tipoDocumento}
-            onChange={(e) => setFormData({ ...formData, tipoDocumento: e.target.value })}
-            required
-          >
-            <option value="">Seleccione un tipo</option>
-            <option value="DNI">DNI</option>
-            <option value="Carnet de Extranjería">Carnet de Extranjería</option>
-          </select>
-
-          <label>Número de Documento:</label>
-          <input
-            type="text"
-            value={formData.numeroDocumento}
-            onChange={(e) => setFormData({ ...formData, numeroDocumento: e.target.value })}
-            required
-          />
-
-          <label>Universidad:</label>
-          <input
-            type="text"
-            value={formData.universidad}
-            onChange={(e) => setFormData({ ...formData, universidad: e.target.value })}
-            required
-          />
-
-          <label>Departamento:</label>
-          <input
-            type="text"
-            value={formData.departamento}
-            onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
-            required
-          />
-
-          <label>Provincia:</label>
-          <input
-            type="text"
-            value={formData.provincia}
-            onChange={(e) => setFormData({ ...formData, provincia: e.target.value })}
-            required
-          />
-
-          <label>Distrito:</label>
-          <input
-            type="text"
-            value={formData.distrito}
-            onChange={(e) => setFormData({ ...formData, distrito: e.target.value })}
-            required
-          />
-
-          <label>Cantidad de Integrantes:</label>
-          <input
-            type="number"
-            min="1"
-            max="10"
-            value={formData.cantidadIntegrantes}
-            onChange={(e) => setFormData({ ...formData, cantidadIntegrantes: e.target.value })}
-            required
-          />
-
-          <label>Tecnologías a utilizar:</label>
-          <select
-            multiple
-            value={formData.tecnologiasUsadas}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                tecnologiasUsadas: Array.from(e.target.selectedOptions, (option) => option.value)
-              })
-            }
-            required
-          >
-            <option value="IoT">IoT</option>
-            <option value="IA">IA</option>
-            <option value="Web">Sitio Web</option>
-            <option value="App móvil">App móvil</option>
-            <option value="Blockchain">Blockchain</option>
-            <option value="Big Data">Big Data</option>
-            <option value="Cloud">Cloud</option>
-            <option value="Otros">Otros</option>
-          </select>
-
-          <label>Nombre del Proyecto:</label>
-          <input
-            type="text"
-            value={formData.nombreProyecto}
-            onChange={(e) => setFormData({ ...formData, nombreProyecto: e.target.value })}
-            required
-          />
-
-          <label>Descripción del Proyecto:</label>
-          <textarea
-            value={formData.descripcionProyecto}
-            onChange={(e) => setFormData({ ...formData, descripcionProyecto: e.target.value })}
-            required
-          />
-
-          <label>Participantes (DNI y Nombre):</label>
-          {formData.participantes.map((p, index) => (
-            <div key={index}>
-              <input
-                type="text"
-                placeholder="DNI"
-                value={p.dni}
-                onChange={(e) => updateParticipante(index, 'dni', e.target.value)}
-                required
-              />
-              <input
-                type="text"
-                placeholder="Nombre completo"
-                value={p.nombre}
-                onChange={(e) => updateParticipante(index, 'nombre', e.target.value)}
-                required
-              />
-            </div>
-          ))}
-          <button type="button" onClick={agregarParticipante}>Agregar Participante</button>
-
-          <label>
-            <input
-              type="checkbox"
-              checked={formData.aceptaTerminos}
-              onChange={(e) => setFormData({ ...formData, aceptaTerminos: e.target.checked })}
-              required
-            />
-            Acepto los términos de la política de seguridad del evento.
-          </label>
-
-          <button type="submit">Enviar Inscripción</button>
-        </form>
-      </div>
-    </div>
-  );
-
-  // Render fase Preselección (aprobada)
-  const renderFasePreseleccion = () => (
-    <div className="fase-container">
-      <h2 className="fase-titulo">Fase 2: Preselección</h2>
-      <p>🎉 ¡Felicidades! Tu solicitud fue aprobada. Aquí tienes información importante:</p>
-      <div className="contenido-preseleccion">
-        <div className="card-preseleccion">
-          <h3>Cronograma</h3>
-          <ul>
-            <li><strong>Inicio Hackatón:</strong> 15 de junio</li>
-            <li><strong>Check intermedio:</strong> 22 de junio</li>
-            <li><strong>Entrega final:</strong> 1 de julio</li>
-          </ul>
-        </div>
-        <div className="card-preseleccion">
-          <h3>Bases del Evento</h3>
-          <p>Descarga las bases:</p>
-          <a href="/documentos/bases.pdf" target="_blank" rel="noopener noreferrer">Descargar Bases (PDF)</a>
-        </div>
-        <div className="card-preseleccion">
-          <h3>Contacto</h3>
-          <p>Si tienes dudas, envía un correo a: <strong>contacto@sateliteperu.com</strong></p>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Render fase Rechazo
-  const renderFaseRechazo = () => (
-    <div className="fase-container">
-      <h2 className="fase-titulo">Gracias por participar</h2>
-      <p>Lamentablemente tu solicitud fue rechazada. Te animamos a seguir participando en futuras ediciones.</p>
-    </div>
-  );
-
-  // Render principal
-  return (
+  const renderCompradorView = () => (
     <div className="dashboard">
-      {/* Sidebar */}
-      <button
-        className="sidebar-toggle"
-        onClick={() => setSidebarActive(!sidebarActive)}
-      >
-        ☰
-      </button>
-      <div className={`sidebar ${sidebarActive ? 'active' : ''}`}>
-        <div className="categories">
-          {/* Otras categorías */}
-
-                    {/* INSCRIPCIONES */}
-          <button
-            className={`category-btn ${categoria === 'inscripciones' ? 'active' : ''}`}
-            onClick={() => {
-              changeCategory('vender');
-              setShowForm(true);
-            }}
-          >
-            INSCRIPCIONES
-          </button>
-
-          <button
-            className={`category-btn ${categoria === 'preseleccionados' ? 'active' : ''}`}
-            onClick={() => changeCategory('terrenos')}
-          >
-            PRESELECCIÓN
-          </button>
-          <button
-            className={`category-btn ${categoria === 'resultados' ? 'active' : ''}`}
-            onClick={() => changeCategory('carros')}
-          >
-            RESULTADOS
-          </button>
-          {/*<button
-            className={`category-btn ${categoria === 'casas' ? 'active' : ''}`}
-            onClick={() => changeCategory('casas')}
-          >
-            Casas
-          </button>
-          <button
-            className={`category-btn ${categoria === 'departamentos' ? 'active' : ''}`}
-            onClick={() => changeCategory('departamentos')}
-          >
-            Departamentos
-          </button>
-          <button
-            className={`category-btn ${categoria === 'ropa' ? 'active' : ''}`}
-            onClick={() => changeCategory('ropa')}
-          >
-            Ropa
-          </button>
-          <button
-            className={`category-btn ${categoria === 'celulares' ? 'active' : ''}`}
-            onClick={() => changeCategory('celulares')}
-          >
-            Celulares
-          </button>*/}
-
-
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="main-content">
-        {/* Vista bienvenida si no hay categoría seleccionada */}
-        {(!categoria || categoria === '') && (
-          <div className="welcome-message">
-            <h3>SATELITE PERÚ</h3>
-            <p>Bienvenido a nuestro sitio oficial...</p>
-            <h3>MISIÓN</h3>
-            <p>Brindar a nuestros clientes una plataforma confiable...</p>
-            <h3>VISIÓN</h3>
-            <p>Ser el portal líder en el mercado peruano...</p>
-          </div>
-        )}
-
-        {/* INSCRIPCIONES */}
-        {categoria === 'vender' && (
-          <>
-            {/* Fases circulares arriba */}
-            {renderFases()}
-
-            {/* Contenido según estado de solicitud */}
-            {/* Si no hay solicitud aún: mostrar formulario */}
-            {!solicitudUsuario && showForm && renderFaseInscripcion()}
-
-            {/* Si ya envió y está pendiente: mensaje en espera */}
-            {solicitudUsuario && estado === 'pendiente' && (
-              <div className="fase-container">
-                <h2 className="fase-titulo">Inscripción Enviada</h2>
-                <p>✅ Tu solicitud está en espera de evaluación. Te notificaremos cuando haya respuesta.</p>
-              </div>
-            )}
-
-            {/* Si aprobado: mostrar preselección */}
-            {solicitudUsuario && estado === 'aprobada' && renderFasePreseleccion()}
-
-            {/* Si rechazado: mostrar mensaje de agradecimiento */}
-            {solicitudUsuario && estado === 'rechazada' && renderFaseRechazo()}
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
-
-
-  const renderAdminView = () => (
-    <div className="dashboard">
-        <>
-          {/* Tu interfaz principal */}
-          <ToastContainer position="top-right" autoClose={3000} />
-        </>
       <button
         className="sidebar-toggle"
         onClick={() => setSidebarActive(!sidebarActive)} // Cambiar el estado de la barra lateral
@@ -1218,26 +783,18 @@ const renderCompradorView = () => {
       <div className={`sidebar ${sidebarActive ? 'active' : ''}`}>
         <div className="categories">
           <button
-            className={`category-btn${categoria === 'solicitudes' ? 'active' : ''}`}
-              onClick={() => {changeCategory('solicitudes');
-                setShowSolicitudes(true);}}
-          >
-            Solicitudes
-          </button>
-
-          <button
             className={`category-btn ${categoria === 'terrenos' ? 'active' : ''}`}
             onClick={() => { changeCategory('terrenos'); }}
           >
-            PRESELECCIÓN
+            Terrenos
           </button>
           <button
             className={`category-btn ${categoria === 'carros' ? 'active' : ''}`}
             onClick={() => { changeCategory('carros'); }}
           >
-            EVALUAR
+            Carros
           </button>
-          {/*<button
+          <button
             className={`category-btn ${categoria === 'casas' ? 'active' : ''}`}
             onClick={() => { changeCategory('casas'); }}
           >
@@ -1263,9 +820,401 @@ const renderCompradorView = () => {
             onClick={() => { changeCategory('celulares'); }}
           >
             Celulares
-          </button>*/}
+          </button>
+        
+          <button
+            className={`category-btn ${categoria === 'vender' ? 'active' : ''}`}
+            onClick={() => { changeCategory('vender'); setShowForm(true)}}
+
+            
+          >
+            INSCRIPCIONES
+          </button>
+        </div>
+      </div>
+
+      <div className="main-content">
+        {categoria === undefined || categoria === '' ? (
+          <div className="welcome-message">
+            <h3>SATELITE PERÚ</h3>
+            <p>Bienvenido a nuestro sitio oficial. Aquí puedes encontrar diversos terrenos, casas, y carros a la venta. Si deseas vender, puedes utilizar nuestro formulario de conformidad.</p>
+            <p>Explora las categorías disponibles y encuentra lo que necesitas.</p>
+
+            <h3>MISIÓN</h3>
+            <p>Brindar a nuestros clientes una plataforma confiable, ágil y segura para la compra y venta de propiedades y vehículos, conectando personas con oportunidades reales en todo el Perú.</p>
+
+            <h3>VISIÓN</h3>
+            <p>Ser el portal líder en el mercado peruano de bienes raíces y automóviles, destacando por nuestra transparencia, innovación tecnológica y compromiso con la satisfacción del cliente.</p>
+          </div>
+        ) : showForm ? (
+        <div className="sell-form-container">
+          <form className="hackathon-form" onSubmit={handleSubmit}>
+            <h3>Formulario de Inscripción al Hackatón</h3>
+
+            <label>Nombre del Equipo:</label>
+            <input
+              type="text"
+              value={formData.nombreEquipo}
+              onChange={(e) => setFormData({ ...formData, nombreEquipo: e.target.value })}
+              required
+            />
+
+            <label>Nombre del Representante:</label>
+            <input
+              type="text"
+              value={formData.nombreRepresentante}
+              onChange={(e) => setFormData({ ...formData, nombreRepresentante: e.target.value })}
+              required
+            />
+
+            <label>Correo Electrónico:</label>
+            <input
+              type="email"
+              value={formData.correo}
+              onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
+              required
+            />
+
+            <label>Tipo de Documento:</label>
+            <select
+              value={formData.tipoDocumento}
+              onChange={(e) => setFormData({ ...formData, tipoDocumento: e.target.value })}
+              required
+            >
+              <option value="">Seleccione un tipo</option>
+              <option value="DNI">DNI</option>
+              <option value="Carnet de Extranjería">Carnet de Extranjería</option>
+            </select>
+
+            <label>Número de Documento:</label>
+            <input
+              type="text"
+              value={formData.numeroDocumento}
+              onChange={(e) => setFormData({ ...formData, numeroDocumento: e.target.value })}
+              required
+            />
+
+            <label>Universidad:</label>
+            <input
+              type="text"
+              value={formData.universidad}
+              onChange={(e) => setFormData({ ...formData, universidad: e.target.value })}
+              required
+            />
+
+            <label>Departamento:</label>
+            <input
+              type="text"
+              value={formData.departamento}
+              onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
+              required
+            />
+
+            <label>Provincia:</label>
+            <input
+              type="text"
+              value={formData.provincia}
+              onChange={(e) => setFormData({ ...formData, provincia: e.target.value })}
+              required
+            />
+
+            <label>Distrito:</label>
+            <input
+              type="text"
+              value={formData.distrito}
+              onChange={(e) => setFormData({ ...formData, distrito: e.target.value })}
+              required
+            />
+
+            <label>Cantidad de Integrantes:</label>
+            <input
+              type="number"
+              min="1"
+              max="10"
+              value={formData.cantidadIntegrantes}
+              onChange={(e) => setFormData({ ...formData, cantidadIntegrantes: e.target.value })}
+              required
+            />
+
+            <label>Tecnologías a utilizar:</label>
+            <select
+              multiple
+              value={formData.tecnologiasUsadas}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  tecnologiasUsadas: Array.from(e.target.selectedOptions, (option) => option.value)
+                })
+              }
+              required
+            >
+              <option value="IoT">IoT</option>
+              <option value="IA">IA</option>
+              <option value="Web">Sitio Web</option>
+              <option value="App móvil">App móvil</option>
+              <option value="Blockchain">Blockchain</option>
+              <option value="Big Data">Big Data</option>
+              <option value="Cloud">Cloud</option>
+              <option value="Otros">Otros</option>
+            </select>
+
+            <label>Nombre del Proyecto:</label>
+            <input
+              type="text"
+              value={formData.nombreProyecto}
+              onChange={(e) => setFormData({ ...formData, nombreProyecto: e.target.value })}
+              required
+            />
+
+            <label>Descripción del Proyecto:</label>
+            <textarea
+              value={formData.descripcionProyecto}
+              onChange={(e) => setFormData({ ...formData, descripcionProyecto: e.target.value })}
+              required
+            />
+
+            <label>Participantes (DNI y Nombre):</label>
+            {formData.participantes.map((p, index) => (
+              <div key={index}>
+                <input
+                  type="text"
+                  placeholder="DNI"
+                  value={p.dni}
+                  onChange={(e) => updateParticipante(index, 'dni', e.target.value)}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Nombre completo"
+                  value={p.nombre}
+                  onChange={(e) => updateParticipante(index, 'nombre', e.target.value)}
+                  required
+                />
+              </div>
+            ))}
+            <button type="button" onClick={agregarParticipante}>Agregar Participante</button>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={formData.aceptaTerminos}
+                onChange={(e) => setFormData({ ...formData, aceptaTerminos: e.target.checked })}
+                required
+              />
+              Acepto los términos de la política de seguridad del evento.
+            </label>
+
+            <button type="submit">Enviar Inscripción</button>
+          </form>
+
+        </div>
+
+        ) : (
+          <>
+            {categoria === 'terrenos' && (
+              <div className={`filters ${sidebarActive ? 'active' : ''}`}>
+                <div className="filter-item">
+                  <select
+                    value={filters.estado}
+                    onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
+                    className="filter-select"
+                  >
+                    <option value="todos">Todos los estados</option>
+                    <option value="disponible">Disponible</option>
+                    <option value="vendido">Vendido</option>
+                  </select>
+                </div>
+                {usuarioLocal?.rol === 'vendedor' && (
+                  <>
+                    <BotonAgregarProducto />
+                    <MisProductos />
+                  </>
+                )}
+
+                <div className="filter-item">
+                  <input
+                    type="text"
+                    placeholder="Ubicación"
+                    value={filters.ubicacion}
+                    onChange={(e) => setFilters({ ...filters, ubicacion: e.target.value })}
+                    className="filter-input"
+                  />
+                </div>
+
+                <div className="filter-item">
+                  <input
+                    type="number"
+                    placeholder="Precio mínimo"
+                    value={filters.precioMin}
+                    onChange={(e) => setFilters({ ...filters, precioMin: Math.max(0, e.target.value) })}
+                    className="filter-input"
+                  />
+                </div>
+
+                <div className="filter-item">
+                  <input
+                    type="number"
+                    placeholder="Precio máximo"
+                    value={filters.precioMax}
+                    onChange={(e) => setFilters({ ...filters, precioMax: Math.max(filters.precioMin, e.target.value) })}
+                    className="filter-input"
+                  />
+                </div>
+
+                <div className="filter-item">
+                  <select
+                    value={filters.moneda}
+                    onChange={(e) => setFilters({ ...filters, moneda: e.target.value })}
+                    className="filter-select"
+                  >
+                    <option value="soles">Soles</option>
+                    <option value="dolares">Dólares</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            <div className="gallery">
+              {loading ? (
+                <p>Cargando datos...</p>
+              ) : categoria === 'terrenos' ? (
+                sortedTerrenos.map((terreno, index) => {
+                  //const imagenUrl = terreno.imagenes && Array.isArray(terreno.imagenes) ? `/terrenos/${terreno.imagenes[0]}` : '/default-image.jpg';
+                  const vendedorNombre = getUsuarioDetails(terreno.usuario_id);
+                  
+                  return (
+                    <div key={index} className="card">
+                      <div className="card-image-container">
+                      <ImageCarousel terreno={terreno} apiUrl={apiUrl} />
+                        <h3 className="card-title">{terreno.titulo}</h3>
+                      </div>
+                      <div
+                        key={index}
+                        className="card-details"
+                        ref={el => detailRefs.current[index] = el}
+                      >
 
 
+                      {/* Corazón */}
+
+                        <i
+                          className={`fas fa-heart heart-icon ${liked[index] ? 'liked' : ''}`}
+                          onClick={(e) => {
+                            const willLike = !liked[index];
+                            toggleLike(index);
+                            if (willLike) burstHearts(index, e);
+                          }}
+                        />            
+
+
+
+                      <p className="card-price">
+                          {filters.moneda === 'soles' ? `S/ ${terreno.precio}` : `$ ${terreno.precio}`}
+                      </p>
+
+                      {/* Ojito */}
+
+                      <i className="fas fa-eye view-icon"/>
+
+                      <i
+                        className="fas fa-share-alt share-icon"
+                        onClick={() => handleShare(index)} 
+                      />
+
+                            {/* Mostrar el menú de compartir cuando showShareMenu sea true */}
+                            {activeShareIndex === index &&(
+                              <div className="share-menu" ref={shareMenuRef}> {/* <-- aquí va el ref */}
+                                <FacebookShareButton url={url} quote={text}>
+                                  <FacebookIcon size={28} round />
+                                </FacebookShareButton>
+                                <TwitterShareButton url={url} title={text}>
+                                  <TwitterIcon size={28} round />
+                                </TwitterShareButton>
+                                <WhatsappShareButton url={url} title={text}>
+                                  <WhatsappIcon size={28} round />
+                                </WhatsappShareButton>
+                              </div>
+                            )}
+
+
+
+                        <p className="card-location">
+                          <i className="fas fa-location-pin"></i> Lat: {terreno.ubicacion_lat}, Lon: {terreno.ubicacion_lon}
+                        </p>
+                        <p className="card-estado"><strong>Estado:</strong> {terreno.estado}</p>
+                        <p className="card-vendedor"><strong>Vendedor:</strong> {vendedorNombre}</p>
+                        <Link to={`/dashboard/terrenos/${terreno.id}`} target="_blank" rel="noopener noreferrer" className="card-button">Ver más</Link>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p>No hay datos disponibles para esta categoría.</p>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderAdminView = () => (
+    <div className="dashboard">
+      <button
+        className="sidebar-toggle"
+        onClick={() => setSidebarActive(!sidebarActive)} // Cambiar el estado de la barra lateral
+      >
+        ☰
+      </button>
+      <div className={`sidebar ${sidebarActive ? 'active' : ''}`}>
+        <div className="categories">
+          <button
+            className={`category-btn ${categoria === 'terrenos' ? 'active' : ''}`}
+            onClick={() => { changeCategory('terrenos'); }}
+          >
+            Terrenos
+          </button>
+          <button
+            className={`category-btn ${categoria === 'carros' ? 'active' : ''}`}
+            onClick={() => { changeCategory('carros'); }}
+          >
+            Carros
+          </button>
+          <button
+            className={`category-btn ${categoria === 'casas' ? 'active' : ''}`}
+            onClick={() => { changeCategory('casas'); }}
+          >
+            Casas
+          </button>
+
+          <button
+            className={`category-btn ${categoria === 'departamentos' ? 'active' : ''}`}
+            onClick={() => { changeCategory('departamentos'); }}
+          >
+            Departamentos
+          </button>
+
+          <button
+            className={`category-btn ${categoria === 'ropa' ? 'active' : ''}`}
+            onClick={() => { changeCategory('ropa'); }}
+          >
+            Ropa
+          </button>
+
+          <button
+            className={`category-btn ${categoria === 'celulares' ? 'active' : ''}`}
+            onClick={() => { changeCategory('celulares'); }}
+          >
+            Celulares
+          </button>
+
+          <button
+            className={`category-btn${categoria === 'solicitudes' ? 'active' : ''}`}
+              onClick={() => {changeCategory('solicitudes');
+                setShowSolicitudes(true);}}
+          >
+            Solicitudes
+          </button>
 
 
         </div>
@@ -1366,50 +1315,27 @@ const renderCompradorView = () => {
         ) : (
           <>
           {categoria === 'solicitudes' && showSolicitudes && (
-            <div className="tabla-solicitudes-container">
-              <button onClick={() => exportarAExcel(solicitudes)} className="btn-exportar">
-                Exportar a Excel
-              </button>
-
-
-
-              <table className="tabla-solicitudes">
-                <thead>
-                  <tr>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Equipo</th>
-                    <th>Universidad</th>
-                    <th>Departamento</th>
-                    <th>Integrantes</th>
-                    <th>Estado</th>
-                    <th>Fecha</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {solicitudes.map((s) => (
-                    <tr key={s.id}>
-                      <td>{s.nombre_usuario}</td>
-                      <td>{s.correo_usuario}</td>
-                      <td>{s.nombre_equipo}</td>
-                      <td>{s.universidad}</td>
-                      <td>{s.departamento}</td>
-                      <td>{s.cantidad_integrantes}</td>
-                      <td className={`estado ${s.estado}`}>{s.estado}</td>
-                      <td>{new Date(s.fecha_solicitud).toLocaleDateString()}</td>
-                      <td>
-                        <button onClick={() => aprobarSolicitud(s.id)} className="btn-aprobar">Aprobar</button>
-                        <button onClick={() => rechazarSolicitud(s.id)} className="btn-rechazar">Rechazar</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                {loading && <div className="spinner">Cargando...</div>}
-              </table>
+            <div className="solicitudes-cards-container">
+              <h2>Solicitudes</h2>
+              <div className="cards-grid">
+                {solicitudes.map((solicitud) => (
+                  <div key={solicitud.id} className="solicitud-card">
+                    <p><strong>Nombre:</strong> {solicitud.nombre}</p>
+                    <p><strong>Correo:</strong> {solicitud.correo}</p>
+                    <p><strong>Tipo DOC:</strong> {solicitud.tipo_documento}</p>
+                    <p><strong>Documento:</strong> {solicitud.numero_documento}</p>
+                    <p><strong>Estado:</strong> {solicitud.estado}</p>
+                    <p><strong>Fecha Solicitud:</strong> {solicitud.fecha_solicitud}</p>
+                    <p><strong>Fecha Respuesta:</strong> {solicitud.fecha_respuesta}</p>
+                    <div className="acciones">
+                      <button onClick={() => aprobarSolicitud(solicitud.id)} className="btn-aprobar">Aprobar</button>
+                      <button onClick={() => rechazarSolicitud(solicitud.id)} className="btn-rechazar">Rechazar</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-
 
 
             {categoria === 'terrenos' && (
