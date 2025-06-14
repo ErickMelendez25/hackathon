@@ -1162,14 +1162,23 @@ const renderCompradorView = () => {
       <div className="main-content">
         {/* Vista bienvenida si no hay categoría seleccionada */}
         {(!categoria || categoria === '') && (
-          <div className="welcome-message">
-            <h3>SATELITE PERÚ</h3>
-            <p>Bienvenido a nuestro sitio oficial...</p>
-            <h3>MISIÓN</h3>
-            <p>Brindar a nuestros clientes una plataforma confiable...</p>
-            <h3>VISIÓN</h3>
-            <p>Ser el portal líder en el mercado peruano...</p>
-          </div>
+            <div className="welcome-message">
+              <h2>🚀 1ra Hackathon UNCP: Innovación para el Futuro</h2>
+              <p>
+                La Universidad Nacional del Centro del Perú lanza su <strong>primera Hackathon</strong>, un evento tecnológico que une a jóvenes talentos con el propósito de <strong>resolver desafíos sociales y ambientales</strong> mediante <strong>tecnologías emergentes</strong>, con un enfoque en <strong>desarrollo sostenible</strong> e impacto real.
+              </p>
+
+              <h3>🎯 Misión</h3>
+              <p>
+                Fomentar el talento tecnológico y creativo de nuestra comunidad universitaria, brindando un entorno colaborativo donde las ideas innovadoras se conviertan en soluciones con valor social, ambiental y económico.
+              </p>
+
+              <h3>🌄 Visión</h3>
+              <p>
+                Consolidar a la UNCP como un referente regional en innovación abierta, tecnología aplicada y compromiso con los <strong>Objetivos de Desarrollo Sostenible</strong>, impulsando proyectos escalables y con propósito.
+              </p>
+            </div>
+
         )}
 
         {/* INSCRIPCIONES */}
