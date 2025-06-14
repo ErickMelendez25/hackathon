@@ -922,6 +922,49 @@ button[type="button"]:hover {
 
 /* Para pantallas pequeñas (móviles) */
 @media (max-width: 599px) {
+
+
+    .dashboard-footer {
+      width: 100%;
+      padding: 16px 10px;
+      background-color: #1A237E;
+      color: white;
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: auto; /* mantiene el footer pegado abajo si se usa flex */
+    }
+
+    .footer-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .footer-item {
+      padding: 8px 16px;
+      background-color: #1fcac2;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      width: 90%;
+      max-width: 300px;
+      text-align: center;
+      transition: background-color 0.3s ease;
+    }
+
+    .footer-item:hover {
+      background-color: #0c9790;
+    }
+
+    .footer-text h3 {
+      font-size: 1rem;
+      margin: 10px 0 0 0;
+      font-weight: 600;
+    }
+
+
     /* Barra lateral (sidebar) */    /* Barra lateral (sidebar) */
 
     .share-menu {
@@ -981,13 +1024,16 @@ button[type="button"]:hover {
       top: 0px; /* Ajuste para que no tape el header */
       left: 0;
       height: auto; /* La altura es automática dependiendo del contenido */
-      background-color: #0c9790;
+      background-color: #1A237E;
       color: white;
       padding: 10px 15px;
       z-index: 1000;
       transition: transform 0.3s ease-in-out;
       display: none; /* Inicialmente está oculta */
-  }
+    }
+    .sidebar-toggle{
+      margin-top: auto;
+    }
 
   .sidebar::-webkit-scrollbar {
     height: 6px;
@@ -1036,7 +1082,7 @@ button[type="button"]:hover {
       gap: 10px;
       padding: 10px 0;
       flex-wrap: nowrap;
-      background-color: #07f507;
+      background-color: #1A237E;
       
 
       
@@ -1114,11 +1160,7 @@ button[type="button"]:hover {
 
 }
 
-@media (max-width: 1400px) and (min-width: 950px) {
 
-
-
-}
 /* Para tabletas (entre 768px y 1024px) */
 @media (max-width: 950px) and (min-width: 600px) {
 

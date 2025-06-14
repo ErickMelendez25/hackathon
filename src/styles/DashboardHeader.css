@@ -446,7 +446,7 @@ body {
     }
 
     .user-photo-container {
-        width: 50%;  /* Tamaño del contenedor */
+        width: 35%;  /* Tamaño del contenedor */
         height: auto; /* Tamaño del contenedor */
         border-radius: 50%; /* Hace el contenedor circular */
         overflow: hidden; /* Asegura que cualquier contenido fuera del círculo se oculte */
@@ -457,7 +457,7 @@ body {
     }
 
     .logo-container img {
-        width: 75%; /* o por ejemplo 30% */
+        width: 60%; /* o por ejemplo 30% */
         height: auto;
         transition: transform 0.3s ease-in-out, opacity 0.5s ease-in-out;
     }

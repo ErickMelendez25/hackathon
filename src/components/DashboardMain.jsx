@@ -377,7 +377,7 @@ useEffect(() => {
 
 
   useEffect(() => {
-    if (categoria==='terrenos') {
+    if (categoria==='preseleccion') {
       fetchTerrenos();
     }
   }, [categoria, fetchTerrenos]);
@@ -1110,7 +1110,7 @@ const renderCompradorView = () => {
           <button
             className={`category-btn ${categoria === 'inscripciones' ? 'active' : ''}`}
             onClick={() => {
-              changeCategory('vender');
+              changeCategory('inscripciones');
               setShowForm(true);
             }}
           >
@@ -1119,13 +1119,13 @@ const renderCompradorView = () => {
 
           <button
             className={`category-btn ${categoria === 'preseleccionados' ? 'active' : ''}`}
-            onClick={() => changeCategory('terrenos')}
+            onClick={() => changeCategory('preseleccion')}
           >
             PRESELECCIÓN
           </button>
           <button
             className={`category-btn ${categoria === 'resultados' ? 'active' : ''}`}
-            onClick={() => changeCategory('carros')}
+            onClick={() => changeCategory('resultados')}
           >
             RESULTADOS
           </button>
@@ -1182,7 +1182,7 @@ const renderCompradorView = () => {
         )}
 
         {/* INSCRIPCIONES */}
-        {categoria === 'vender' && (
+        {categoria === 'inscripciones' && (
           <>
             {/* Fases circulares arriba */}
             {renderFases()}
@@ -1235,14 +1235,14 @@ const renderCompradorView = () => {
           </button>
 
           <button
-            className={`category-btn ${categoria === 'terrenos' ? 'active' : ''}`}
-            onClick={() => { changeCategory('terrenos'); }}
+            className={`category-btn ${categoria === 'preseleccion' ? 'active' : ''}`}
+            onClick={() => { changeCategory('preseleccion'); }}
           >
             PRESELECCIÓN
           </button>
           <button
-            className={`category-btn ${categoria === 'carros' ? 'active' : ''}`}
-            onClick={() => { changeCategory('carros'); }}
+            className={`category-btn ${categoria === 'resultados' ? 'active' : ''}`}
+            onClick={() => { changeCategory('resultados'); }}
           >
             EVALUAR
           </button>
@@ -1421,7 +1421,7 @@ const renderCompradorView = () => {
 
 
 
-            {categoria === 'terrenos' && (
+            {categoria === 'preseleccion' && (
               <div className="filters">
               {/* Filtro por estado */}
               <div className="filter-item">
@@ -1545,7 +1545,7 @@ const renderCompradorView = () => {
             )}
 
             {/* Botón Agregar solo visible para admin en la categoría terrenos */}
-            {usuarioLocal && usuarioLocal.tipo === 'admin' && categoria === 'terrenos' && (
+            {usuarioLocal && usuarioLocal.tipo === 'admin' && categoria === 'preseleccion' && (
             <div className="filters">
               <button
                 className="add-button"
@@ -1574,9 +1574,9 @@ const renderCompradorView = () => {
             )}
 
             <div className="gallery">
-              {categoria === 'terrenos' && loading ? (
+              {categoria === 'preseleccion' && loading ? (
                 <p>Cargando datos...</p>
-              ) : categoria === 'terrenos' ?  (
+              ) : categoria === 'preseleccion' ?  (
                 sortedTerrenos.map((terreno, index) => {
                   const imagenUrl = terreno.imagenes && Array.isArray(terreno.imagenes) ? terreno.imagenes[0] : '/default-image.jpg';
                   const vendedorNombre = getUsuarioDetails(terreno.usuario_id);
@@ -1680,7 +1680,7 @@ const renderCompradorView = () => {
                         </p>
                         <p className="card-estado"><strong>Estado:</strong> {terreno.estado}</p>
                         <p className="card-vendedor"><strong>Vendedor:</strong> {vendedorNombre}</p>
-                        <Link to={`/dashboard/terrenos/${terreno.id}`} target="_blank" rel="noopener noreferrer" className="card-button">Ver más</Link>
+                        <Link to={`/dashboard/preseleccion/${terreno.id}`} target="_blank" rel="noopener noreferrer" className="card-button">Ver más</Link>
                       </div>
                       
                       
@@ -1726,16 +1726,16 @@ const renderCompradorView = () => {
       <div className={`sidebar ${sidebarActive ? 'active' : ''}`}>
         <div className="categories">
           <button
-            className={`category-btn ${categoria === 'terrenos' ? 'active' : ''}`}
-            onClick={() => { changeCategory('terrenos'); }}
+            className={`category-btn ${categoria === 'preseleccion' ? 'active' : ''}`}
+            onClick={() => { changeCategory('preseleccion'); }}
           >
             Terrenos
           </button>
           <button
-            className={`category-btn ${categoria === 'carros' ? 'active' : ''}`}
-            onClick={() => { changeCategory('carros'); }}
+            className={`category-btn ${categoria === 'resultados' ? 'active' : ''}`}
+            onClick={() => { changeCategory('resultados'); }}
           >
-            Carros
+            resultados
           </button>
           <button
             className={`category-btn ${categoria === 'casas' ? 'active' : ''}`}
@@ -1766,8 +1766,8 @@ const renderCompradorView = () => {
           </button>
         
           <button
-            className={`category-btn ${categoria === 'vender' ? 'active' : ''}`}
-            onClick={() => { changeCategory('vender'); setShowForm(true)}}
+            className={`category-btn ${categoria === 'inscripciones' ? 'active' : ''}`}
+            onClick={() => { changeCategory('inscripciones'); setShowForm(true)}}
 
             
           >
@@ -1847,7 +1847,7 @@ const renderCompradorView = () => {
 
         ) : (
           <>
-            {categoria === 'terrenos' && (
+            {categoria === 'preseleccion' && (
               
               <div className={`filters ${sidebarActive ? 'active' : ''}`}>
 
@@ -1908,7 +1908,7 @@ const renderCompradorView = () => {
             <div className="gallery">
               {loading ? (
                 <p>Cargando datos...</p>
-              ) : categoria === 'terrenos' ? (
+              ) : categoria === 'preseleccion' ? (
                 sortedTerrenos.map((terreno, index) => {
                   //const imagenUrl = terreno.imagenes && Array.isArray(terreno.imagenes) ? `/terrenos/${terreno.imagenes[0]}` : '/default-image.jpg';
                   const vendedorNombre = getUsuarioDetails(terreno.usuario_id);
@@ -1974,7 +1974,7 @@ const renderCompradorView = () => {
                         </p>
                         <p className="card-estado"><strong>Estado:</strong> {terreno.estado}</p>
                         <p className="card-vendedor"><strong>Vendedor:</strong> {vendedorNombre}</p>
-                        <Link to={`/dashboard/terrenos/${terreno.id}`} target="_blank" rel="noopener noreferrer" className="card-button">Ver más</Link>
+                        <Link to={`/dashboard/preseleccion/${terreno.id}`} target="_blank" rel="noopener noreferrer" className="card-button">Ver más</Link>
                       </div>
                     </div>
                   );

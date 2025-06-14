@@ -1,5 +1,6 @@
 /* Estilos para el pie de página */
 .dashboard-footer {
+    display: flex;
     position: fixed; /* <-- cambia esto */
     bottom: 0;        /* <-- agrega esto */
     left: 0;          /* <-- agrega esto */
@@ -13,6 +14,7 @@
     flex-direction: column;
     box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
     z-index: 10;
+  
 }
 
 
@@ -102,12 +104,15 @@
 /* Para pantallas aún más pequeñas (como teléfonos muy pequeños) */
 @media (max-width: 500px) {
     .dashboard-footer {
-        position: absolute;
-        margin-top: 27px;
-        
-       
-        padding: 20px 10px; /* Menos espacio en pantallas pequeñas */
+        width: 100%;
+        padding: 20px 10px;
+        background-color: #34495e;
+        color: white;
+        text-align: center;
+
+        margin-bottom: 0%;
     }
+
 
     .footer-options {
         flex-direction: column; /* Los items se alinean verticalmente */
