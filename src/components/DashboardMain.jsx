@@ -10,6 +10,12 @@ import { saveAs } from 'file-saver';
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import CountdownTimer from '../components/CountdownTimer';
+import "../styles/CountdownTimer.css";
+
+
+import HackathonSchedule from '../components/HackathonSchedule';
+import "../styles/HackathonSchedule.css";
 
 
 
@@ -90,6 +96,8 @@ const exportarAExcel = async (solicitudes) => {
 };
 
 //PARA LAS SOLICITUDES:
+
+//PARA EL RELOJ
 
 
 
@@ -1064,12 +1072,7 @@ const renderCompradorView = () => {
       <p>🎉 ¡Felicidades! Tu solicitud fue aprobada. Aquí tienes información importante:</p>
       <div className="contenido-preseleccion">
         <div className="card-preseleccion">
-          <h3>Cronograma</h3>
-          <ul>
-            <li><strong>Inicio Hackatón:</strong> 15 de junio</li>
-            <li><strong>Check intermedio:</strong> 22 de junio</li>
-            <li><strong>Entrega final:</strong> 1 de julio</li>
-          </ul>
+          <HackathonSchedule />
         </div>
         <div className="card-preseleccion">
           <h3>Bases del Evento</h3>
@@ -1091,6 +1094,41 @@ const renderCompradorView = () => {
       <p>Lamentablemente tu solicitud fue rechazada. Te animamos a seguir participando en futuras ediciones.</p>
     </div>
   );
+
+  //RENDER PARA EQUIPO APROBADOS PARA EL CONCURSO
+const renderEquiposAprobados = () => {
+  // Filtrar solo una solicitud por usuario_id con estado aprobado
+  const aprobadosUnicos = Array.from(
+    new Map(
+      solicitudes
+        .filter(s => s.estado === 'aprobada')
+        .map(s => [s.usuario_id, s])
+    ).values()
+  );
+
+  return (
+    <div className="grid-aprobados">
+      {aprobadosUnicos.map((solicitud, index) => (
+        <div className="card-aprobado" key={index}>
+          <h3>🎓 {solicitud.nombre_equipo}</h3>
+          <p><strong>Representante:</strong> {solicitud.nombre_representante}</p>
+          <p><strong>Tecnologías:</strong> {JSON.parse(solicitud.tecnologias_usadas || '[]').join(', ')}</p>
+          <p><strong> N° Integrantes:</strong>{solicitud.cantidad_integrantes}</p>
+          <ul>
+            {(solicitud.participantes || []).map((p, i) => (
+              <li key={i}>{p.nombre} ({p.dni})</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+
+
+
+
 
   // Render principal
   return (
@@ -1129,6 +1167,24 @@ const renderCompradorView = () => {
           >
             RESULTADOS
           </button>
+
+           <div className="sponsor-carousel-container">
+              <div className="sponsor-carousel">
+                <div className="sponsor-track">
+                  <img src="/logos/cajahuancayo.png" alt="Sponsor 1" />
+                  <img src="/logos/oracle.png" alt="Sponsor 2" />
+                  <img src="/logos/huawei.png" alt="Sponsor 3" />
+                  <img src="/logos/microsoft.png" alt="Sponsor 4" />
+                  <img src="/logos/google.png" alt="Sponsor 5" />
+                  {/* duplicados para animación infinita */}
+                  <img src="/logos/cajahuancayo.png" alt="Sponsor 1 duplicado" />
+                  <img src="/logos/oracle.png" alt="Sponsor 2 duplicado" />
+                  <img src="/logos/huawei.png" alt="Sponsor 3 duplicado" />
+                  <img src="/logos/microsoft.png" alt="Sponsor 4 duplicado" />
+                  <img src="/logos/google.png" alt="Sponsor 5 duplicado" />
+                </div>
+              </div>
+            </div>
           {/*<button
             className={`category-btn ${categoria === 'casas' ? 'active' : ''}`}
             onClick={() => changeCategory('casas')}
@@ -1162,28 +1218,52 @@ const renderCompradorView = () => {
       <div className="main-content">
         {/* Vista bienvenida si no hay categoría seleccionada */}
         {(!categoria || categoria === '') && (
-            <div className="welcome-message">
-              <h2>🚀 1ra Hackathon UNCP: Innovación para el Futuro</h2>
-              <p>
-                La Universidad Nacional del Centro del Perú lanza su <strong>primera Hackathon</strong>, un evento tecnológico que une a jóvenes talentos con el propósito de <strong>resolver desafíos sociales y ambientales</strong> mediante <strong>tecnologías emergentes</strong>, con un enfoque en <strong>desarrollo sostenible</strong> e impacto real.
-              </p>
-
-              <h3>🎯 Misión</h3>
-              <p>
-                Fomentar el talento tecnológico y creativo de nuestra comunidad universitaria, brindando un entorno colaborativo donde las ideas innovadoras se conviertan en soluciones con valor social, ambiental y económico.
-              </p>
-
-              <h3>🌄 Visión</h3>
-              <p>
-                Consolidar a la UNCP como un referente regional en innovación abierta, tecnología aplicada y compromiso con los <strong>Objetivos de Desarrollo Sostenible</strong>, impulsando proyectos escalables y con propósito.
-              </p>
+          <div className="welcome-message">
+            <CountdownTimer />
+           
+            {/* Bloque de premios */}
+            <div className="premios-container">
+              <div className="premio-card primer-puesto">
+                🥇 <strong>1er Puesto</strong>
+                <p>💰 S/ 2000 + 🎓 Diplomas</p>
+              </div>
+              <div className="premio-card segundo-puesto">
+                🥈 <strong>2do Puesto</strong>
+                <p>💰 S/ 1000 + 🎓 Diplomas</p>
+              </div>
+              <div className="premio-card tercer-puesto">
+                🥉 <strong>3er Puesto</strong>
+                <p>💰 S/ 500 + 🎓 Diplomas</p>
+              </div>
             </div>
+
+            <h2>🚀 1ra Hackathon UNCP: Innovación para el Futuro</h2>
+            <p>
+              La Universidad Nacional del Centro del Perú lanza su <strong>primera Hackathon</strong>, un evento tecnológico que une a jóvenes talentos con el propósito de <strong>resolver desafíos sociales y ambientales</strong> mediante <strong>tecnologías emergentes</strong>, con un enfoque en <strong>desarrollo sostenible</strong> e impacto real.
+            </p>
+
+            <h3>🎯 Misión</h3>
+            <p>
+              Fomentar el talento tecnológico y creativo de nuestra comunidad universitaria, brindando un entorno colaborativo donde las ideas innovadoras se conviertan en soluciones con valor social, ambiental y económico.
+            </p>
+
+            <h3>🌄 Visión</h3>
+            <p>
+              Consolidar a la UNCP como un referente regional en innovación abierta, tecnología aplicada y compromiso con los <strong>Objetivos de Desarrollo Sostenible</strong>, impulsando proyectos escalables y con propósito.
+            </p>
+
+             <HackathonSchedule />
+          </div>
+          
+
 
         )}
 
         {/* INSCRIPCIONES */}
         {categoria === 'inscripciones' && (
+           
           <>
+          <CountdownTimer />
             {/* Fases circulares arriba */}
             {renderFases()}
 
@@ -1206,9 +1286,17 @@ const renderCompradorView = () => {
             {solicitudUsuario && estado === 'rechazada' && renderFaseRechazo()}
           </>
         )}
+
+        {categoria === 'preseleccion' && renderEquiposAprobados()}
+
+        
+
+        
       </div>
     </div>
   );
+
+  
 };
 
 
@@ -1284,6 +1372,7 @@ const renderCompradorView = () => {
         {categoria === undefined || categoria === '' ? (
           <div className="welcome-message">
             <h2>Vista Admin</h2>
+            <CountdownTimer />
             <p>Bienvenido al panel de administración.</p>
           </div>
         ) : showForm ? (
