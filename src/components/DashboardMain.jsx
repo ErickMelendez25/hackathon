@@ -1097,33 +1097,59 @@ const renderCompradorView = () => {
 
   //RENDER PARA EQUIPO APROBADOS PARA EL CONCURSO
 const renderEquiposAprobados = () => {
-  // Filtrar solo una solicitud por usuario_id con estado aprobado
   const aprobadosUnicos = Array.from(
     new Map(
       solicitudes
-        .filter(s => s.estado === 'aprobada')
-        .map(s => [s.usuario_id, s])
+        .filter((s) => s.estado === 'aprobada')
+        .map((s) => [s.usuario_id, s])
     ).values()
   );
 
   return (
     <div className="grid-aprobados">
       {aprobadosUnicos.map((solicitud, index) => (
-        <div className="card-aprobado" key={index}>
-          <h3>🎓 {solicitud.nombre_equipo}</h3>
-          <p><strong>Representante:</strong> {solicitud.nombre_representante}</p>
-          <p><strong>Tecnologías:</strong> {JSON.parse(solicitud.tecnologias_usadas || '[]').join(', ')}</p>
-          <p><strong> N° Integrantes:</strong>{solicitud.cantidad_integrantes}</p>
-          <ul>
-            {(solicitud.participantes || []).map((p, i) => (
-              <li key={i}>{p.nombre} ({p.dni})</li>
-            ))}
-          </ul>
+        <div key={index} className="equipo-aprobado-wrapper">
+          {/* Campo para subir Pitch (fuera del card) */}
+          {solicitud.usuario_id === usuarioLocal?.id && (
+            <div className="upload-pitch">
+              <label htmlFor={`pitch-${index}`} className="upload-label">
+                📤 Subir Pitch (PDF)
+              </label>
+              <input
+                type="file"
+                id={`pitch-${index}`}
+                accept="application/pdf"
+                className="upload-input"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file && file.type !== 'application/pdf') {
+                    alert('Solo se permite subir archivos PDF.');
+                    return;
+                  }
+                  console.log('Pitch subido:', file);
+                }}
+              />
+            </div>
+          )}
+
+          {/* Card del equipo */}
+          <div className="card-aprobado">
+            <h3>🎓 {solicitud.nombre_equipo}</h3>
+            <p><strong>Representante:</strong> {solicitud.nombre_representante}</p>
+            <p><strong>Tecnologías:</strong> {JSON.parse(solicitud.tecnologias_usadas || '[]').join(', ')}</p>
+            <p><strong>N° Integrantes:</strong> {solicitud.cantidad_integrantes}</p>
+            <ul>
+              {(solicitud.participantes || []).map((p, i) => (
+                <li key={i}>{p.nombre} ({p.dni})</li>
+              ))}
+            </ul>
+          </div>
         </div>
       ))}
     </div>
   );
 };
+
 
 
 
