@@ -788,6 +788,66 @@ ${participantes.map((p, i) => `${i + 1}. ${p.nombre} - DNI: ${p.dni}`).join('\n'
   
 
 
+////RETO DE ADNSYSTEM 
+// GET todos los productos
+app.get('/api/productos', (req, res) => {
+  db.query('SELECT * FROM productos', (err, rows) => {
+    if (err) return res.status(500).json({ message: 'Error al obtener productos', error: err.message });
+    res.json(rows);
+  });
+});
+
+// GET un producto por ID
+app.get('/api/productos/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('SELECT * FROM productos WHERE id = ?', [id], (err, rows) => {
+    if (err) return res.status(500).json({ message: 'Error al obtener producto', error: err.message });
+    if (rows.length === 0) return res.status(404).json({ message: 'Producto no encontrado' });
+    res.json(rows[0]);
+  });
+});
+
+// POST crear producto
+app.post('/api/productos', (req, res) => {
+  const { cod_dig, producto, laboratorio, stock_actual, stock_minimo } = req.body;
+  const sql = 'INSERT INTO productos (cod_dig, producto, laboratorio, stock_actual, stock_minimo) VALUES (?, ?, ?, ?, ?)';
+  db.query(sql, [cod_dig, producto, laboratorio, stock_actual, stock_minimo], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Error al crear producto', error: err.message });
+    res.json({ message: 'Producto creado', id: result.insertId });
+  });
+});
+
+// PUT actualizar producto
+app.put('/api/productos/:cod_dig', (req, res) => {
+  const { cod_dig } = req.params;
+  const { producto, laboratorio, stock_actual, stock_minimo } = req.body;
+  const sql = 'UPDATE productos SET producto = ?, laboratorio = ?, stock_actual = ?, stock_minimo = ? WHERE cod_dig = ?';
+  db.query(sql, [producto, laboratorio, stock_actual, stock_minimo, cod_dig], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Error al actualizar producto', error: err.message });
+    res.json({ message: 'Producto actualizado' });
+  });
+});
+
+// DELETE eliminar producto
+// DELETE eliminar producto por cod_dig
+app.delete('/api/productos/:cod_dig', (req, res) => {
+  const { cod_dig } = req.params;
+  const sql = 'DELETE FROM productos WHERE cod_dig = ?';
+
+  db.query(sql, [cod_dig], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error al eliminar producto', error: err.message });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+
+    res.json({ message: 'Producto eliminado exitosamente' });
+  });
+});
+
+
 
 
 // Para cualquier otra ruta, servir el index.html

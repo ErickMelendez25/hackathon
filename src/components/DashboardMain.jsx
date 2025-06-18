@@ -18,6 +18,13 @@ import HackathonSchedule from '../components/HackathonSchedule';
 import "../styles/HackathonSchedule.css";
 
 
+import ProductosView from './ProductosView';
+
+
+
+
+
+
 
 const exportarAExcel = async (solicitudes) => {
   if (!Array.isArray(solicitudes) || solicitudes.length === 0) {
@@ -1211,13 +1218,16 @@ const renderEquiposAprobados = () => {
                 </div>
               </div>
             </div>
+            <button
+              className={`category-btn ${categoria === 'productos' ? 'active' : ''}`}
+              onClick={() => changeCategory('productos')}
+            >
+              PRODUCTOS
+            </button>
+
+
+
           {/*<button
-            className={`category-btn ${categoria === 'casas' ? 'active' : ''}`}
-            onClick={() => changeCategory('casas')}
-          >
-            Casas
-          </button>
-          <button
             className={`category-btn ${categoria === 'departamentos' ? 'active' : ''}`}
             onClick={() => changeCategory('departamentos')}
           >
@@ -1315,10 +1325,15 @@ const renderEquiposAprobados = () => {
 
         {categoria === 'preseleccion' && renderEquiposAprobados()}
 
+        <div className="contenido-dinamico">
+          {categoria === 'productos' && <ProductosView />}
+        </div>
+
         
 
         
       </div>
+
     </div>
   );
 

@@ -1,0 +1,372 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f6f8;
+  color: #333;
+}
+
+.contenedor {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: auto;
+  padding-bottom: 7rem; /* Esto es mejor que usar margin-bottom grande */
+}
+
+
+/* Título */
+h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #3b3b98;
+}
+
+/* Botón nuevo */
+.btn-nuevo {
+  background-color: #3b3b98;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.btn-nuevo:hover {
+  background-color: #575fcf;
+}
+
+/* Barra superior combinada */
+.barra-superior {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 20px 0;
+  gap: 10px;
+}
+
+/* Buscador y selector */
+.busqueda-selector {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.buscador {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 450px; /* ← Aquí aumentas el ancho */
+  font-size: 0.95rem;
+}
+
+
+select {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+}
+
+/* Paginación moderna */
+.paginacion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.paginacion button {
+  padding: 6px 12px;
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s;
+}
+
+.paginacion button:hover:not(:disabled) {
+  background-color: #c0c0c0;
+}
+
+.paginacion button:disabled {
+  background-color: #d3d3d3;
+  cursor: not-allowed;
+}
+
+.paginacion .activo {
+  background-color: #6200ea;
+  color: white;
+  font-weight: bold;
+}
+
+.resumen {
+  font-size: 0.95rem;
+  color: #666;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* Tarjetas */
+.grid-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.card-producto {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.card-producto:hover {
+  transform: translateY(-4px);
+}
+
+.card-producto h3 {
+  color: #3b3b98;
+  margin-bottom: 0.5rem;
+}
+
+.card-producto p {
+  margin-bottom: 0.3rem;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.acciones button {
+  background-color: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* === MODAL GLOBAL === */
+.modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4); /* fondo oscurecido */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+/* === CONTENIDO DEL MODAL === */
+.modal-contenido {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: scaleUp 0.3s ease;
+  text-align: center;
+}
+
+/* TÍTULO DEL MODAL */
+.modal-contenido h2 {
+  margin-bottom: 1rem;
+  color: #3b3b98;
+  font-size: clamp(1.3rem, 2.5vw, 1.75rem);
+}
+
+/* PÁRRAFO DEL MODAL */
+.modal-contenido p {
+  margin-bottom: 1.5rem;
+  color: #444;
+  font-size: 1rem;
+}
+
+/* ACCIONES DEL MODAL */
+.modal-acciones {
+  display: flex;
+  justify-content: center;
+  gap: 1rem; /* este espacio se aplica en desktop y tablet */
+  flex-wrap: wrap;
+}
+
+
+.modal-acciones button {
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-acciones button:first-of-type {
+  background-color: #e74c3c; /* rojo para eliminar */
+  color: #fff;
+}
+
+.modal-acciones button:first-of-type:hover {
+  background-color: #c0392b;
+}
+
+.modal-acciones .btn-cancelar {
+  background-color: #ccc;
+  color: #333;
+}
+
+.modal-acciones .btn-cancelar:hover {
+  background-color: #b0b0b0;
+}
+
+/* === ANIMACIONES === */
+@keyframes fadeIn {
+  from {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 500px) {
+  .modal-contenido {
+    padding: 1.5rem;
+  }
+
+  .modal-acciones {
+    flex-direction: column;
+    
+    gap: 0.75rem;
+  }
+
+  .modal-acciones button {
+    margin-bottom: 9px;
+    gap: 9rem; /* aumenta el espacio vertical entre los botones */  
+    width: 100%;
+  }
+}
+
+
+
+.mensaje-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  z-index: 1000;
+    justify-content: center;
+  
+  
+
+  animation: aparecer 0.5s ease, desaparecer 0.5s ease 2.5s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.mensaje-popup.exito {
+  background-color: #28a745; /* verde */
+}
+
+.mensaje-popup.error {
+  background-color: #dc3545; /* rojo */
+ 
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes desaparecer {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .busqueda-selector {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .barra-superior {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .modal-contenido {
+    padding: 1.2rem;
+  }
+
+  .modal-acciones {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-nuevo {
+    width: 100%;
+  }
+}
