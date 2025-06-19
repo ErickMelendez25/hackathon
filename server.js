@@ -108,7 +108,7 @@ app.post('/auth', (req, res) => {
   }
 
   // Verificar si el correo es institucional de una universidad peruana
-  const dominiosPermitidos = ['.edu.pe']; // puedes agregar '@uncp.edu.pe', '@pucp.edu.pe', etc.
+  const dominiosPermitidos = ['.edu.pe', '.gmail.com']; // puedes agregar '@uncp.edu.pe', '@pucp.edu.pe', etc.
 
   const esCorreoValido = dominiosPermitidos.some(dominio => correo.endsWith(dominio));
 

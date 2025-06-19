@@ -21,7 +21,17 @@ import "../styles/HackathonSchedule.css";
 import ProductosView from './ProductosView';
 
 
-
+import {
+  FaBars,
+  FaUserPlus,
+  FaClipboardList,
+  FaCheck,
+  FaBox,
+  FaChevronDown,
+  FaChevronUp,
+  FaMoon,
+  FaSun
+} from 'react-icons/fa';
 
 
 
@@ -117,7 +127,18 @@ const DashboardMain = () => {
 // Estado para el índice del terreno que tiene abierto el menú de compartir
   const [activeShareIndex, setActiveShareIndex] = useState(null);
  
+
   const shareMenuRef = useRef(null); // Referencia al menú
+
+const [darkMode, setDarkMode] = useState(false);
+
+const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // oculta texto
+const [openSub, setOpenSub] = useState({ inscripciones: false });
+
+
+
+
+
 
 // Función para abrir/cerrar menú
   const handleShare = (index) => {
@@ -1164,91 +1185,94 @@ const renderEquiposAprobados = () => {
 
 
   // Render principal
-  return (
-    <div className="dashboard">
-      {/* Sidebar */}
-      <button
-        className="sidebar-toggle"
-        onClick={() => setSidebarActive(!sidebarActive)}
-      >
-        ☰
-      </button>
-      <div className={`sidebar ${sidebarActive ? 'active' : ''}`}>
-        <div className="categories">
-          {/* Otras categorías */}
+return (
+  <div className={`dashboard ${darkMode ? 'dark' : 'light'}`}>
+    {/* Botón abrir/cerrar sidebar en móviles */}
+    <button className="sidebar-toggle" onClick={() => setSidebarActive(!sidebarActive)}>
+      ☰
+    </button>
 
-                    {/* INSCRIPCIONES */}
+
+    {/* Sidebar */}
+    <div className={`sidebar ${sidebarActive ? 'active' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
+
+        {/* Botones arriba del sidebar */}
+      <div className="sidebar-controls">
+        <button className="collapse-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+          {sidebarCollapsed ? '➡️' : '⬅️'}
+        </button>
+
+        <button className="theme-toggle" onClick={() => setDarkMode(!darkMode)}>
+          {darkMode ? <FaSun /> : <FaMoon />}
+        </button>
+      </div>
+      <div className="categories">
+
+        {/* INSCRIPCIONES con subniveles */}
+        <div className="category">
           <button
             className={`category-btn ${categoria === 'inscripciones' ? 'active' : ''}`}
-            onClick={() => {
-              changeCategory('inscripciones');
-              setShowForm(true);
-            }}
+            onClick={() => setOpenSub(prev => ({ ...prev, inscripciones: !prev.inscripciones }))}
           >
-            INSCRIPCIONES
+            <FaUserPlus className="icon" />
+            {!sidebarCollapsed && <span>Inscripciones</span>}
           </button>
+          {openSub.inscripciones && !sidebarCollapsed && (
+            <div className="sublevel">
+              <button onClick={() => { changeCategory('inscripciones'); setShowForm(true); }}>
+                ➤ Nueva inscripción
+              </button>
+              <button onClick={() => changeCategory('listado-inscripciones')}>
+                ➤ Listado
+              </button>
+            </div>
+          )}
+        </div>
 
-          <button
-            className={`category-btn ${categoria === 'preseleccionados' ? 'active' : ''}`}
-            onClick={() => changeCategory('preseleccion')}
-          >
-            PRESELECCIÓN
-          </button>
-          <button
-            className={`category-btn ${categoria === 'resultados' ? 'active' : ''}`}
-            onClick={() => changeCategory('resultados')}
-          >
-            RESULTADOS
-          </button>
+        {/* PRESELECCIÓN */}
+        <button
+          className={`category-btn ${categoria === 'preseleccionados' ? 'active' : ''}`}
+          onClick={() => changeCategory('preseleccion')}
+        >
+          <FaClipboardList className="icon" />
+          {!sidebarCollapsed && <span>Preselección</span>}
+        </button>
 
-           <div className="sponsor-carousel-container">
-              <div className="sponsor-carousel">
-                <div className="sponsor-track">
-                  <img src="/logos/cajahuancayo.png" alt="Sponsor 1" />
-                  <img src="/logos/oracle.png" alt="Sponsor 2" />
-                  <img src="/logos/huawei.png" alt="Sponsor 3" />
-                  <img src="/logos/microsoft.png" alt="Sponsor 4" />
-                  <img src="/logos/google.png" alt="Sponsor 5" />
-                  {/* duplicados para animación infinita */}
-                  <img src="/logos/cajahuancayo.png" alt="Sponsor 1 duplicado" />
-                  <img src="/logos/oracle.png" alt="Sponsor 2 duplicado" />
-                  <img src="/logos/huawei.png" alt="Sponsor 3 duplicado" />
-                  <img src="/logos/microsoft.png" alt="Sponsor 4 duplicado" />
-                  <img src="/logos/google.png" alt="Sponsor 5 duplicado" />
-                </div>
+        {/* RESULTADOS */}
+        <button
+          className={`category-btn ${categoria === 'resultados' ? 'active' : ''}`}
+          onClick={() => changeCategory('resultados')}
+        >
+          <FaCheck className="icon" />
+          {!sidebarCollapsed && <span>Resultados</span>}
+        </button>
+
+        {/*{/* Carrusel de patrocinadores 
+        {!sidebarCollapsed && (
+          <div className="sponsor-carousel-container">
+            <div className="sponsor-carousel">
+              <div className="sponsor-track">
+                {['cajahuancayo', 'oracle', 'huawei', 'microsoft', 'google'].map((logo, idx) => (
+                  <React.Fragment key={idx}>
+                    <img src={`/logos/${logo}.png`} alt={`Sponsor ${logo}`} />
+                    <img src={`/logos/${logo}.png`} alt={`Sponsor ${logo} duplicado`} />
+                  </React.Fragment>
+                ))}
               </div>
             </div>
-            <button
-              className={`category-btn ${categoria === 'productos' ? 'active' : ''}`}
-              onClick={() => changeCategory('productos')}
-            >
-              PRODUCTOS
-            </button>
+          </div>
+        )}*/}
 
-
-
-          {/*<button
-            className={`category-btn ${categoria === 'departamentos' ? 'active' : ''}`}
-            onClick={() => changeCategory('departamentos')}
-          >
-            Departamentos
-          </button>
-          <button
-            className={`category-btn ${categoria === 'ropa' ? 'active' : ''}`}
-            onClick={() => changeCategory('ropa')}
-          >
-            Ropa
-          </button>
-          <button
-            className={`category-btn ${categoria === 'celulares' ? 'active' : ''}`}
-            onClick={() => changeCategory('celulares')}
-          >
-            Celulares
-          </button>*/}
-
-
-        </div>
+        {/* PRODUCTOS */}
+        <button
+          className={`category-btn ${categoria === 'productos' ? 'active' : ''}`}
+          onClick={() => changeCategory('productos')}
+        >
+          <FaBox className="icon" />
+          {!sidebarCollapsed && <span>Productos</span>}
+        </button>
       </div>
+    </div>
 
       {/* Main content */}
       <div className="main-content">

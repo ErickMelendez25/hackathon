@@ -13,12 +13,18 @@ const ProductosView = () => {
   const [modalEliminar, setModalEliminar] = useState(false);
   const [productoAEliminar, setProductoAEliminar] = useState(null);
 
+  const API_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://hackathon-production-8277.up.railway.app'
+    : 'http://localhost:5000';
+
+
   useEffect(() => {
     cargarProductos();
   }, []);
 
   const cargarProductos = () => {
-    fetch('http://localhost:5000/api/productos')
+    fetch(`${API_URL}/api/productos`)
       .then(res => res.json())
       .then(data => setProductos(data));
   };
@@ -41,7 +47,7 @@ const ProductosView = () => {
   };
 
   const confirmarEliminar = () => {
-    fetch(`http://localhost:5000/api/productos/${productoAEliminar}`, { method: 'DELETE' })
+    fetch(`${API_URL}/api/productos/${productoAEliminar}`, { method: 'DELETE' })
       .then(res => {
         if (res.ok) {
           cargarProductos();
@@ -67,8 +73,8 @@ const ProductosView = () => {
     }
     const metodo = modoEditar ? 'PUT' : 'POST';
     const url = modoEditar
-      ? `http://localhost:5000/api/productos/${formulario.cod_dig}`
-      : 'http://localhost:5000/api/productos';
+      ? `${API_URL}/api/productos/${formulario.cod_dig}`
+      : `${API_URL}/api/productos`;
 
     fetch(url, {
       method: metodo,
