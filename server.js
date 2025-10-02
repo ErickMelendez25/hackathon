@@ -20,7 +20,7 @@ const __dirname = path.resolve();  // Obtener la ruta del directorio actual (cor
 
 // Configura CORS para permitir solicitudes solo desde tu frontend
 const corsOptions = {
-  origin: ['https://hackathon-production-8277.up.railway.app', 'http://localhost:5173', 'http://localhost:5000','https://qiskit.academionlinegpt.com'],
+  origin: ['hackathon-production-a817.up.railway.app', 'http://localhost:5173', 'http://localhost:5000','https://hackathoncontinental.grupo-digital-nextri.com'],
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
 };
