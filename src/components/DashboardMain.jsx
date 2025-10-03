@@ -169,7 +169,17 @@ const [openSub, setOpenSub] = useState({ inscripciones: false });
   const [editMode, setEditMode] = useState(false);
   
 
-  const [usuarioLocal, setUsuarioLocal] = useState(null);
+// Obtener usuario desde localStorage de forma segura
+const [usuarioLocal, setUsuarioLocal] = useState(() => {
+  try {
+    const user = localStorage.getItem("usuario");
+    return user ? JSON.parse(user) : null;
+  } catch (e) {
+    console.error("Error al leer usuario:", e);
+    return null;
+  }
+});
+
   const apiUrl = process.env.NODE_ENV === 'production' 
   ? 'https://hackathoncontinental.grupo-digital-nextri.com' 
   : 'http://localhost:5000';
@@ -359,31 +369,21 @@ const updateParticipante = (index, campo, valor) => {
 // Obtener el usuario desde localStorage y sincronizar con los usuarios de la API
 useEffect(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario'));
-
-  console.log("Usuario obtenido desde localStorage:", usuario); // Verifica que el usuario esté en localStorage
-
   if (usuario) {
     setUsuarioLocal(usuario);
 
-    // Verificar que usuarios están cargados antes de hacer la búsqueda
     if (usuarios.length > 0) {
-      console.log("Usuarios cargados desde la API:", usuarios);
-
-      // Buscar el usuario en la lista de usuarios de la API usando id_estudiante
-      const usuarioAPI = usuarios.find(user => user.id === usuario.id_estudiante); // Compara con id_estudiante
-
+      const usuarioAPI = usuarios.find(user => user.id === usuario.id); // 🔥 usar usuario.id
       if (usuarioAPI) {
-        console.log('Tipo de usuario desde la API:', usuarioAPI.tipo); // Verifica el tipo del usuario
+        console.log('Usuario encontrado en API:', usuarioAPI.nombre);
       } else {
         console.log('Usuario no encontrado en la API');
       }
-    } else {
-      console.log("Aún no se han cargado los usuarios desde la API.");
     }
   } else {
     console.log("No hay usuario en localStorage.");
   }
-}, [usuarios]); // Este useEffect se ejecuta cuando `usuarios` cambia
+}, [usuarios]);
 
 
 
