@@ -172,13 +172,17 @@ const [openSub, setOpenSub] = useState({ inscripciones: false });
 // Obtener usuario desde localStorage de forma segura
 const [usuarioLocal, setUsuarioLocal] = useState(() => {
   try {
-    const user = localStorage.getItem("usuario");
-    return user ? JSON.parse(user) : null;
+    const raw = localStorage.getItem("usuario");
+    if (!raw || raw === "undefined" || raw === "null") {
+      return null;
+    }
+    return JSON.parse(raw);
   } catch (e) {
     console.error("Error al leer usuario:", e);
     return null;
   }
 });
+
 
   const apiUrl = process.env.NODE_ENV === 'production' 
   ? 'https://hackathoncontinental.grupo-digital-nextri.com' 
