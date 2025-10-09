@@ -684,107 +684,83 @@ ${participantes.map((p, i) => `${i + 1}. ${p.nombre} - DNI: ${p.dni}`).join('\n'
   });
 
 
-  app.put('/api/verificarsolicitud', (req, res) => {
-    const { solicitud_id, estado } = req.body;
-  
-    // Verifica que el estado sea válido
-    if (estado !== 'aprobada' && estado !== 'rechazada') {
-      return res.status(400).json({ error: 'Estado inválido, debe ser "aprobada" o "rechazada".' });
-    }
-  
-    // Actualizar el estado en la base de datos
-    db.query(
-      'UPDATE solicitudes_vendedor SET estado = ? WHERE id = ?',
-      [estado, solicitud_id],
-      (error, results) => {
-        if (error) {
-          console.error('Error al actualizar el estado de la solicitud:', error);
-          return res.status(500).json({ error: 'Error al actualizar el estado de la solicitud.' });
-        }
-  
-        // Obtener la información del comprador para enviar el correo y actualizar tipo si es necesario
-        db.query(
-          'SELECT * FROM solicitudes_vendedor WHERE id = ?',
-          [solicitud_id],
-          (err, rows) => {
-            if (err || rows.length === 0) {
-              return res.status(404).json({ error: 'Solicitud no encontrada.' });
-            }
-  
-            const solicitud = rows[0];
-            const { nombre_usuario, correo_usuario, usuario_id } = solicitud;
+app.put('/api/verificarsolicitud', (req, res) => {
+  const { solicitud_id, estado } = req.body;
 
-  
-            console.log('usuario_id extraído de la base de datos:', usuario_id); // Log para verificar el id_usuario
-  
-            // Si está aprobada, actualizar tipo del usuario a 'vendedor'
-            if (estado === 'aprobada') {
-              console.log('Intentando actualizar tipo de usuario con id:', usuario_id);
-  
-              db.query(
-                'UPDATE usuarios SET tipo = ? WHERE id = ?',
-                ['vendedor', usuario_id],
-                (errUpdate, resultsUpdate) => {
-                  if (errUpdate) {
-                    console.error('Error al actualizar tipo de usuario:', errUpdate);
-                    return res.status(500).json({ error: 'Error al actualizar el tipo de usuario.' });
-                  }
-  
-                  console.log('Resultados del UPDATE tipo de usuario:', resultsUpdate); // Log para ver los resultados de la consulta UPDATE
-  
-                  // Enviar el correo después de la actualización
-                  enviarCorreoYResponder(nombre_usuario, correo_usuario);
+  if (estado !== 'aprobada' && estado !== 'rechazada') {
+    return res.status(400).json({ error: 'Estado inválido' });
+  }
 
-                }
-              );
-            } else {
-              // Si fue rechazada, solo enviar correo
-              enviarCorreoYResponder(nombre_usuario, correo_usuario);
-
-            }
-  
-            // Función para enviar el correo y devolver la respuesta
-            function enviarCorreoYResponder(nombre_usuario, correo_usuario) {
-              const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                  user: process.env.EMAIL_USER,
-                  pass: process.env.EMAIL_PASS,
-                },
-              });
-  
-              let asunto = '';
-              let mensaje = '';
-  
-              if (estado === 'aprobada') {
-                asunto = '🎉 ¡Felicidades! Has sido aprobado como vendedor en SatelitePeru';
-                mensaje = `Hola ${nombre_usuario},\n\n¡Estamos muy felices de darte la bienvenida a nuestro equipo de vendedores en SatelitePeru! 🎊🎉\n\nTu solicitud ha sido *aprobada* y ahora puedes comenzar a disfrutar de todos los beneficios de nuestra plataforma.\n\nGracias por confiar en nosotros. Estamos seguros de que juntos lograremos grandes cosas.\n\n¡Bienvenido a bordo!\n\nEl equipo de SatelitePeru 🌐 inicia sesion paraver los cambios https://sateliterrreno-production.up.railway.app/`;
-              } else {
-                asunto = 'Resultado de tu solicitud en SatelitePeru';
-                mensaje = `Hola ${nombre_usuario},\n\nLamentamos informarte que, tras una revisión detallada, tu solicitud para ser vendedor en SatelitePeru ha sido *rechazada*.\n\nSabemos que esta noticia puede no ser la esperada, pero queremos animarte a seguir preparándote y no rendirte. Puedes volver a postular más adelante si lo deseas.\n\nGracias por tu interés y por confiar en SatelitePeru. ¡Te esperamos pronto!\n\nEl equipo de SatelitePeru 💙`;
-              }
-  
-              const mailOptions = {
-                from: process.env.EMAIL_USER,
-                to: correo_usuario,
-                subject: asunto,
-                text: mensaje,
-              };
-  
-              transporter.sendMail(mailOptions, (mailError, info) => {
-                if (mailError) {
-                  console.error(mailError);
-                  return res.status(500).json({ error: 'Error al enviar el correo de notificación.' });
-                }
-  
-                return res.status(200).json({ message: 'Estado actualizado y correo enviado correctamente.' });
-              });
-            }
-          }
-        );
+  // 1️⃣ Actualizar estado en DB
+  db.query(
+    'UPDATE solicitudes_vendedor SET estado = ? WHERE id = ?',
+    [estado, solicitud_id],
+    (error, results) => {
+      if (error) {
+        console.error('Error al actualizar:', error);
+        return res.status(500).json({ error: 'Error al actualizar estado' });
       }
-    );
-  });
+
+      // 2️⃣ Obtener datos de la solicitud
+      db.query('SELECT * FROM solicitudes_vendedor WHERE id = ?', [solicitud_id], (err, rows) => {
+        if (err || rows.length === 0) {
+          return res.status(404).json({ error: 'Solicitud no encontrada' });
+        }
+
+        const solicitud = rows[0];
+        const { nombre_usuario, correo_usuario, usuario_id } = solicitud;
+
+        // ✅ 3️⃣ Si es aprobada, actualizamos tipo usuario (pero rápido)
+        if (estado === 'aprobada') {
+          db.query('UPDATE usuarios SET tipo = ? WHERE id = ?', ['vendedor', usuario_id], (errUpdate) => {
+            if (errUpdate) {
+              console.error('Error al actualizar tipo usuario:', errUpdate);
+            }
+          });
+        }
+
+        // 🚀 4️⃣ Responder al frontend de inmediato (sin esperar correo)
+        res.status(200).json({ message: 'Estado actualizado correctamente' });
+
+        // 5️⃣ Enviar correo en background (sin bloquear la respuesta)
+        enviarCorreoAsync(nombre_usuario, correo_usuario, estado);
+      });
+    }
+  );
+});
+
+// 📨 Función async separada
+async function enviarCorreoAsync(nombre_usuario, correo_usuario, estado) {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    let asunto, mensaje;
+    if (estado === 'aprobada') {
+      asunto = '🎉 ¡Felicidades! Has sido aprobado como vendedor en SatelitePeru';
+      mensaje = `Hola ${nombre_usuario},\n\n¡Tu solicitud ha sido aprobada! 🎉\n\nInicia sesión para ver los cambios: https://sateliterrreno-production.up.railway.app/`;
+    } else {
+      asunto = 'Resultado de tu solicitud en SatelitePeru';
+      mensaje = `Hola ${nombre_usuario},\n\nTu solicitud fue rechazada. Gracias por postular.`;
+    }
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: correo_usuario,
+      subject: asunto,
+      text: mensaje,
+    });
+
+    console.log(`Correo enviado a ${correo_usuario}`);
+  } catch (error) {
+    console.error(`Error al enviar correo a ${correo_usuario}:`, error);
+  }
+}
   
 
 

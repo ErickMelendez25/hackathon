@@ -187,9 +187,8 @@ const [usuarioLocal, setUsuarioLocal] = useState(getUsuarioSeguro());
 
 
 
-  const apiUrl = process.env.NODE_ENV === 'production' 
-  ? 'https://hackathoncontinental.grupo-digital-nextri.com' 
-  : 'http://localhost:5000';
+const apiUrl = import.meta.env.VITE_API_URL;
+
 
   // Obtener elementos necesarios
   useEffect(() => {
@@ -339,9 +338,8 @@ const updateParticipante = (index, campo, valor) => {
   // Obtener los usuarios desde la API
   useEffect(() => {
     // Establecer la URL de la API según el entorno (producción o desarrollo)
-    const apiUrl = process.env.NODE_ENV === 'production'
-      ? 'https://hackathoncontinental.grupo-digital-nextri.com'
-      : 'http://localhost:5000';
+    const apiUrl = import.meta.env.VITE_API_URL;
+
   
     // Obtener el token desde localStorage para incluirlo en el encabezado de autorización
     const token = localStorage.getItem('authToken'); 
@@ -820,8 +818,8 @@ const handleSubmit = async (e) => {
 
   // Función para aprobar la solicitud
 const aprobarSolicitud = async (id) => {
+  setLoading(true);
   try {
-    setLoading(true);
     const token = localStorage.getItem('authToken');
     const res = await fetch(`${apiUrl}/api/verificarsolicitud`, {
       method: 'PUT',
@@ -829,32 +827,27 @@ const aprobarSolicitud = async (id) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        solicitud_id: id,
-        estado: 'aprobada',
-      }),
+      body: JSON.stringify({ solicitud_id: id, estado: 'aprobada' }),
     });
 
-    if (!res.ok) {
-      const errorMsg = await res.text();
-      throw new Error(errorMsg || 'Error al aprobar la solicitud');
-    }
+    if (!res.ok) throw new Error('Error al aprobar');
 
-    const updatedSolicitudes = solicitudes.map((solicitud) =>
-      solicitud.id === id
-        ? { ...solicitud, estado: 'aprobada', fecha_respuesta: new Date().toLocaleString() }
-        : solicitud
+    // ⏳ No esperamos correo — la respuesta llega rápido
+    const updatedSolicitudes = solicitudes.map((s) =>
+      s.id === id
+        ? { ...s, estado: 'aprobada', fecha_respuesta: new Date().toLocaleString() }
+        : s
     );
     setSolicitudes(updatedSolicitudes);
-
-    toast.success('✅ Solicitud aprobada exitosamente');
+    toast.success('✅ Solicitud aprobada');
   } catch (err) {
+    toast.error('❌ Error al aprobar la solicitud');
     console.error(err);
-    toast.error('❌ Hubo un error al aprobar la solicitud');
   } finally {
     setLoading(false);
   }
 };
+
 
 const rechazarSolicitud = async (id) => {
   try {
@@ -1575,8 +1568,9 @@ return (
                     </tr>
                   ))}
                 </tbody>
-                {loading && <div className="spinner">Cargando...</div>}
+                
               </table>
+              {loading && <div className="spinner">Cargando...</div>}
             </div>
           )}
 
