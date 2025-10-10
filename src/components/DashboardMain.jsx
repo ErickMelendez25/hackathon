@@ -926,6 +926,28 @@ const renderVendedorView = () => {
   const [innovacion, setInnovacion] = useState('');
   const [pitch, setPitch] = useState(null);
 
+  useEffect(() => {
+  const fetchPitchGuardado = async () => {
+    if (!usuarioLocal?.id) return;
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/pitch/ver/${usuarioLocal.id}`);
+      if (res.data) {
+        setPitch(res.data);
+        setEnlacePitch(res.data.enlace_pitch || '');
+        setResumen(res.data.resumen_proyecto || '');
+        setImpacto(res.data.impacto_social || '');
+        setModelo(res.data.modelo_negocio || '');
+        setInnovacion(res.data.innovacion || '');
+      }
+    } catch (error) {
+      console.error('Error al obtener el pitch guardado:', error);
+    }
+  };
+
+  fetchPitchGuardado();
+}, [usuarioLocal]);
+
+
   // Render de los círculos de fases
   const renderFases = () => (
     <div className="fases-container">
@@ -1186,10 +1208,17 @@ const renderEquiposAprobados = () => {
 
               <button
                 className="btn-formulario"
-                onClick={() => setShowPitchForm(true)}
+                onClick={() => {
+                  if (pitch?.estado === 'enviado') {
+                    alert('⚠️ Este formulario ya fue enviado definitivamente y no puede editarse.');
+                    return;
+                  }
+                  setShowPitchForm(true);
+                }}
               >
                 📝 Completar Formulario
               </button>
+
 
               {pitch?.estado === 'enviado' ? (
                 <span className="badge-enviado">✅ Enviado</span>
@@ -1220,6 +1249,12 @@ const renderEquiposAprobados = () => {
   <div className="modal-backdrop">
     <div className="modal-formulario">
       <h3>Formulario del Proyecto</h3>
+      {pitch?.estado === 'enviado' && (
+        <div className="alerta-enviado">
+          ⚠️ Este formulario fue enviado definitivamente. Solo lectura.
+        </div>
+      )}
+
 
       <label>🎥 Enlace del Pitch (YouTube o Drive):</label>
       <input
@@ -1229,7 +1264,9 @@ const renderEquiposAprobados = () => {
         onChange={(e) => setEnlacePitch(e.target.value)}
         maxLength={200}
         required
+        disabled={pitch?.estado === 'enviado'}
       />
+
 
       <label>📝 Resumen del proyecto (máx. 500 caracteres):</label>
       <textarea
@@ -1237,6 +1274,7 @@ const renderEquiposAprobados = () => {
         onChange={(e) => setResumen(e.target.value)}
         maxLength={500}
         required
+        disabled={pitch?.estado === 'enviado'}
       />
 
       <label>🌍 Impacto social (máx. 400 caracteres):</label>
@@ -1245,6 +1283,7 @@ const renderEquiposAprobados = () => {
         onChange={(e) => setImpacto(e.target.value)}
         maxLength={400}
         required
+        disabled={pitch?.estado === 'enviado'}
       />
 
       <label>💼 Modelo de negocio (máx. 400 caracteres):</label>
@@ -1253,6 +1292,7 @@ const renderEquiposAprobados = () => {
         onChange={(e) => setModelo(e.target.value)}
         maxLength={400}
         required
+        disabled={pitch?.estado === 'enviado'}
       />
 
       <label>💡 Innovación (máx. 300 caracteres):</label>
@@ -1261,12 +1301,17 @@ const renderEquiposAprobados = () => {
         onChange={(e) => setInnovacion(e.target.value)}
         maxLength={300}
         required
+        disabled={pitch?.estado === 'enviado'}
       />
 
-      <div className="botones-formulario">
-        <button onClick={guardarBorrador} className="btn-guardar">💾 Guardar Cambios</button>
-        <button onClick={enviarDefinitivo} className="btn-enviar">🚀 Enviar Definitivamente</button>
-        <button onClick={() => setShowPitchForm(false)} className="btn-cerrar">Cerrar</button>
+    <div className="botones-formulario">
+      {pitch?.estado !== 'enviado' && (
+        <>
+          <button onClick={guardarBorrador} className="btn-guardar">💾 Guardar Cambios</button>
+          <button onClick={enviarDefinitivo} className="btn-enviar">🚀 Enviar Definitivamente</button>
+        </>
+      )}
+      <button onClick={() => setShowPitchForm(false)} className="btn-cerrar">Cerrar</button>
       </div>
     </div>
   </div>
@@ -1293,32 +1338,38 @@ const guardarBorrador = async () => {
       modelo_negocio: modelo,
       innovacion: innovacion
     });
-    alert('✅ Formulario guardado correctamente.');
-    setPitch({ estado: 'borrador' });
+
+    alert('✅ Pitch guardado correctamente.');
+    setPitch({ ...pitch, estado: 'borrador', id: res.data.id });
   } catch (error) {
     console.error(error);
-    alert('❌ Error al guardar. Intenta nuevamente.');
+    alert(error.response?.data?.message || '❌ Error al guardar.');
   }
 };
 
 const enviarDefinitivo = async () => {
+  if (pitch?.estado === 'enviado') {
+    alert('⚠️ Este formulario ya fue enviado definitivamente.');
+    return;
+  }
+
   if (!pitch?.id) {
     alert('⚠️ Primero guarda el borrador antes de enviar.');
     return;
   }
 
   try {
-    await axios.put(`${import.meta.env.VITE_API_URL}/api/pitch/enviar`, { pitch_id: pitch.id });
-    alert('🚀 Formulario enviado definitivamente. Ya no se puede editar.');
-    setPitch({ estado: 'enviado' });
+    await axios.put(`${import.meta.env.VITE_API_URL}/api/pitch/enviar`, {
+      usuario_id: usuarioLocal.id
+    });
+    alert('🚀 Enviado definitivamente. Ya no puedes editarlo.');
+    setPitch({ ...pitch, estado: 'enviado' });
     setShowPitchForm(false);
   } catch (error) {
     console.error(error);
-    alert('❌ Error al enviar. Intenta nuevamente.');
+    alert(error.response?.data?.message || '❌ Error al enviar.');
   }
 };
-
-
 
 
 

@@ -928,6 +928,25 @@ app.post('/api/evaluacion', (req, res) => {
 
 
 
+// ✅ Enviar definitivamente el pitch (ya no se puede editar)
+app.put('/api/pitch/enviar', (req, res) => {
+  const { usuario_id } = req.body;
+
+  if (!usuario_id) {
+    return res.status(400).json({ message: 'Falta el usuario_id' });
+  }
+
+  // Bloquea edición del pitch
+  const query = `UPDATE pitchs_equipos SET estado = 'enviado' WHERE usuario_id = ?`;
+
+  db.query(query, [usuario_id], (err, result) => {
+    if (err) {
+      console.error('Error al actualizar estado del pitch:', err);
+      return res.status(500).json({ message: 'Error en el servidor' });
+    }
+    res.status(200).json({ message: 'Pitch enviado definitivamente.' });
+  });
+});
 
 
 

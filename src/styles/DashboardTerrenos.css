@@ -2057,3 +2057,15 @@ C27.8,17.3,32,13.3,32,8.4C32,3.8,28.2,0,23.6,0z'/>\
 
 .badge-enviado { color: green; font-weight: bold; margin-left: 10px; }
 .badge-pendiente { color: orange; font-weight: bold; margin-left: 10px; }
+
+
+
+.alerta-enviado {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 10px;
+  border: 1px solid #ffeeba;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
