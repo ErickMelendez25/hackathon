@@ -11,7 +11,7 @@ html, body {
 
 /* Tema claro */
 .dashboard.light {
-  --background-color: #ffffff;
+  --background-color: #615e5eff;
   --sidebar-bg: #ffffff;          /* Fondo claro del sidebar */
   --button-bg: #ffffff;
   --button-hover-bg: #030303;
@@ -2006,3 +2006,54 @@ C27.8,17.3,32,13.3,32,8.4C32,3.8,28.2,0,23.6,0z'/>\
   background-repeat: no-repeat;
   pointer-events: none;   /* que no interfieran con clicks */
 }
+
+
+
+
+
+
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+
+.modal-formulario {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-formulario textarea {
+  width: 100%;
+  min-height: 80px;
+  margin-bottom: 10px;
+  resize: vertical;
+}
+
+.botones-formulario {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.btn-guardar, .btn-enviar, .btn-cerrar {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-guardar { background-color: #007bff; color: white; }
+.btn-enviar { background-color: #28a745; color: white; }
+.btn-cerrar { background-color: #dc3545; color: white; }
+
+.badge-enviado { color: green; font-weight: bold; margin-left: 10px; }
+.badge-pendiente { color: orange; font-weight: bold; margin-left: 10px; }

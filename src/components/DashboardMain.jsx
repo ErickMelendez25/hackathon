@@ -416,29 +416,23 @@ useEffect(() => {
   }, [apiUrl]);
 
 
-
 useEffect(() => {
-  const socket = io(import.meta.env.VITE_API_URL);
+const socket = io(import.meta.env.VITE_API_URL, {
+  auth: { token: localStorage.getItem('authToken') },
+  transports: ["websocket"],
+  withCredentials: true,
+});
 
-  // Escucha evento emitido por el servidor
-  socket.on('solicitudes-actualizadas', () => {
-    console.log('🔁 Actualizando solicitudes...');
-    fetchTerrenos(); // o fetchSolicitudes(), según tu lógica
+
+  socket.on("solicitudes-actualizadas", () => {
+    console.log("🔁 Recibiendo actualización de solicitudes...");
+    if (categoria === 'preseleccion') {
+      fetchSolicitudes(); // no fetchTerrenos
+    }
   });
 
-  return () => {
-    socket.disconnect();
-  };
-}, [fetchTerrenos]);
-
-
-  useEffect(() => {
-    if (categoria==='preseleccion') {
-      fetchTerrenos();
-    }
-  }, [categoria, fetchTerrenos]);
-  
-
+  return () => socket.disconnect();
+}, [categoria]);
 
 
 
@@ -912,6 +906,8 @@ const rechazarSolicitud = async (id) => {
 
 
 const renderVendedorView = () => {
+
+
   // Buscar la solicitud del usuario actual
   const solicitudUsuario = solicitudes.find(
     (s) => s.usuario_id === usuarioLocal?.id
@@ -919,6 +915,16 @@ const renderVendedorView = () => {
 
   // Estado de la solicitud: 'pendiente', 'aprobada', 'rechazada', o undefined si no hay
   const estado = solicitudUsuario?.estado;
+
+
+  // Estado para el formulario del Pitch
+  const [showPitchForm, setShowPitchForm] = useState(false);
+  const [enlacePitch, setEnlacePitch] = useState('');
+  const [resumen, setResumen] = useState('');
+  const [impacto, setImpacto] = useState('');
+  const [modelo, setModelo] = useState('');
+  const [innovacion, setInnovacion] = useState('');
+  const [pitch, setPitch] = useState(null);
 
   // Render de los círculos de fases
   const renderFases = () => (
@@ -1155,26 +1161,44 @@ const renderEquiposAprobados = () => {
         <div key={index} className="equipo-aprobado-wrapper">
           {/* Campo para subir Pitch (fuera del card) */}
           {solicitud.usuario_id === usuarioLocal?.id && (
-            <div className="upload-pitch">
-              <label htmlFor={`pitch-${index}`} className="upload-label">
+            <div className="acciones-pitch">
+              <button
+                className="btn-subir-pitch"
+                onClick={() => document.getElementById(`pitch-${index}`).click()}
+              >
                 📤 Subir Pitch (PDF)
-              </label>
+              </button>
+
               <input
                 type="file"
                 id={`pitch-${index}`}
                 accept="application/pdf"
-                className="upload-input"
+                style={{ display: 'none' }}
                 onChange={(e) => {
                   const file = e.target.files[0];
-                  if (file && file.type !== 'application/pdf') {
+                  if (!file || file.type !== 'application/pdf') {
                     alert('Solo se permite subir archivos PDF.');
                     return;
                   }
-                  console.log('Pitch subido:', file);
+                  alert('📁 Pitch subido correctamente (solo guardado localmente por ahora)');
                 }}
               />
+
+              <button
+                className="btn-formulario"
+                onClick={() => setShowPitchForm(true)}
+              >
+                📝 Completar Formulario
+              </button>
+
+              {pitch?.estado === 'enviado' ? (
+                <span className="badge-enviado">✅ Enviado</span>
+              ) : (
+                <span className="badge-pendiente">🕓 Pendiente</span>
+              )}
             </div>
           )}
+
 
           {/* Card del equipo */}
           <div className="card-aprobado">
@@ -1190,10 +1214,109 @@ const renderEquiposAprobados = () => {
           </div>
         </div>
       ))}
+
+    {/* Modal para formulario del Pitch */}
+{showPitchForm && (
+  <div className="modal-backdrop">
+    <div className="modal-formulario">
+      <h3>Formulario del Proyecto</h3>
+
+      <label>🎥 Enlace del Pitch (YouTube o Drive):</label>
+      <input
+        type="text"
+        placeholder="https://drive.google.com/..."
+        value={enlacePitch}
+        onChange={(e) => setEnlacePitch(e.target.value)}
+        maxLength={200}
+        required
+      />
+
+      <label>📝 Resumen del proyecto (máx. 500 caracteres):</label>
+      <textarea
+        value={resumen}
+        onChange={(e) => setResumen(e.target.value)}
+        maxLength={500}
+        required
+      />
+
+      <label>🌍 Impacto social (máx. 400 caracteres):</label>
+      <textarea
+        value={impacto}
+        onChange={(e) => setImpacto(e.target.value)}
+        maxLength={400}
+        required
+      />
+
+      <label>💼 Modelo de negocio (máx. 400 caracteres):</label>
+      <textarea
+        value={modelo}
+        onChange={(e) => setModelo(e.target.value)}
+        maxLength={400}
+        required
+      />
+
+      <label>💡 Innovación (máx. 300 caracteres):</label>
+      <textarea
+        value={innovacion}
+        onChange={(e) => setInnovacion(e.target.value)}
+        maxLength={300}
+        required
+      />
+
+      <div className="botones-formulario">
+        <button onClick={guardarBorrador} className="btn-guardar">💾 Guardar Cambios</button>
+        <button onClick={enviarDefinitivo} className="btn-enviar">🚀 Enviar Definitivamente</button>
+        <button onClick={() => setShowPitchForm(false)} className="btn-cerrar">Cerrar</button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
+  
+
 };
 
+const guardarBorrador = async () => {
+  if (!enlacePitch || !resumen || !impacto || !modelo || !innovacion) {
+    alert('⚠️ Completa todos los campos antes de guardar.');
+    return;
+  }
+
+  try {
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/pitch/subir`, {
+      solicitud_id: solicitudUsuario.id,
+      usuario_id: usuarioLocal.id,
+      enlace_pitch: enlacePitch,
+      resumen_proyecto: resumen,
+      impacto_social: impacto,
+      modelo_negocio: modelo,
+      innovacion: innovacion
+    });
+    alert('✅ Formulario guardado correctamente.');
+    setPitch({ estado: 'borrador' });
+  } catch (error) {
+    console.error(error);
+    alert('❌ Error al guardar. Intenta nuevamente.');
+  }
+};
+
+const enviarDefinitivo = async () => {
+  if (!pitch?.id) {
+    alert('⚠️ Primero guarda el borrador antes de enviar.');
+    return;
+  }
+
+  try {
+    await axios.put(`${import.meta.env.VITE_API_URL}/api/pitch/enviar`, { pitch_id: pitch.id });
+    alert('🚀 Formulario enviado definitivamente. Ya no se puede editar.');
+    setPitch({ estado: 'enviado' });
+    setShowPitchForm(false);
+  } catch (error) {
+    console.error(error);
+    alert('❌ Error al enviar. Intenta nuevamente.');
+  }
+};
 
 
 
@@ -1380,177 +1503,115 @@ return (
   
 };
 
+// RENDER PARA EQUIPOS APROBADOS PARA EL CONCURSO
+const renderEquiposAprobados = () => {
+  const aprobadosUnicos = Array.from(
+    new Map(
+      solicitudes
+        .filter((s) => s.estado === 'aprobada')
+        .map((s) => [s.usuario_id, s])
+    ).values()
+  );
 
-  const renderAdminView = () => (
-    <div className="dashboard">
-        <>
-          {/* Tu interfaz principal */}
-          <ToastContainer position="top-right" autoClose={3000} />
-        </>
-      <button
-        className="sidebar-toggle"
-        onClick={() => setSidebarActive(!sidebarActive)} // Cambiar el estado de la barra lateral
-      >
-        ☰
-      </button>
-      <div className={`sidebar ${sidebarActive ? 'active' : ''}`}>
-        <div className="categories">
-          <button
-            className={`category-btn${categoria === 'solicitudes' ? 'active' : ''}`}
-              onClick={() => {changeCategory('solicitudes');
-                setShowSolicitudes(true);}}
-          >
-            Solicitudes
-          </button>
-
-          <button
-            className={`category-btn ${categoria === 'preseleccion' ? 'active' : ''}`}
-            onClick={() => { changeCategory('preseleccion'); }}
-          >
-            PRESELECCIÓN
-          </button>
-          <button
-            className={`category-btn ${categoria === 'resultados' ? 'active' : ''}`}
-            onClick={() => { changeCategory('resultados'); }}
-          >
-            EVALUAR
-          </button>
-          {/*<button
-            className={`category-btn ${categoria === 'casas' ? 'active' : ''}`}
-            onClick={() => { changeCategory('casas'); }}
-          >
-            Casas
-          </button>
-
-          <button
-            className={`category-btn ${categoria === 'departamentos' ? 'active' : ''}`}
-            onClick={() => { changeCategory('departamentos'); }}
-          >
-            Departamentos
-          </button>
-
-          <button
-            className={`category-btn ${categoria === 'ropa' ? 'active' : ''}`}
-            onClick={() => { changeCategory('ropa'); }}
-          >
-            Ropa
-          </button>
-
-          <button
-            className={`category-btn ${categoria === 'celulares' ? 'active' : ''}`}
-            onClick={() => { changeCategory('celulares'); }}
-          >
-            Celulares
-          </button>*/}
+  return (
+    <div className="equipos-aprobados">
+      {aprobadosUnicos.length === 0 ? (
+        <p>No hay equipos aprobados todavía.</p>
+      ) : (
+        <table className="tabla-aprobados">
+          <thead>
+            <tr>
+              <th>Equipo</th>
+              <th>Universidad</th>
+              <th>Departamento</th>
+              <th>Integrantes</th>
+              <th>Fecha Aprobación</th>
+            </tr>
+          </thead>
+          <tbody>
+            {aprobadosUnicos.map((equipo) => (
+              <tr key={equipo.usuario_id}>
+                <td>{equipo.nombre_equipo}</td>
+                <td>{equipo.universidad}</td>
+                <td>{equipo.departamento}</td>
+                <td>{equipo.cantidad_integrantes}</td>
+                <td>{new Date(equipo.fecha_solicitud).toLocaleDateString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+};
 
 
+const renderAdminView = () => (
+  <div className="dashboard">
+    <>
+      {/* Notificaciones */}
+      <ToastContainer position="top-right" autoClose={3000} />
+    </>
 
+    {/* Botón de menú lateral */}
+    <button
+      className="sidebar-toggle"
+      onClick={() => setSidebarActive(!sidebarActive)}
+    >
+      ☰
+    </button>
 
-        </div>
+    {/* SIDEBAR */}
+    <div className={`sidebar ${sidebarActive ? 'active' : ''}`}>
+      <div className="categories">
+        <button
+          className={`category-btn ${categoria === 'solicitudes' ? 'active' : ''}`}
+          onClick={() => {
+            changeCategory('solicitudes');
+            setShowSolicitudes(true);
+          }}
+        >
+          Solicitudes
+        </button>
+
+        <button
+          className={`category-btn ${categoria === 'preseleccion' ? 'active' : ''}`}
+          onClick={() => changeCategory('preseleccion')}
+        >
+          PRESELECCIÓN
+        </button>
+
+        <button
+          className={`category-btn ${categoria === 'resultados' ? 'active' : ''}`}
+          onClick={() => changeCategory('resultados')}
+        >
+          EVALUAR
+        </button>
       </div>
+    </div>
 
-      <div className="main-content">
-        {categoria === undefined || categoria === '' ? (
-          <div className="welcome-message">
-            <h2>Vista Admin</h2>
-            <CountdownTimer />
-            <p>Bienvenido al panel de administración.</p>
-          </div>
-        ) : showForm ? (
-          <div className="modal">
-
-            
-            <form onSubmit={editMode ? handleUpdateTerreno : handleCreateTerreno} className="form-grid">
-              {/* Campo 1 */}
-              <div>
-                <label htmlFor="titulo">Título:</label>
-                <input type="text" id="titulo" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} required />
-              </div>
-      
-              <div className="form-group-full">
-                <label htmlFor="descripcion">Descripción:</label>
-                <textarea
-                  id="descripcion"
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={(e) =>
-                    setFormData({ ...formData, descripcion: e.target.value })
-                  }
-                ></textarea>
-              </div>
-
-
-      
-              <div>
-                <label htmlFor="precio">Precio:</label>
-                <input type="number" id="precio" value={formData.precio} onChange={(e) => setFormData({ ...formData, precio: e.target.value })} required />
-              </div>
-      
-              <div>
-                <label htmlFor="ubicacion_lat">Latitud:</label>
-                <input type="number" id="ubicacion_lat" step="any" value={formData.ubicacion_lat} onChange={(e) => setFormData({ ...formData, ubicacion_lat: e.target.value })} required />
-              </div>
-      
-              <div>
-                <label htmlFor="ubicacion_lon">Longitud:</label>
-                <input type="number" id="ubicacion_lon" step="any" value={formData.ubicacion_lon} onChange={(e) => setFormData({ ...formData, ubicacion_lon: e.target.value })} required />
-              </div>
-      
-              <div>
-                <label htmlFor="metros_cuadrados">Metros cuadrados:</label>
-                <input type="number" id="metros_cuadrados" value={formData.metros_cuadrados} onChange={(e) => setFormData({ ...formData, metros_cuadrados: e.target.value })} required />
-              </div>
-      
-              <div>
-                <label htmlFor="imagenes">Imagen 1:</label>
-                <input type="file" id="imagenes" accept="image/*" onChange={(e) => setFormData({ ...formData, imagenes: e.target.files[0] })} required />
-              </div>
-      
-              <div>
-                <label htmlFor="imagen_2">Imagen 2:</label>
-                <input type="file" id="imagen_2" accept="image/*" onChange={(e) => setFormData({ ...formData, imagen_2: e.target.files[0] })} />
-              </div>
-      
-              <div>
-                <label htmlFor="imagen_3">Imagen 3:</label>
-                <input type="file" id="imagen_3" accept="image/*" onChange={(e) => setFormData({ ...formData, imagen_3: e.target.files[0] })} />
-              </div>
-      
-              <div>
-                <label htmlFor="imagen_4">Imagen 4:</label>
-                <input type="file" id="imagen_4" accept="image/*" onChange={(e) => setFormData({ ...formData, imagen_4: e.target.files[0] })} />
-              </div>
-      
-              <div>
-                <label htmlFor="video">Video:</label>
-                <input type="file" id="video" accept="video/*" onChange={(e) => setFormData({ ...formData, video: e.target.files[0] })} />
-              </div>
-      
-              <div>
-                <label htmlFor="estado">Estado:</label>
-                <select id="estado" value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })}>
-                  <option value="disponible">Disponible</option>
-                  <option value="vendido">Vendido</option>
-                </select>
-              </div>
-      
-              {/* BOTONES */}
-              <div className="form-actions">
-                <button type="submit">{editMode ? 'Actualizar' : 'Guardar Terreno'}</button>
-                <button type="button" onClick={() => setShowForm(false)}>Cancelar</button>
-              </div>
-            </form>
-          </div>
-
-        ) : (
-          <>
+    {/* CONTENIDO PRINCIPAL */}
+    <div className="main-content">
+      {/* Vista inicial */}
+      {categoria === undefined || categoria === '' ? (
+        <div className="welcome-message">
+          <h2>Vista Admin</h2>
+          <CountdownTimer />
+          <p>Bienvenido al panel de administración.</p>
+        </div>
+      ) : (
+        <>
+          {/* 🔹 TABLA DE SOLICITUDES */}
           {categoria === 'solicitudes' && showSolicitudes && (
             <div className="tabla-solicitudes-container">
-              <button onClick={() => exportarAExcel(solicitudes)} className="btn-exportar">
-                Exportar a Excel
-              </button>
-
-
+              <div className="acciones-solicitudes">
+                <button
+                  onClick={() => exportarAExcel(solicitudes)}
+                  className="btn-exportar"
+                >
+                  Exportar a Excel
+                </button>
+              </div>
 
               <table className="tabla-solicitudes">
                 <thead>
@@ -1578,315 +1639,122 @@ return (
                       <td className={`estado ${s.estado}`}>{s.estado}</td>
                       <td>{new Date(s.fecha_solicitud).toLocaleDateString()}</td>
                       <td>
-                        <button onClick={() => aprobarSolicitud(s.id)} className="btn-aprobar">Aprobar</button>
-                        <button onClick={() => rechazarSolicitud(s.id)} className="btn-rechazar">Rechazar</button>
+                        <button
+                          onClick={() => aprobarSolicitud(s.id)}
+                          className="btn-aprobar"
+                        >
+                          Aprobar
+                        </button>
+                        <button
+                          onClick={() => rechazarSolicitud(s.id)}
+                          className="btn-rechazar"
+                        >
+                          Rechazar
+                        </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
-                
               </table>
+
               {loading && <div className="spinner">Cargando...</div>}
             </div>
           )}
 
-
-
-            {categoria === 'preseleccion' && (
-              <div className="filters">
-              {/* Filtro por estado */}
-              <div className="filter-item">
-                <select
-                  value={filters.estado}
-                  onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
-                  className="filter-select"
-                >
-                  <option value="todos">Todos los estados</option>
-                  <option value="disponible">Disponible</option>
-                  <option value="vendido">Vendido</option>
-                </select>
-              </div>
-
-              {/* Filtro por ubicación */}
-              <div className="filter-item">
-                <input
-                  type="text"
-                  placeholder="Ubicación"
-                  value={filters.ubicacion}
-                  onChange={(e) => setFilters({ ...filters, ubicacion: e.target.value })}
-                  className="filter-input"
-                />
-              </div>
-
-              {/* Filtros de rango por checkbox */}
-              <div className="filter-item">
-                <label><input type="checkbox" checked={filters.rangos.includes('0-500')} onChange={() => toggleRango('0-500')} /> S/ 0 - 500</label>
-                <label><input type="checkbox" checked={filters.rangos.includes('500-2000')} onChange={() => toggleRango('500-2000')} /> S/ 500 - 2000</label>
-                <label><input type="checkbox" checked={filters.rangos.includes('2000-5000')} onChange={() => toggleRango('2000-5000')} /> S/ 2000 - 5000</label>
-                <label><input type="checkbox" checked={filters.rangos.includes('5000+')} onChange={() => toggleRango('5000+')} /> Desde S/ 5000</label>
-              </div>
-
-              {/* Precio manual */}
-              <div className="filter-item">
-              <input
-                type="number"
-                placeholder="Precio mínimo"
-                value={filters.precioMin === null ? '' : filters.precioMin}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    precioMin: e.target.value === '' ? null : parseFloat(e.target.value)
-                  })
-                }
-                className="filter-input"
-              />
+          {/* 🔹 PRESELECCIÓN */}
+          {categoria === 'preseleccion' && (
+            <div className="equipos-aprobados-container">
+              <h3>Equipos Aprobados</h3>
+              {loading ? <p>Cargando...</p> : renderEquiposAprobados()}
             </div>
+          )}
 
-            <div className="filter-item">
-              <input
-                type="number"
-                placeholder="Precio máximo"
-                value={filters.precioMax === null ? '' : filters.precioMax}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    precioMax: e.target.value === '' ? null : parseFloat(e.target.value)
-                  })
-                }
-                className="filter-input"
-              />
+          {/* 🔹 EVALUAR */}
+          {categoria === 'resultados' && (
+            <div className="resultados-container">
+              <h3>Evaluar Equipos</h3>
+              <p>Asigna puntajes o revisa los resultados de los equipos.</p>
+              <table className="tabla-resultados">
+                <thead>
+                  <tr>
+                    <th>Equipo</th>
+                    <th>Universidad</th>
+                    <th>Puntaje</th>
+                    <th>Evaluador</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {resultados?.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.nombre_equipo}</td>
+                      <td>{r.universidad}</td>
+                      <td>{r.puntaje}</td>
+                      <td>{r.evaluador}</td>
+                      <td>
+                        <button
+                          onClick={() => editarResultado(r.id)}
+                          className="btn-editar"
+                        >
+                          Editar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-
-              {/* Moneda */}
-              <div className="filter-item">
-                <select
-                  value={filters.moneda}
-                  onChange={(e) => setFilters({ ...filters, moneda: e.target.value })}
-                  className="filter-select"
-                >
-                  <option value="soles">Soles</option>
-                  <option value="dolares">Dólares</option>
-                </select>
-              </div>
-
-              {/* Filtro por calificación */}
-              <div className="filter-item">
-                <select
-                  value={filters.calificacion}
-                  onChange={(e) => setFilters({ ...filters, calificacion: e.target.value })}
-                  className="filter-select"
-                >
-                  <option value="todas">Todas las calificaciones</option>
-                  <option value="5">5 estrellas</option>
-                  <option value="4">4 estrellas o más</option>
-                  <option value="3">3 estrellas o más</option>
-                </select>
-              </div>
-
-              {/* Filtros de popularidad */}
-              <div className="filter-item">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={filters.masVistas}
-                    onChange={(e) => setFilters({ ...filters, masVistas: e.target.checked })}
-                  />
-                  Más vistas
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={filters.masReacciones}
-                    onChange={(e) => setFilters({ ...filters, masReacciones: e.target.checked })}
-                  />
-                  Más reacciones
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={filters.masCompartido}
-                    onChange={(e) => setFilters({ ...filters, masCompartido: e.target.checked })}
-                  />
-                  Más compartido
-                </label>
-
-              </div>
-
-            </div>
-            )}
-
-            {/* Botón Agregar solo visible para admin en la categoría terrenos */}
-            {usuarioLocal && usuarioLocal.tipo === 'admin' && categoria === 'preseleccion' && (
-            <div className="filters">
-              <button
-                className="add-button"
-                onClick={() => {
-                  setShowForm(true); // Mostrar el formulario
-                  setEditMode(false); // Establecer el modo de agregar (vacío)
-                  setFormData({ // Limpiar los campos del formulario
-                    titulo: '',
-                    descripcion: '',
-                    precio: '',
-                    ubicacion_lat: '',
-                    ubicacion_lon: '',
-                    metros_cuadrados: '',
-                    estado: 'disponible',
-                    imagenes: null, // Inicializar las imágenes como null
-                    imagen_2: null,
-                    imagen_3: null,
-                    imagen_4: null,
-                    video: null,
-                  });
-                }}
-              >
-                Agregar Terreno
-              </button>
-            </div>
-            )}
-
-            <div className="gallery">
-              {categoria === 'preseleccion' && loading ? (
-                <p>Cargando datos...</p>
-              ) : categoria === 'preseleccion' ?  (
-                sortedTerrenos.map((terreno, index) => {
-                  const imagenUrl = terreno.imagenes && Array.isArray(terreno.imagenes) ? terreno.imagenes[0] : '/default-image.jpg';
-                  const vendedorNombre = getUsuarioDetails(terreno.usuario_id);
-                  return (
-                    <div key={index} className="card">
-                    <div className="card-image-container">
-                      <ImageCarousel terreno={terreno} apiUrl={apiUrl} />
-                      <h3 className="card-title">{terreno.titulo}</h3>
-
-                      {/* Íconos de editar y eliminar */}
-                      <div key={index} className="icon-buttons">
-                        <i
-                          className="fas fa-edit edit-icon"
-                          onClick={() => {
-                            setShowForm(true); // Mostrar el formulario
-                            setEditMode(true); // Establecer el modo de edición
-                            setFormData({ // Llenar el formulario con los datos del terreno a editar
-                              titulo: terreno.titulo,
-                              descripcion: terreno.descripcion,
-                              precio: terreno.precio,
-                              ubicacion_lat: terreno.ubicacion_lat,
-                              ubicacion_lon: terreno.ubicacion_lon,
-                              metros_cuadrados: terreno.metros_cuadrados,
-                              estado: terreno.estado,
-                              imagenes: terreno.imagenes,
-                              imagen_2: terreno.imagen_2,
-                              imagen_3: terreno.imagen_3,
-                              imagen_4: terreno.imagen_4,
-                              video: terreno.video
-                            });
-                            setSelectedTerreno(terreno); // Asegúrate de guardar el terreno seleccionado
-                          }}
-                        ></i>
-                        
-                        <i
-                          className="fas fa-trash delete-icon"
-                          onClick={() => handleDeleteClick(terreno)}
-                        ></i>
-                      </div>
-
-                    </div>
-                    
-
-
-                    <div
-                        key={index}
-                        className="card-details"
-                        ref={el => detailRefs.current[index] = el}
-                      >
-
-
-                      {/* Corazón */}
-
-                        <i
-                          className={`fas fa-heart heart-icon ${liked[index] ? 'liked' : ''}`}
-                          onClick={(e) => {
-                            const willLike = !liked[index];
-                            toggleLike(index);
-                            if (willLike) burstHearts(index, e);
-                          }}
-                        />    
-
-
-                        
-                                
-
-
-
-                      <p className="card-price">
-                          {filters.moneda === 'soles' ? `S/ ${terreno.precio}` : `$ ${terreno.precio}`}
-                      </p>
-
-                      {/* Ojito */}
-
-                      <i className="fas fa-eye view-icon"/>
-
-                      <i
-                        className="fas fa-share-alt share-icon"
-                        onClick={() => handleShare(index)} 
-                      />
-
-                            {/* Mostrar el menú de compartir cuando showShareMenu sea true */}
-                            {activeShareIndex === index &&(
-                              <div className="share-menu" ref={shareMenuRef}> {/* <-- aquí va el ref */}
-                                <FacebookShareButton url={url} quote={text}>
-                                  <FacebookIcon size={28} round />
-                                </FacebookShareButton>
-                                <TwitterShareButton url={url} title={text}>
-                                  <TwitterIcon size={28} round />
-                                </TwitterShareButton>
-                                <WhatsappShareButton url={url} title={text}>
-                                  <WhatsappIcon size={28} round />
-                                </WhatsappShareButton>
-                              </div>
-                            )}
-
-
-
-                        <p className="card-location">
-                          <i className="fas fa-location-pin"></i> Lat: {terreno.ubicacion_lat}, Lon: {terreno.ubicacion_lon}
-                        </p>
-                        <p className="card-estado"><strong>Estado:</strong> {terreno.estado}</p>
-                        <p className="card-vendedor"><strong>Vendedor:</strong> {vendedorNombre}</p>
-                        <Link to={`/dashboard/preseleccion/${terreno.id}`} target="_blank" rel="noopener noreferrer" className="card-button">Ver más</Link>
-                      </div>
-                      
-                      
-                          
-
-                    </div>
-                    
-                    
-                  );
-                })
-                
-              ) : null}
-
-              
-            
-              {/* ✅ Modal global fuera del .map() */}
-              {isConfirmOpen && terrenoAEliminar && (
-                <div className="modal-backdrop">
-                  <div className="confirm-form">
-                    <p>¿Deseas eliminar el terreno: "{terrenoAEliminar.titulo}"?</p>
-                    <div className="confirm-buttons">
-                      <button onClick={confirmDelete}>Eliminar</button>
-                      <button onClick={cancelDelete}>Cancelar</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+          )}
+        </>
+      )}
     </div>
-  );
+  </div>
+);
 
-  
+
+const renderJuradoView = () => (
+  <div className="jurado-dashboard">
+    <h2>Panel de Jurado</h2>
+
+    <table className="tabla-evaluaciones">
+      <thead>
+        <tr>
+          <th>Equipo</th>
+          <th>Universidad</th>
+          <th>Pitch</th>
+          <th>Evaluar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {pitchs.map((p) => (
+          <tr key={p.id}>
+            <td>{p.nombre_equipo}</td>
+            <td>{p.universidad}</td>
+            <td><a href={p.enlace_pitch} target="_blank">Ver Pitch</a></td>
+            <td>
+              <button onClick={() => abrirEvaluacion(p.id)}>Evaluar</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    {showEvaluacionModal && (
+      <div className="modal-evaluacion">
+        <h3>Evaluar Proyecto</h3>
+        <label>Puntaje de Innovación</label>
+        <input type="number" max="10" min="0" value={innovacion} onChange={(e) => setInnovacion(e.target.value)} />
+        <label>Impacto Social</label>
+        <input type="number" max="10" min="0" value={impacto} onChange={(e) => setImpacto(e.target.value)} />
+        <label>Modelo de Negocio</label>
+        <input type="number" max="10" min="0" value={modelo} onChange={(e) => setModelo(e.target.value)} />
+        <textarea placeholder="Comentarios" value={comentarios} onChange={(e) => setComentarios(e.target.value)} />
+        <button onClick={guardarEvaluacion}>Guardar Evaluación</button>
+      </div>
+    )}
+  </div>
+);
+
 
 
   return usuarioLocal && usuarioLocal.tipo
@@ -1894,7 +1762,7 @@ return (
     ? renderAdminView()
     : usuarioLocal.tipo === 'vendedor'
     ? renderVendedorView()
-    : renderCompradorView()
+    : renderJuradoView()
   : null; // o puedes mostrar un <Loader />
 
 };

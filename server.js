@@ -13,15 +13,37 @@ import dotenv from 'dotenv';
 import http from 'http';
 import { Server } from 'socket.io';
 
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+
 dotenv.config(); // Carga las variables de entorno desde el archivo .env
+
 const app = express();
+
+
+
+// justo después de dotenv y before middleware
+app.set('trust proxy', 1); // si usas Railway/Cloud
+
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 min
+  max: 60 // 60 requests por IP por minuto
+});
+app.use(limiter);
+
 
 // Configura CORS para permitir solicitudes solo desde tu frontend
 const corsOptions = {
-  origin: ['hackathon-production-a817.up.railway.app', 'http://localhost:5173', 'http://localhost:5000','https://hackathoncontinental.grupo-digital-nextri.com'],
-  methods: 'GET, POST, PUT, DELETE',
-  allowedHeaders: 'Content-Type, Authorization',
+  origin: [
+    'http://localhost:5173',
+    'https://hackathon-production-a817.up.railway.app',
+    'https://hackathoncontinental.grupo-digital-nextri.com'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 };
+
 
 const port = process.env.PORT || 8080;
 
@@ -36,7 +58,11 @@ const io = new Server(server, {
       'https://hackathon-production-a817.up.railway.app'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
   },
+  transports: ['websocket', 'polling'],
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
 
@@ -44,20 +70,37 @@ const __dirname = path.resolve();  // Obtener la ruta del directorio actual (cor
 
 
 
-// Evento global al conectar
+
+
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(bodyParser.json());
+
+
+// Socket auth
+io.use((socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token || (socket.handshake.headers?.authorization?.split(' ')[1]);
+    if (!token) return next(new Error('Auth token required'));
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) return next(new Error('Auth error'));
+      socket.user = decoded; // { id, correo, ... }
+      next();
+    });
+  } catch (e) {
+    next(new Error('Auth error'));
+  }
+});
+
 io.on('connection', (socket) => {
-  console.log('🟢 Nuevo cliente conectado:', socket.id);
+  console.log('🟢 Nuevo cliente conectado:', socket.id, 'user:', socket.user?.id);
+  if (socket.user?.id) socket.join(`user_${socket.user.id}`);
 
   socket.on('disconnect', () => {
     console.log('🔴 Cliente desconectado:', socket.id);
   });
 });
 
-
-
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(bodyParser.json());
 
 // Verificar si la carpeta 'uploads' existe, si no, crearla
 const terrenosDirectory  = path.join(__dirname, 'terrenos');
@@ -738,6 +781,7 @@ app.put('/api/verificarsolicitud', (req, res) => {
         const solicitud = rows[0];
         const { nombre_usuario, correo_usuario, usuario_id } = solicitud;
 
+        // Si fue aprobada, cambia tipo de usuario
         if (estado === 'aprobada') {
           db.query('UPDATE usuarios SET tipo = ? WHERE id = ?', ['vendedor', usuario_id], (errUpdate) => {
             if (errUpdate) {
@@ -746,12 +790,24 @@ app.put('/api/verificarsolicitud', (req, res) => {
           });
         }
 
+        // ✅ Responder al admin que la actualización fue correcta
         res.status(200).json({ message: 'Estado actualizado correctamente' });
 
-        // 🔥 Notificar a todos los clientes conectados
+        // ✅ Notificar SOLO al usuario afectado en tiempo real
+        if (usuario_id) {
+          io.to(`user_${usuario_id}`).emit('solicitud-actualizada', {
+            solicitud_id,
+            estado,
+            mensaje: estado === 'aprobada'
+              ? '🎉 Tu solicitud ha sido aprobada. ¡Ya puedes vender!'
+              : '❌ Tu solicitud fue rechazada. Gracias por postular.'
+          });
+        }
+
+        // ✅ (Opcional) Notificar globalmente para panel del admin
         io.emit('solicitudes-actualizadas');
 
-        // Enviar correo de fondo
+        // ✅ Enviar correo asincrónico
         enviarCorreoAsync(nombre_usuario, correo_usuario, estado);
       });
     }
@@ -794,6 +850,90 @@ async function enviarCorreoAsync(nombre_usuario, correo_usuario, estado) {
   
 
 
+
+
+const FECHA_LIMITE = new Date('2025-11-05T23:59:59');
+////////PITCH Y PROYECTO DE LOS ESTUDIANTES
+app.post('/api/pitch/subir', (req, res) => {
+
+  if (new Date() > FECHA_LIMITE) {
+    return res.status(403).json({ message: 'El plazo para subir el pitch ha finalizado.' });
+  }
+  const {
+    solicitud_id,
+    usuario_id,
+    enlace_pitch,
+    resumen_proyecto,
+    impacto_social,
+    modelo_negocio,
+    innovacion
+  } = req.body;
+
+  if (!solicitud_id || !usuario_id) {
+    return res.status(400).json({ message: 'Faltan datos requeridos.' });
+  }
+
+  const query = `
+    INSERT INTO pitchs_equipos 
+    (solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion],
+    (err, result) => {
+      if (err) {
+        console.error('Error al guardar pitch:', err);
+        return res.status(500).json({ message: 'Error en el servidor' });
+      }
+      res.status(200).json({ message: 'Pitch guardado correctamente', id: result.insertId });
+    });
+});
+
+
+
+app.get('/api/pitch/ver/:usuario_id', (req, res) => {
+  const { usuario_id } = req.params;
+
+  db.query(
+    'SELECT * FROM pitchs_equipos WHERE usuario_id = ? ORDER BY fecha_creacion DESC LIMIT 1',
+    [usuario_id],
+    (err, results) => {
+      if (err) {
+        console.error('Error al obtener pitch:', err);
+        return res.status(500).json({ message: 'Error en el servidor' });
+      }
+      res.json(results[0] || null);
+    }
+  );
+});
+
+
+
+app.post('/api/evaluacion', (req, res) => {
+  const { jurado_id, pitch_id, puntaje_innovacion, puntaje_impacto, puntaje_modelo, comentarios } = req.body;
+
+  const query = `
+    INSERT INTO evaluaciones_jurado (jurado_id, pitch_id, puntaje_innovacion, puntaje_impacto, puntaje_modelo, comentarios)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [jurado_id, pitch_id, puntaje_innovacion, puntaje_impacto, puntaje_modelo, comentarios], (err) => {
+    if (err) {
+      console.error('Error al guardar evaluación:', err);
+      return res.status(500).json({ message: 'Error en el servidor' });
+    }
+    res.status(200).json({ message: 'Evaluación guardada correctamente' });
+  });
+});
+
+
+
+
+
+
+
+
+
 ////RETO DE ADNSYSTEM 
 // GET todos los productos
 app.get('/api/productos', (req, res) => {
@@ -834,7 +974,7 @@ app.put('/api/productos/:cod_dig', (req, res) => {
   });
 });
 
-// DELETE eliminar producto
+// DELETE eliminar productoterrenos
 // DELETE eliminar producto por cod_dig
 app.delete('/api/productos/:cod_dig', (req, res) => {
   const { cod_dig } = req.params;

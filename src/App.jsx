@@ -14,6 +14,8 @@ import { Administrador, Proceso2, Proceso3 } from './pages/Admision/ProcesosAdmi
 import TerrenoDetalles from './components/TerrenoDetalles'; // Asegúrate de que la ruta sea correcta
 import { GoogleOAuthProvider } from '@react-oauth/google';  // Importa el proveedor de Google OAuth
 
+
+
 import './styles/Global.css';
 
 // Componente para proteger las rutas
