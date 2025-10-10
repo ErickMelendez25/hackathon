@@ -21,28 +21,45 @@ dotenv.config(); // Carga las variables de entorno desde el archivo .env
 const app = express();
 
 
+// ✅ Configuración de seguridad y CORS (profesional y estable)
+app.set('trust proxy', 1); // Necesario para Railway o proxies
 
-// justo después de dotenv y before middleware
-app.set('trust proxy', 1); // si usas Railway/Cloud
-
+// 🔒 Límite de peticiones por IP (para evitar saturación)
 const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 min
-  max: 60 // 60 requests por IP por minuto
+  windowMs: 10 * 1000, // 10 segundos
+  max: 30, // máximo 30 requests por IP
+  message: {
+    success: false,
+    message: '⛔ Demasiadas solicitudes. Espera unos segundos antes de intentar de nuevo.'
+  }
 });
 app.use(limiter);
 
+// 🌐 CORS: Permitir solo los dominios seguros
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://hackathon-production-a817.up.railway.app',
+  'https://hackathoncontinental.grupo-digital-nextri.com'
+];
 
-// Configura CORS para permitir solicitudes solo desde tu frontend
-const corsOptions = {
-  origin: [
-    'http://localhost:5173',
-    'https://hackathon-production-a817.up.railway.app',
-    'https://hackathoncontinental.grupo-digital-nextri.com'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-};
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn('❌ Intento de acceso no permitido por CORS:', origin);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
+);
+
+// ✅ Permitir preflight (muy importante para Chrome)
+app.options('*', cors());
 
 
 const port = process.env.PORT || 8080;
@@ -65,6 +82,11 @@ const io = new Server(server, {
   pingInterval: 25000
 });
 
+// 🛡️ Seguridad HTTP básica
+app.use(helmet({
+  crossOriginResourcePolicy: false, // Permitir imágenes desde otros orígenes
+}));
+
 
 const __dirname = path.resolve();  // Obtener la ruta del directorio actual (correcto para Windows)
 
@@ -72,7 +94,7 @@ const __dirname = path.resolve();  // Obtener la ruta del directorio actual (cor
 
 
 
-app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(bodyParser.json());
 
@@ -148,6 +170,22 @@ db.getConnection((err, connection) => {
   console.log('Conexión a la base de datos exitosa');
   connection.release();
 });
+
+// ✅ Asegurar que la tabla configuracion exista y tenga un registro inicial
+db.query(`
+  CREATE TABLE IF NOT EXISTS configuracion (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    resultados_publicados TINYINT DEFAULT 0
+  )
+`);
+
+db.query('SELECT COUNT(*) AS count FROM configuracion', (err, result) => {
+  if (!err && result[0].count === 0) {
+    db.query('INSERT INTO configuracion (resultados_publicados) VALUES (0)');
+    console.log('🛠️ Configuración inicial creada (resultados_publicados=0)');
+  }
+});
+
 
 // Función para generar el token
 const generateToken = (user) => {
