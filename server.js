@@ -851,19 +851,32 @@ async function enviarCorreoAsync(nombre_usuario, correo_usuario, estado) {
 
 
 // ✅ Listar todos los pitchs de equipos aprobados (para jurado y admin)
+// ✅ Solo devolver el último pitch de cada equipo aprobado
 app.get('/api/pitch/listar', (req, res) => {
   const query = `
     SELECT 
-      p.*, 
-      s.nombre_equipo, 
-      s.universidad, 
-      s.departamento, 
+      p.id AS pitch_id,
+      p.usuario_id,
+      p.enlace_pitch,
+      p.resumen_proyecto,
+      p.impacto_social,
+      p.modelo_negocio,
+      p.innovacion,
+      p.estado,
+      p.fecha_creacion,
+      s.nombre_equipo,
+      s.universidad,
+      s.departamento,
       s.cantidad_integrantes,
-      s.nombre_representante, 
-      s.tecnologias_usadas,
-      s.estado AS estado_solicitud
+      s.nombre_representante,
+      s.tecnologias_usadas
     FROM pitchs_equipos p
-    JOIN solicitudes_vendedor s ON p.usuario_id = s.usuario_id
+    INNER JOIN solicitudes_vendedor s ON p.usuario_id = s.usuario_id
+    INNER JOIN (
+      SELECT usuario_id, MAX(fecha_creacion) AS ultima_fecha
+      FROM pitchs_equipos
+      GROUP BY usuario_id
+    ) ult ON p.usuario_id = ult.usuario_id AND p.fecha_creacion = ult.ultima_fecha
     WHERE s.estado = 'aprobada'
     ORDER BY p.fecha_creacion DESC
   `;
@@ -909,7 +922,8 @@ app.get('/api/resultados', (req, res) => {
         return res.status(500).json({ message: 'Error al leer configuración' });
       }
 
-      const publicado = confRows.length > 0 ? confRows[0].resultados_publicados : false;
+      const publicado = confRows.length > 0 ? Boolean(confRows[0].resultados_publicados) : false;
+
       res.status(200).json({ resultados, publicado });
     });
   });
@@ -917,16 +931,28 @@ app.get('/api/resultados', (req, res) => {
 
 
 // ✅ Publicar resultados (admin)
+// ✅ Publicar resultados (admin)
 app.put('/api/resultados/publicar', (req, res) => {
-  db.query('UPDATE configuracion SET resultados_publicados = 1', (err) => {
+  db.query('UPDATE configuracion SET resultados_publicados = 1 LIMIT 1', (err, result) => {
     if (err) {
       console.error('❌ Error al publicar resultados:', err);
       return res.status(500).json({ message: 'Error en el servidor' });
     }
-    res.status(200).json({ message: 'Resultados publicados exitosamente' });
+
+    if (result.affectedRows === 0) {
+      // Si no existía, la creamos
+      db.query('INSERT INTO configuracion (resultados_publicados) VALUES (1)', (err2) => {
+        if (err2) {
+          console.error('❌ Error al insertar configuración:', err2);
+          return res.status(500).json({ message: 'Error en el servidor' });
+        }
+        return res.status(200).json({ message: 'Resultados publicados (insertado nuevo registro)' });
+      });
+    } else {
+      return res.status(200).json({ message: 'Resultados publicados correctamente' });
+    }
   });
 });
-
 
 
 
@@ -947,8 +973,15 @@ app.post('/api/pitch/subir', (req, res) => {
     innovacion
   } = req.body;
 
-  if (!solicitud_id || !usuario_id) {
-    return res.status(400).json({ message: 'Faltan datos requeridos.' });
+  if (
+    !solicitud_id || !usuario_id ||
+    !enlace_pitch?.trim() ||
+    !resumen_proyecto?.trim() ||
+    !impacto_social?.trim() ||
+    !modelo_negocio?.trim() ||
+    !innovacion?.trim()
+  ) {
+    return res.status(400).json({ message: '⚠️ Todos los campos del pitch son obligatorios.' });
   }
 
   const query = `

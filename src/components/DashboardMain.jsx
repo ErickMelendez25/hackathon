@@ -926,6 +926,24 @@ const renderVendedorView = () => {
   const [innovacion, setInnovacion] = useState('');
   const [pitch, setPitch] = useState(null);
 
+  const [resultadosPublicados, setResultadosPublicados] = useState([]);
+
+useEffect(() => {
+  if (categoria === 'resultados') {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/api/resultados`)
+      .then(res => {
+        if (res.data.publicado) {
+          setResultadosPublicados(res.data.resultados || []);
+        } else {
+          setResultadosPublicados([]); // aún no publicados
+        }
+      })
+      .catch(err => console.error('Error al obtener resultados:', err));
+  }
+}, [categoria]);
+
+
   useEffect(() => {
   const fetchPitchGuardado = async () => {
     if (!usuarioLocal?.id) return;
@@ -968,6 +986,45 @@ const renderVendedorView = () => {
       </div>
     </div>
   );
+
+
+  const renderResultadosPublicados = () => (
+  <div className="resultados-finales-container">
+    <h2>🏆 Resultados Finales de la Hackathon</h2>
+
+    {resultadosPublicados.length === 0 ? (
+      <p>🔒 Los resultados aún no han sido publicados. Vuelve más tarde.</p>
+    ) : (
+      <table className="tabla-resultados-publicos">
+        <thead>
+          <tr>
+            <th>Puesto</th>
+            <th>Equipo</th>
+            <th>Universidad</th>
+            <th>Innovación</th>
+            <th>Impacto</th>
+            <th>Modelo</th>
+            <th>Promedio Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {resultadosPublicados.map((r, i) => (
+            <tr key={r.pitch_id}>
+              <td>🏅 {i + 1}</td>
+              <td>{r.nombre_equipo}</td>
+              <td>{r.universidad}</td>
+              <td>{Number(r.prom_innovacion || 0).toFixed(2)}</td>
+              <td>{Number(r.prom_impacto || 0).toFixed(2)}</td>
+              <td>{Number(r.prom_modelo || 0).toFixed(2)}</td>
+              <td><strong>{Number(r.prom_total || 0).toFixed(2)}</strong></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+);
+
 
   // Render de la fase Inscripción: muestra el formulario
   const renderFaseInscripcion = () => (
@@ -1539,6 +1596,9 @@ return (
 
         {categoria === 'preseleccion' && renderEquiposAprobados()}
 
+        {categoria === 'resultados' && renderResultadosPublicados()}
+
+
         <div className="contenido-dinamico">
           {categoria === 'productos' && <ProductosView />}
         </div>
@@ -1752,17 +1812,31 @@ const renderAdminView = () => (
                 🔄 Recargar Resultados
               </button>
 
-              {!publicado && (
+              {!publicado ? (
                 <button
                   className="btn-publicar"
                   onClick={async () => {
                     if (!window.confirm("¿Publicar resultados definitivos?")) return;
                     await axios.put(`${import.meta.env.VITE_API_URL}/api/resultados/publicar`);
+                    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/resultados`);
+                    setResultados(res.data.resultados);
+                    setPublicado(res.data.publicado);
                     alert("✅ Resultados publicados correctamente.");
-                    setPublicado(true);
+
                   }}
                 >
                   📢 Publicar Resultados
+                </button>
+              ) : (
+                <button
+                  className="btn-republicar"
+                  onClick={async () => {
+                    if (!window.confirm("¿Quieres volver a publicar los resultados?")) return;
+                    await axios.put(`${import.meta.env.VITE_API_URL}/api/resultados/publicar`);
+                    alert("🔁 Resultados republicados correctamente.");
+                  }}
+                >
+                  🔁 Republicar
                 </button>
               )}
 
@@ -1787,10 +1861,11 @@ const renderAdminView = () => (
                         <td>{i + 1}</td>
                         <td>{r.nombre_equipo}</td>
                         <td>{r.universidad}</td>
-                        <td>{r.prom_innovacion?.toFixed(2)}</td>
-                        <td>{r.prom_impacto?.toFixed(2)}</td>
-                        <td>{r.prom_modelo?.toFixed(2)}</td>
-                        <td><strong>{r.prom_total?.toFixed(2)}</strong></td>
+                        <td>{Number(r.prom_innovacion || 0).toFixed(2)}</td>
+                        <td>{Number(r.prom_impacto || 0).toFixed(2)}</td>
+                        <td>{Number(r.prom_modelo || 0).toFixed(2)}</td>
+                        <td><strong>{Number(r.prom_total || 0).toFixed(2)}</strong></td>
+
                       </tr>
                     ))
                   )}
@@ -1812,9 +1887,16 @@ const renderJuradoView = () => {
 
   useEffect(() => {
     axios.get(`${import.meta.env.VITE_API_URL}/api/pitch/listar`)
-      .then(res => setPitchs(res.data))
+      .then(res => {
+        // En caso de que el backend devuelva más de uno por error
+        const unicos = Array.from(
+          new Map(res.data.map(p => [p.usuario_id, p])).values()
+        );
+        setPitchs(unicos);
+      })
       .catch(err => console.error('Error al obtener pitchs:', err));
   }, []);
+
 
   const enviarEvaluacion = async () => {
     if (!selectedPitch) return alert("Selecciona un pitch para evaluar.");

@@ -2069,3 +2069,42 @@ C27.8,17.3,32,13.3,32,8.4C32,3.8,28.2,0,23.6,0z'/>\
   margin-bottom: 15px;
   font-weight: 500;
 }
+
+
+.resultados-finales-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.tabla-resultados-publicos {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.tabla-resultados-publicos th,
+.tabla-resultados-publicos td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.tabla-resultados-publicos th {
+  background-color: #0077cc;
+  color: white;
+}
+
+.tabla-resultados-publicos tr:nth-child(1) {
+  background-color: #ffd70044;
+  font-weight: bold;
+}
+
+
+.btn-republicar {
+  background-color: #ffb703;
+  color: #000;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
