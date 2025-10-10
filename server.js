@@ -181,7 +181,7 @@ app.post('/auth', (req, res) => {
   }
 
   // Verificar si el correo es institucional de una universidad peruana
-  const dominiosPermitidos = ['.edu.pe', '.gmail.com']; // puedes agregar '@uncp.edu.pe', '@pucp.edu.pe', etc.
+  const dominiosPermitidos = ['.edu.pe', 'gmail.com']; // puedes agregar '@uncp.edu.pe', '@pucp.edu.pe', etc.
 
   const esCorreoValido = dominiosPermitidos.some(dominio => correo.endsWith(dominio));
 
@@ -848,6 +848,84 @@ async function enviarCorreoAsync(nombre_usuario, correo_usuario, estado) {
   }
 }
   
+
+
+// ✅ Listar todos los pitchs de equipos aprobados (para jurado y admin)
+app.get('/api/pitch/listar', (req, res) => {
+  const query = `
+    SELECT 
+      p.*, 
+      s.nombre_equipo, 
+      s.universidad, 
+      s.departamento, 
+      s.cantidad_integrantes,
+      s.nombre_representante, 
+      s.tecnologias_usadas,
+      s.estado AS estado_solicitud
+    FROM pitchs_equipos p
+    JOIN solicitudes_vendedor s ON p.usuario_id = s.usuario_id
+    WHERE s.estado = 'aprobada'
+    ORDER BY p.fecha_creacion DESC
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Error al obtener pitchs:', err);
+      return res.status(500).json({ message: 'Error en el servidor' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+
+
+// ✅ Obtener resultados promediados por equipo
+app.get('/api/resultados', (req, res) => {
+  const query = `
+    SELECT 
+      p.id AS pitch_id,
+      s.nombre_equipo,
+      s.universidad,
+      AVG(e.puntaje_innovacion) AS prom_innovacion,
+      AVG(e.puntaje_impacto) AS prom_impacto,
+      AVG(e.puntaje_modelo) AS prom_modelo,
+      (AVG(e.puntaje_innovacion) + AVG(e.puntaje_impacto) + AVG(e.puntaje_modelo)) / 3 AS prom_total
+    FROM evaluaciones_jurado e
+    JOIN pitchs_equipos p ON e.pitch_id = p.id
+    JOIN solicitudes_vendedor s ON p.usuario_id = s.usuario_id
+    GROUP BY p.id, s.nombre_equipo, s.universidad
+    ORDER BY prom_total DESC
+  `;
+
+  db.query(query, (err, resultados) => {
+    if (err) {
+      console.error('❌ Error al obtener resultados:', err);
+      return res.status(500).json({ message: 'Error en el servidor' });
+    }
+
+    db.query('SELECT resultados_publicados FROM configuracion LIMIT 1', (errConf, confRows) => {
+      if (errConf) {
+        console.error('❌ Error al leer configuración:', errConf);
+        return res.status(500).json({ message: 'Error al leer configuración' });
+      }
+
+      const publicado = confRows.length > 0 ? confRows[0].resultados_publicados : false;
+      res.status(200).json({ resultados, publicado });
+    });
+  });
+});
+
+
+// ✅ Publicar resultados (admin)
+app.put('/api/resultados/publicar', (req, res) => {
+  db.query('UPDATE configuracion SET resultados_publicados = 1', (err) => {
+    if (err) {
+      console.error('❌ Error al publicar resultados:', err);
+      return res.status(500).json({ message: 'Error en el servidor' });
+    }
+    res.status(200).json({ message: 'Resultados publicados exitosamente' });
+  });
+});
 
 
 

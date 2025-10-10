@@ -1596,8 +1596,24 @@ const renderEquiposAprobados = () => {
   );
 };
 
+const [resultados, setResultados] = useState([]);
+const [publicado, setPublicado] = useState(false);
+
+useEffect(() => {
+  if (categoria === 'resultados') {
+    axios.get(`${import.meta.env.VITE_API_URL}/api/resultados`)
+      .then(res => {
+        setResultados(res.data.resultados || []);
+        setPublicado(res.data.publicado);
+      })
+      .catch(err => console.error('Error al cargar resultados:', err));
+  }
+}, [categoria]);
+
 
 const renderAdminView = () => (
+
+  
   <div className="dashboard">
     <>
       {/* Notificaciones */}
@@ -1723,88 +1739,176 @@ const renderAdminView = () => (
           {/* 🔹 EVALUAR */}
           {categoria === 'resultados' && (
             <div className="resultados-container">
-              <h3>Evaluar Equipos</h3>
-              <p>Asigna puntajes o revisa los resultados de los equipos.</p>
-              <table className="tabla-resultados">
+              <h3>📊 Resultados Finales de la Hackathon</h3>
+
+              <button
+                className="btn-recargar"
+                onClick={async () => {
+                  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/resultados`);
+                  setResultados(res.data.resultados || []);
+                  setPublicado(res.data.publicado);
+                }}
+              >
+                🔄 Recargar Resultados
+              </button>
+
+              {!publicado && (
+                <button
+                  className="btn-publicar"
+                  onClick={async () => {
+                    if (!window.confirm("¿Publicar resultados definitivos?")) return;
+                    await axios.put(`${import.meta.env.VITE_API_URL}/api/resultados/publicar`);
+                    alert("✅ Resultados publicados correctamente.");
+                    setPublicado(true);
+                  }}
+                >
+                  📢 Publicar Resultados
+                </button>
+              )}
+
+              <table className="tabla-resultados-finales">
                 <thead>
                   <tr>
+                    <th>Puesto</th>
                     <th>Equipo</th>
                     <th>Universidad</th>
-                    <th>Puntaje</th>
-                    <th>Evaluador</th>
-                    <th>Acciones</th>
+                    <th>Innovación</th>
+                    <th>Impacto</th>
+                    <th>Modelo</th>
+                    <th>Promedio Total</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {resultados?.map((r) => (
-                    <tr key={r.id}>
-                      <td>{r.nombre_equipo}</td>
-                      <td>{r.universidad}</td>
-                      <td>{r.puntaje}</td>
-                      <td>{r.evaluador}</td>
-                      <td>
-                        <button
-                          onClick={() => editarResultado(r.id)}
-                          className="btn-editar"
-                        >
-                          Editar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {resultados.length === 0 ? (
+                    <tr><td colSpan="7">No hay evaluaciones todavía.</td></tr>
+                  ) : (
+                    resultados.map((r, i) => (
+                      <tr key={r.pitch_id}>
+                        <td>{i + 1}</td>
+                        <td>{r.nombre_equipo}</td>
+                        <td>{r.universidad}</td>
+                        <td>{r.prom_innovacion?.toFixed(2)}</td>
+                        <td>{r.prom_impacto?.toFixed(2)}</td>
+                        <td>{r.prom_modelo?.toFixed(2)}</td>
+                        <td><strong>{r.prom_total?.toFixed(2)}</strong></td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           )}
+
         </>
       )}
     </div>
   </div>
 );
 
+const renderJuradoView = () => {
+  const [pitchs, setPitchs] = useState([]);
+  const [evaluacion, setEvaluacion] = useState({});
+  const [selectedPitch, setSelectedPitch] = useState(null);
 
-const renderJuradoView = () => (
-  <div className="jurado-dashboard">
-    <h2>Panel de Jurado</h2>
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_API_URL}/api/pitch/listar`)
+      .then(res => setPitchs(res.data))
+      .catch(err => console.error('Error al obtener pitchs:', err));
+  }, []);
 
-    <table className="tabla-evaluaciones">
-      <thead>
-        <tr>
-          <th>Equipo</th>
-          <th>Universidad</th>
-          <th>Pitch</th>
-          <th>Evaluar</th>
-        </tr>
-      </thead>
-      <tbody>
-        {pitchs.map((p) => (
-          <tr key={p.id}>
-            <td>{p.nombre_equipo}</td>
-            <td>{p.universidad}</td>
-            <td><a href={p.enlace_pitch} target="_blank">Ver Pitch</a></td>
-            <td>
-              <button onClick={() => abrirEvaluacion(p.id)}>Evaluar</button>
-            </td>
+  const enviarEvaluacion = async () => {
+    if (!selectedPitch) return alert("Selecciona un pitch para evaluar.");
+    const { puntaje_innovacion, puntaje_impacto, puntaje_modelo, comentarios } = evaluacion;
+
+    if (!puntaje_innovacion || !puntaje_impacto || !puntaje_modelo)
+      return alert("Completa todos los puntajes.");
+
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/evaluacion`, {
+        jurado_id: usuarioLocal?.id,
+        pitch_id: selectedPitch.id,
+        puntaje_innovacion,
+        puntaje_impacto,
+        puntaje_modelo,
+        comentarios,
+      });
+
+      alert("✅ Evaluación guardada correctamente.");
+      setEvaluacion({});
+      setSelectedPitch(null);
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error al guardar evaluación.");
+    }
+  };
+
+  return (
+    <div className="evaluacion-jurado-container">
+      <h2>🎓 Evaluación de Proyectos</h2>
+      <p>Selecciona un equipo y asigna puntajes en cada categoría.</p>
+
+      <table className="tabla-equipos-jurado">
+        <thead>
+          <tr>
+            <th>Equipo</th>
+            <th>Universidad</th>
+            <th>Enlace Pitch</th>
+            <th>Estado</th>
+            <th>Acción</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {pitchs.length === 0 ? (
+            <tr><td colSpan="5">No hay equipos aún.</td></tr>
+          ) : (
+            pitchs.map((p) => (
+              <tr key={p.id}>
+                <td>{p.nombre_equipo}</td>
+                <td>{p.universidad}</td>
+                <td>
+                  <a href={p.enlace_pitch} target="_blank" rel="noopener noreferrer">
+                    Ver Pitch
+                  </a>
+                </td>
+                <td>{p.estado || "borrador"}</td>
+                <td>
+                  <button onClick={() => setSelectedPitch(p)} className="btn-evaluar">
+                    Evaluar
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
 
-    {showEvaluacionModal && (
-      <div className="modal-evaluacion">
-        <h3>Evaluar Proyecto</h3>
-        <label>Puntaje de Innovación</label>
-        <input type="number" max="10" min="0" value={innovacion} onChange={(e) => setInnovacion(e.target.value)} />
-        <label>Impacto Social</label>
-        <input type="number" max="10" min="0" value={impacto} onChange={(e) => setImpacto(e.target.value)} />
-        <label>Modelo de Negocio</label>
-        <input type="number" max="10" min="0" value={modelo} onChange={(e) => setModelo(e.target.value)} />
-        <textarea placeholder="Comentarios" value={comentarios} onChange={(e) => setComentarios(e.target.value)} />
-        <button onClick={guardarEvaluacion}>Guardar Evaluación</button>
-      </div>
-    )}
-  </div>
-);
+      {selectedPitch && (
+        <div className="modal-backdrop">
+          <div className="modal-evaluacion">
+            <h3>🧾 Evaluando: {selectedPitch.nombre_equipo}</h3>
+
+            <label>💡 Innovación:</label>
+            <input type="number" min="1" max="10" value={evaluacion.puntaje_innovacion || ''} onChange={(e) => setEvaluacion({ ...evaluacion, puntaje_innovacion: e.target.value })} />
+
+            <label>🌍 Impacto Social:</label>
+            <input type="number" min="1" max="10" value={evaluacion.puntaje_impacto || ''} onChange={(e) => setEvaluacion({ ...evaluacion, puntaje_impacto: e.target.value })} />
+
+            <label>💼 Modelo de Negocio:</label>
+            <input type="number" min="1" max="10" value={evaluacion.puntaje_modelo || ''} onChange={(e) => setEvaluacion({ ...evaluacion, puntaje_modelo: e.target.value })} />
+
+            <label>🗒 Comentarios:</label>
+            <textarea value={evaluacion.comentarios || ''} onChange={(e) => setEvaluacion({ ...evaluacion, comentarios: e.target.value })} />
+
+            <div className="acciones-modal">
+              <button onClick={enviarEvaluacion} className="btn-guardar">💾 Guardar</button>
+              <button onClick={() => setSelectedPitch(null)} className="btn-cerrar">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 
 
@@ -1814,7 +1918,7 @@ const renderJuradoView = () => (
     : usuarioLocal.tipo === 'vendedor'
     ? renderVendedorView()
     : renderJuradoView()
-  : null; // o puedes mostrar un <Loader />
+  : null; // o podrías mostrar un loader o mensaje de acceso restringido
 
 };
 
