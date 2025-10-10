@@ -941,41 +941,45 @@ app.get('/api/pitch/listar', (req, res) => {
 
 
 // ✅ Obtener resultados promediados por equipo
+// ✅ Calcular promedios finales de todos los jurados
+// ✅ Resultados globales
 app.get('/api/resultados', (req, res) => {
   const query = `
     SELECT 
       p.id AS pitch_id,
       s.nombre_equipo,
       s.universidad,
-      AVG(e.puntaje_innovacion) AS prom_innovacion,
-      AVG(e.puntaje_impacto) AS prom_impacto,
-      AVG(e.puntaje_modelo) AS prom_modelo,
-      (AVG(e.puntaje_innovacion) + AVG(e.puntaje_impacto) + AVG(e.puntaje_modelo)) / 3 AS prom_total
+      ROUND(AVG(e.puntaje_innovacion), 2) AS prom_innovacion,
+      ROUND(AVG(e.puntaje_impacto), 2) AS prom_impacto,
+      ROUND(AVG(e.puntaje_modelo), 2) AS prom_modelo,
+      ROUND((AVG(e.puntaje_innovacion) + AVG(e.puntaje_impacto) + AVG(e.puntaje_modelo)) / 3, 2) AS prom_total
     FROM evaluaciones_jurado e
     JOIN pitchs_equipos p ON e.pitch_id = p.id
-    JOIN solicitudes_vendedor s ON p.usuario_id = s.usuario_id
+    JOIN solicitudes s ON p.solicitud_id = s.id
+    WHERE e.estado = 'evaluado'
     GROUP BY p.id, s.nombre_equipo, s.universidad
-    ORDER BY prom_total DESC
+    ORDER BY prom_total DESC;
   `;
 
-  db.query(query, (err, resultados) => {
+  db.query('SELECT resultados_publicados FROM configuracion LIMIT 1', (err, config) => {
     if (err) {
-      console.error('❌ Error al obtener resultados:', err);
+      console.error('Error al consultar configuración:', err);
       return res.status(500).json({ message: 'Error en el servidor' });
     }
 
-    db.query('SELECT resultados_publicados FROM configuracion LIMIT 1', (errConf, confRows) => {
-      if (errConf) {
-        console.error('❌ Error al leer configuración:', errConf);
-        return res.status(500).json({ message: 'Error al leer configuración' });
+    const publicado = config?.[0]?.resultados_publicados === 1;
+
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error('Error al obtener resultados:', err);
+        return res.status(500).json({ message: 'Error al obtener resultados' });
       }
 
-      const publicado = confRows.length > 0 ? Boolean(confRows[0].resultados_publicados) : false;
-
-      res.status(200).json({ resultados, publicado });
+      res.json({ resultados: results, publicado });
     });
   });
 });
+
 
 
 // ✅ Publicar resultados (admin)
@@ -1068,21 +1072,38 @@ app.get('/api/pitch/ver/:usuario_id', (req, res) => {
 
 
 
+// ✅ Guardar o actualizar evaluación del jurado
 app.post('/api/evaluacion', (req, res) => {
   const { jurado_id, pitch_id, puntaje_innovacion, puntaje_impacto, puntaje_modelo, comentarios } = req.body;
 
+  if (!jurado_id || !pitch_id) {
+    return res.status(400).json({ message: 'Faltan datos requeridos.' });
+  }
+
   const query = `
-    INSERT INTO evaluaciones_jurado (jurado_id, pitch_id, puntaje_innovacion, puntaje_impacto, puntaje_modelo, comentarios)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO evaluaciones_jurado 
+    (jurado_id, pitch_id, puntaje_innovacion, puntaje_impacto, puntaje_modelo, comentarios, estado)
+    VALUES (?, ?, ?, ?, ?, ?, 'evaluado')
+    ON DUPLICATE KEY UPDATE 
+      puntaje_innovacion = VALUES(puntaje_innovacion),
+      puntaje_impacto = VALUES(puntaje_impacto),
+      puntaje_modelo = VALUES(puntaje_modelo),
+      comentarios = VALUES(comentarios),
+      estado = 'evaluado',
+      fecha_evaluacion = CURRENT_TIMESTAMP
   `;
 
-  db.query(query, [jurado_id, pitch_id, puntaje_innovacion, puntaje_impacto, puntaje_modelo, comentarios], (err) => {
-    if (err) {
-      console.error('Error al guardar evaluación:', err);
-      return res.status(500).json({ message: 'Error en el servidor' });
+  db.query(
+    query,
+    [jurado_id, pitch_id, puntaje_innovacion, puntaje_impacto, puntaje_modelo, comentarios],
+    (err) => {
+      if (err) {
+        console.error('❌ Error al guardar evaluación:', err);
+        return res.status(500).json({ message: 'Error al guardar evaluación.' });
+      }
+      res.status(200).json({ message: '✅ Evaluación guardada correctamente.' });
     }
-    res.status(200).json({ message: 'Evaluación guardada correctamente' });
-  });
+  );
 });
 
 

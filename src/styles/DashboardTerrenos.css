@@ -2108,3 +2108,31 @@ C27.8,17.3,32,13.3,32,8.4C32,3.8,28.2,0,23.6,0z'/>\
   cursor: pointer;
   font-weight: 600;
 }
+
+
+.modal-evaluacion {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  max-width: 600px;
+  margin: auto;
+  color: #222;
+}
+
+.criterios-evaluacion label {
+  font-weight: bold;
+  display: block;
+  margin-top: 10px;
+}
+
+.criterios-evaluacion input[type="range"] {
+  width: 100%;
+}
+
+.estado-evaluado {
+  color: green;
+  font-weight: bold;
+}
+.estado-pendiente {
+  color: orange;
+}

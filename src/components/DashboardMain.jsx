@@ -1241,13 +1241,6 @@ const renderEquiposAprobados = () => {
           {/* Campo para subir Pitch (fuera del card) */}
           {solicitud.usuario_id === usuarioLocal?.id && (
             <div className="acciones-pitch">
-              <button
-                className="btn-subir-pitch"
-                onClick={() => document.getElementById(`pitch-${index}`).click()}
-              >
-                📤 Subir Pitch (PDF)
-              </button>
-
               <input
                 type="file"
                 id={`pitch-${index}`}
@@ -1884,79 +1877,108 @@ const renderJuradoView = () => {
   const [pitchs, setPitchs] = useState([]);
   const [evaluacion, setEvaluacion] = useState({});
   const [selectedPitch, setSelectedPitch] = useState(null);
+  const [evaluados, setEvaluados] = useState([]); // equipos ya evaluados
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/api/pitch/listar`)
-      .then(res => {
-        // En caso de que el backend devuelva más de uno por error
-        const unicos = Array.from(
-          new Map(res.data.map(p => [p.usuario_id, p])).values()
-        );
+    const fetchPitchs = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/pitch/listar`);
+        const unicos = Array.from(new Map(res.data.map(p => [p.usuario_id, p])).values());
         setPitchs(unicos);
-      })
-      .catch(err => console.error('Error al obtener pitchs:', err));
+      } catch (err) {
+        console.error('Error al obtener pitchs:', err);
+      }
+    };
+    fetchPitchs();
   }, []);
 
-
   const enviarEvaluacion = async () => {
-    if (!selectedPitch) return alert("Selecciona un pitch para evaluar.");
+    if (!selectedPitch) return alert("Selecciona un equipo para evaluar.");
+
     const { puntaje_innovacion, puntaje_impacto, puntaje_modelo, comentarios } = evaluacion;
 
-    if (!puntaje_innovacion || !puntaje_impacto || !puntaje_modelo)
-      return alert("Completa todos los puntajes.");
+    if (!puntaje_innovacion || !puntaje_impacto || !puntaje_modelo || !comentarios?.trim()) {
+      return alert("⚠️ Completa todos los campos antes de enviar.");
+    }
 
     try {
+      setLoading(true);
       await axios.post(`${import.meta.env.VITE_API_URL}/api/evaluacion`, {
         jurado_id: usuarioLocal?.id,
-        pitch_id: selectedPitch.id,
+        pitch_id: selectedPitch.pitch_id,
         puntaje_innovacion,
         puntaje_impacto,
         puntaje_modelo,
         comentarios,
       });
 
-      alert("✅ Evaluación guardada correctamente.");
+      alert("✅ Evaluación enviada correctamente.");
+
+      // Marcar como evaluado
+      setEvaluados(prev => [...prev, selectedPitch.pitch_id]);
       setEvaluacion({});
       setSelectedPitch(null);
     } catch (err) {
       console.error(err);
       alert("❌ Error al guardar evaluación.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="evaluacion-jurado-container">
       <h2>🎓 Evaluación de Proyectos</h2>
-      <p>Selecciona un equipo y asigna puntajes en cada categoría.</p>
+      <p>
+        Cada jurado debe leer la descripción del proyecto, ver el video Pitch y asignar una
+        evaluación de acuerdo a los criterios establecidos. 
+        <br />
+        <strong>Deslice el control</strong> para valorar cada criterio y agregue un comentario general.
+      </p>
 
       <table className="tabla-equipos-jurado">
         <thead>
           <tr>
             <th>Equipo</th>
             <th>Universidad</th>
-            <th>Enlace Pitch</th>
+            <th>Pitch</th>
+            <th>Resumen</th>
             <th>Estado</th>
             <th>Acción</th>
           </tr>
         </thead>
         <tbody>
           {pitchs.length === 0 ? (
-            <tr><td colSpan="5">No hay equipos aún.</td></tr>
+            <tr><td colSpan="6">No hay equipos disponibles.</td></tr>
           ) : (
-            pitchs.map((p) => (
-              <tr key={p.id}>
-                <td>{p.nombre_equipo}</td>
+            pitchs.map(p => (
+              <tr key={p.pitch_id}>
+                <td>{p.nombre_equipo || 'Sin nombre'}</td>
                 <td>{p.universidad}</td>
                 <td>
                   <a href={p.enlace_pitch} target="_blank" rel="noopener noreferrer">
-                    Ver Pitch
+                    🎥 Ver
                   </a>
                 </td>
-                <td>{p.estado || "borrador"}</td>
                 <td>
-                  <button onClick={() => setSelectedPitch(p)} className="btn-evaluar">
-                    Evaluar
+                  <button onClick={() => setSelectedPitch(p)} className="btn-info">
+                    📘 Ver Proyecto
                   </button>
+                </td>
+                <td>
+                  {evaluados.includes(p.pitch_id) ? (
+                    <span className="estado-evaluado">✅ Evaluado</span>
+                  ) : (
+                    <span className="estado-pendiente">⏳ Pendiente</span>
+                  )}
+                </td>
+                <td>
+                  {!evaluados.includes(p.pitch_id) && (
+                    <button onClick={() => setSelectedPitch(p)} className="btn-evaluar">
+                      Evaluar
+                    </button>
+                  )}
                 </td>
               </tr>
             ))
@@ -1964,26 +1986,77 @@ const renderJuradoView = () => {
         </tbody>
       </table>
 
+      {/* Modal de Evaluación */}
       {selectedPitch && (
         <div className="modal-backdrop">
           <div className="modal-evaluacion">
             <h3>🧾 Evaluando: {selectedPitch.nombre_equipo}</h3>
+            <p><strong>🎓 Universidad:</strong> {selectedPitch.universidad}</p>
+            <p><strong>📍 Departamento:</strong> {selectedPitch.departamento}</p>
+            <p><strong>👥 Integrantes:</strong> {selectedPitch.cantidad_integrantes}</p>
+            <p><strong>💡 Proyecto:</strong> {selectedPitch.resumen_proyecto}</p>
 
-            <label>💡 Innovación:</label>
-            <input type="number" min="1" max="10" value={evaluacion.puntaje_innovacion || ''} onChange={(e) => setEvaluacion({ ...evaluacion, puntaje_innovacion: e.target.value })} />
+            <div className="criterios-evaluacion">
+              <div>
+                <label>💡 Innovación</label>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="1"
+                  value={evaluacion.puntaje_innovacion || 5}
+                  onChange={(e) =>
+                    setEvaluacion({ ...evaluacion, puntaje_innovacion: e.target.value })
+                  }
+                />
+                <span>{["😐","🙂","😃","🤩","🏆"][Math.floor((evaluacion.puntaje_innovacion || 5)/2)-1]}</span>
+              </div>
 
-            <label>🌍 Impacto Social:</label>
-            <input type="number" min="1" max="10" value={evaluacion.puntaje_impacto || ''} onChange={(e) => setEvaluacion({ ...evaluacion, puntaje_impacto: e.target.value })} />
+              <div>
+                <label>🌍 Impacto Social</label>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="1"
+                  value={evaluacion.puntaje_impacto || 5}
+                  onChange={(e) =>
+                    setEvaluacion({ ...evaluacion, puntaje_impacto: e.target.value })
+                  }
+                />
+                <span>{["😐","🙂","😃","🤩","🏆"][Math.floor((evaluacion.puntaje_impacto || 5)/2)-1]}</span>
+              </div>
 
-            <label>💼 Modelo de Negocio:</label>
-            <input type="number" min="1" max="10" value={evaluacion.puntaje_modelo || ''} onChange={(e) => setEvaluacion({ ...evaluacion, puntaje_modelo: e.target.value })} />
+              <div>
+                <label>💼 Modelo de Negocio</label>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="1"
+                  value={evaluacion.puntaje_modelo || 5}
+                  onChange={(e) =>
+                    setEvaluacion({ ...evaluacion, puntaje_modelo: e.target.value })
+                  }
+                />
+                <span>{["😐","🙂","😃","🤩","🏆"][Math.floor((evaluacion.puntaje_modelo || 5)/2)-1]}</span>
+              </div>
+            </div>
 
-            <label>🗒 Comentarios:</label>
-            <textarea value={evaluacion.comentarios || ''} onChange={(e) => setEvaluacion({ ...evaluacion, comentarios: e.target.value })} />
+            <label>🗒 Comentarios finales</label>
+            <textarea
+              placeholder="Escribe aquí una observación constructiva sobre el proyecto..."
+              value={evaluacion.comentarios || ''}
+              onChange={(e) => setEvaluacion({ ...evaluacion, comentarios: e.target.value })}
+            />
 
             <div className="acciones-modal">
-              <button onClick={enviarEvaluacion} className="btn-guardar">💾 Guardar</button>
-              <button onClick={() => setSelectedPitch(null)} className="btn-cerrar">Cerrar</button>
+              <button onClick={enviarEvaluacion} className="btn-guardar" disabled={loading}>
+                {loading ? "Guardando..." : "💾 Enviar Evaluación"}
+              </button>
+              <button onClick={() => setSelectedPitch(null)} className="btn-cerrar">
+                ❌ Cerrar
+              </button>
             </div>
           </div>
         </div>
@@ -1991,6 +2064,7 @@ const renderJuradoView = () => {
     </div>
   );
 };
+
 
 
 
