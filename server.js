@@ -15,6 +15,14 @@ import { Server } from 'socket.io';
 
 dotenv.config(); // Carga las variables de entorno desde el archivo .env
 const app = express();
+
+// Configura CORS para permitir solicitudes solo desde tu frontend
+const corsOptions = {
+  origin: ['hackathon-production-a817.up.railway.app', 'http://localhost:5173', 'http://localhost:5000','https://hackathoncontinental.grupo-digital-nextri.com'],
+  methods: 'GET, POST, PUT, DELETE',
+  allowedHeaders: 'Content-Type, Authorization',
+};
+
 const port = process.env.PORT || 8080;
 
 
@@ -46,12 +54,6 @@ io.on('connection', (socket) => {
 });
 
 
-// Configura CORS para permitir solicitudes solo desde tu frontend
-const corsOptions = {
-  origin: ['hackathon-production-a817.up.railway.app', 'http://localhost:5173', 'http://localhost:5000','https://hackathoncontinental.grupo-digital-nextri.com'],
-  methods: 'GET, POST, PUT, DELETE',
-  allowedHeaders: 'Content-Type, Authorization',
-};
 
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -862,9 +864,7 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
-});
+
 
 
 server.listen(port, () => {
