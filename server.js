@@ -20,43 +20,53 @@ dotenv.config(); // Carga las variables de entorno desde el archivo .env
 
 const app = express();
 
-
 // ✅ Configuración de seguridad y CORS (profesional y estable)
-app.set('trust proxy', 1); // Necesario para Railway o proxies
+// ✅ Seguridad + CORS estable para Railway y desarrollo
+app.set('trust proxy', 1);
 
-// 🔒 Límite de peticiones por IP (para evitar saturación)
-const limiter = rateLimit({
-  windowMs: 10 * 1000, // 10 segundos
-  max: 30, // máximo 30 requests por IP
-  message: {
-    success: false,
-    message: '⛔ Demasiadas solicitudes. Espera unos segundos antes de intentar de nuevo.'
-  }
-});
-app.use(limiter);
-
-// 🌐 CORS: Permitir solo los dominios seguros
 const allowedOrigins = [
   'http://localhost:5173',
   'https://hackathon-production-a817.up.railway.app',
   'https://hackathoncontinental.grupo-digital-nextri.com'
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn('❌ Intento de acceso no permitido por CORS:', origin);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  })
-);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  // ⚡ Importante para las preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+
+
+
+
+// 🌐 Configuración CORS global
+
+// 🧠 Coloca Helmet DESPUÉS del CORS
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
+
+// 🚫 Límite de solicitudes (para evitar saturación)
+const limiter = rateLimit({
+  windowMs: 10 * 1000,
+  max: 30,
+  message: {
+    success: false,
+    message: '⛔ Demasiadas solicitudes. Espera unos segundos antes de intentar de nuevo.',
+  },
+});
+app.use(limiter);
 
 // ✅ Permitir preflight (muy importante para Chrome)
 app.options('*', cors());
