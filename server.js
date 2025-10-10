@@ -14,13 +14,11 @@ import http from 'http';
 import { Server } from 'socket.io';
 
 dotenv.config(); // Carga las variables de entorno desde el archivo .env
-
-const server = http.createServer(app);
-
 const app = express();
 const port = process.env.PORT || 8080;
 
-const __dirname = path.resolve();  // Obtener la ruta del directorio actual (correcto para Windows)
+
+const server = http.createServer(app);
 
 // Inicializar Socket.IO
 const io = new Server(server, {
@@ -32,6 +30,11 @@ const io = new Server(server, {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
   },
 });
+
+
+const __dirname = path.resolve();  // Obtener la ruta del directorio actual (correcto para Windows)
+
+
 
 // Evento global al conectar
 io.on('connection', (socket) => {
