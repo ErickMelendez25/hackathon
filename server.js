@@ -10,13 +10,38 @@ import jwt from 'jsonwebtoken';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 
+import http from 'http';
+import { Server } from 'socket.io';
 
 dotenv.config(); // Carga las variables de entorno desde el archivo .env
+
+const server = http.createServer(app);
 
 const app = express();
 const port = process.env.PORT || 8080;
 
 const __dirname = path.resolve();  // Obtener la ruta del directorio actual (correcto para Windows)
+
+// Inicializar Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: [
+      'http://localhost:5173',
+      'https://hackathon-production-a817.up.railway.app'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  },
+});
+
+// Evento global al conectar
+io.on('connection', (socket) => {
+  console.log('🟢 Nuevo cliente conectado:', socket.id);
+
+  socket.on('disconnect', () => {
+    console.log('🔴 Cliente desconectado:', socket.id);
+  });
+});
+
 
 // Configura CORS para permitir solicitudes solo desde tu frontend
 const corsOptions = {
@@ -691,7 +716,6 @@ app.put('/api/verificarsolicitud', (req, res) => {
     return res.status(400).json({ error: 'Estado inválido' });
   }
 
-  // 1️⃣ Actualizar estado en DB
   db.query(
     'UPDATE solicitudes_vendedor SET estado = ? WHERE id = ?',
     [estado, solicitud_id],
@@ -701,7 +725,6 @@ app.put('/api/verificarsolicitud', (req, res) => {
         return res.status(500).json({ error: 'Error al actualizar estado' });
       }
 
-      // 2️⃣ Obtener datos de la solicitud
       db.query('SELECT * FROM solicitudes_vendedor WHERE id = ?', [solicitud_id], (err, rows) => {
         if (err || rows.length === 0) {
           return res.status(404).json({ error: 'Solicitud no encontrada' });
@@ -710,7 +733,6 @@ app.put('/api/verificarsolicitud', (req, res) => {
         const solicitud = rows[0];
         const { nombre_usuario, correo_usuario, usuario_id } = solicitud;
 
-        // ✅ 3️⃣ Si es aprobada, actualizamos tipo usuario (pero rápido)
         if (estado === 'aprobada') {
           db.query('UPDATE usuarios SET tipo = ? WHERE id = ?', ['vendedor', usuario_id], (errUpdate) => {
             if (errUpdate) {
@@ -719,15 +741,18 @@ app.put('/api/verificarsolicitud', (req, res) => {
           });
         }
 
-        // 🚀 4️⃣ Responder al frontend de inmediato (sin esperar correo)
         res.status(200).json({ message: 'Estado actualizado correctamente' });
 
-        // 5️⃣ Enviar correo en background (sin bloquear la respuesta)
+        // 🔥 Notificar a todos los clientes conectados
+        io.emit('solicitudes-actualizadas');
+
+        // Enviar correo de fondo
         enviarCorreoAsync(nombre_usuario, correo_usuario, estado);
       });
     }
   );
 });
+
 
 // 📨 Función async separada
 async function enviarCorreoAsync(nombre_usuario, correo_usuario, estado) {
@@ -836,4 +861,9 @@ app.get('*', (req, res) => {
 
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
+});
+
+
+server.listen(port, () => {
+  console.log(`✅ Servidor con WebSocket en puerto ${port}`);
 });
