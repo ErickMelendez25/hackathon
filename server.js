@@ -95,11 +95,6 @@ const io = new Server(server, {
   pingInterval: 25000
 });
 
-// 🛡️ Seguridad HTTP básica
-app.use(helmet({
-  crossOriginResourcePolicy: false, // Permitir imágenes desde otros orígenes
-}));
-
 
 const __dirname = path.resolve();  // Obtener la ruta del directorio actual (correcto para Windows)
 
@@ -147,21 +142,22 @@ if (!fs.existsSync(terrenosDirectory)) {
 // Configuración de multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, './uploads/pitchs'); // Carpeta donde se guardan PDFs
+    cb(null, path.join(__dirname, 'uploads'));
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `pitch_${Date.now()}${ext}`);
+    const ext = path.extname(file.originalname); // conserva la extensión .pdf
+    cb(null, `${file.fieldname}_${Date.now()}${ext}`);
   }
 });
 
-app.use('/uploads/pitchs', express.static(path.join(__dirname, 'uploads/pitchs')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
-const upload = multer({ dest: 'uploads/pitchs' });
+
+const upload = multer({ dest: 'uploads' });
 
 app.use('/terrenos', express.static(terrenosDirectory)); // Servir archivos estáticos desde 'uploads'
-app.use('/uploads', express.static('uploads'));
+
 
 console.log("HOST:", process.env.DB_HOST);
 console.log("PORT:", process.env.DB_PORT);
