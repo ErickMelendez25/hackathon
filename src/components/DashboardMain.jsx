@@ -1461,25 +1461,30 @@ const renderEquiposAprobados = () => {
 };
 // Guardar borrador del Pitch
 const guardarBorrador = async () => {
-  if (!enlacePitch || !resumen || !impacto || !modelo || !innovacion) {
-    alert('⚠️ Completa todos los campos antes de guardar.');
+  if (!enlacePitch || !resumen || !impacto || !modelo || !innovacion || !pdfFile) {
+    alert('⚠️ Completa todos los campos y selecciona un PDF antes de guardar.');
     return;
   }
 
   try {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/pitch/subir`, {
-      solicitud_id: solicitudUsuario.id,
-      usuario_id: usuarioLocal.id,
-      enlace_pitch: enlacePitch,
-      resumen_proyecto: resumen,
-      impacto_social: impacto,
-      modelo_negocio: modelo,
-      innovacion: innovacion
-    });
+    const formData = new FormData();
+    formData.append('solicitud_id', solicitudUsuario.id);
+    formData.append('usuario_id', usuarioLocal.id);
+    formData.append('enlace_pitch', enlacePitch);
+    formData.append('resumen_proyecto', resumen);
+    formData.append('impacto_social', impacto);
+    formData.append('modelo_negocio', modelo);
+    formData.append('innovacion', innovacion);
+    formData.append('pitch_pdf', pdfFile); // <-- aquí va el PDF
+
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/pitch/subir`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
 
     alert('✅ Pitch guardado correctamente.');
 
-    // Actualizamos el estado local con el ID devuelto desde el backend
     setPitch({
       ...pitch,
       id: res.data?.id || pitch?.id,
@@ -1490,6 +1495,7 @@ const guardarBorrador = async () => {
     alert(error.response?.data?.message || '❌ Error al guardar.');
   }
 };
+
 
 
 
