@@ -1070,6 +1070,24 @@ app.get('/api/pitch/ver/:usuario_id', (req, res) => {
   );
 });
 
+// Obtener evaluaciones de un jurado
+app.get('/api/evaluaciones/jurado/:jurado_id', (req, res) => {
+  const { jurado_id } = req.params;
+
+  const query = `
+    SELECT pitch_id
+    FROM evaluaciones_jurado
+    WHERE jurado_id = ?
+  `;
+
+  db.query(query, [jurado_id], (err, results) => {
+    if (err) {
+      console.error('Error al consultar evaluaciones:', err);
+      return res.status(500).json({ message: 'Error en el servidor' });
+    }
+    res.json(results);
+  });
+});
 
 
 // ✅ Guardar o actualizar evaluación del jurado

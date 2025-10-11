@@ -1880,18 +1880,26 @@ const renderJuradoView = () => {
   const [evaluados, setEvaluados] = useState([]); // equipos ya evaluados
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchPitchs = async () => {
-      try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/pitch/listar`);
-        const unicos = Array.from(new Map(res.data.map(p => [p.usuario_id, p])).values());
-        setPitchs(unicos);
-      } catch (err) {
-        console.error('Error al obtener pitchs:', err);
-      }
-    };
-    fetchPitchs();
-  }, []);
+useEffect(() => {
+  const fetchPitchs = async () => {
+    try {
+      // Traemos todos los pitchs
+      const resPitchs = await axios.get(`${import.meta.env.VITE_API_URL}/api/pitch/listar`);
+      const unicos = Array.from(new Map(resPitchs.data.map(p => [p.usuario_id, p])).values());
+      setPitchs(unicos);
+
+      // Traemos todas las evaluaciones del jurado actual
+      const resEval = await axios.get(`${import.meta.env.VITE_API_URL}/api/evaluaciones/jurado/${usuarioLocal.id}`);
+      const pitchIdsEvaluados = resEval.data.map(ev => ev.pitch_id);
+      setEvaluados(pitchIdsEvaluados);
+    } catch (err) {
+      console.error('Error al obtener pitchs o evaluaciones:', err);
+    }
+  };
+
+  fetchPitchs();
+}, []);
+
 
   const enviarEvaluacion = async () => {
     if (!selectedPitch) return alert("Selecciona un equipo para evaluar.");
