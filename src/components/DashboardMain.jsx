@@ -1006,25 +1006,27 @@ useEffect(() => {
 
 
   useEffect(() => {
-  const fetchPitchGuardado = async () => {
-    if (!usuarioLocal?.id) return;
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/pitch/ver/${usuarioLocal.id}`);
-      if (res.data) {
-        setPitch(res.data);
-        setEnlacePitch(res.data.enlace_pitch || '');
-        setResumen(res.data.resumen_proyecto || '');
-        setImpacto(res.data.impacto_social || '');
-        setModelo(res.data.modelo_negocio || '');
-        setInnovacion(res.data.innovacion || '');
+    const fetchPitchGuardado = async () => {
+      if (!usuarioLocal?.id) return;
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/pitch/ver/${usuarioLocal.id}`);
+        if (res.data) {
+          setPitch(res.data);
+          setEnlacePitch(res.data.enlace_pitch || '');
+          setResumen(res.data.resumen_proyecto || '');
+          setImpacto(res.data.impacto_social || '');
+          setModelo(res.data.modelo_negocio || '');
+          setInnovacion(res.data.innovacion || '');
+          setPdfFile(null); // aquí nos aseguramos que no pide subir PDF si ya existe
+        }
+      } catch (error) {
+        console.error('Error al obtener el pitch guardado:', error);
       }
-    } catch (error) {
-      console.error('Error al obtener el pitch guardado:', error);
-    }
-  };
+    };
 
-  fetchPitchGuardado();
-}, [usuarioLocal]);
+    fetchPitchGuardado();
+  }, [usuarioLocal]);
+
 
 
   // Render de los círculos de fases
