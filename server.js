@@ -48,6 +48,9 @@ app.use((req, res, next) => {
 
 
 
+app.use("/uploads", express.static("uploads"));
+
+
 
 
 // 🌐 Configuración CORS global
@@ -922,6 +925,7 @@ app.get('/api/pitch/listar', (req, res) => {
       p.modelo_negocio,
       p.innovacion,
       p.estado,
+      p.documento_pdf,
       p.fecha_creacion,
       s.nombre_equipo,
       s.universidad,
@@ -1135,28 +1139,100 @@ app.post('/api/evaluacion', (req, res) => {
   );
 });
 
+// Configurar destino y nombre de archivo
+const storagePitch = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // carpeta donde guardarás los archivos
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `pitch_${Date.now()}${ext}`); // ejemplo: pitch_1718123123.pdf
+  },
+});
 
+// Filtro para solo aceptar PDF
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === "application/pdf") {
+    cb(null, true);
+  } else {
+    cb(new Error("Solo se permiten archivos PDF"), false);
+  }
+};
+
+// Middleware listo para usar
+const uploadPitch = multer({ storage: storagePitch, fileFilter });
 
 // ✅ Enviar definitivamente el pitch (ya no se puede editar)
-app.put('/api/pitch/enviar', (req, res) => {
+app.put("/api/pitch/enviar", uploadPitch.single("pitch_pdf"), (req, res) => {
   const { usuario_id } = req.body;
 
   if (!usuario_id) {
-    return res.status(400).json({ message: 'Falta el usuario_id' });
+    return res.status(400).json({ message: "Falta el usuario_id" });
   }
 
-  // Bloquea edición del pitch
-  const query = `UPDATE pitchs_equipos SET estado = 'enviado' WHERE usuario_id = ?`;
+  const pdfFile = req.file ? req.file.filename : null;
 
-  db.query(query, [usuario_id], (err, result) => {
+  const query = `
+    UPDATE pitchs_equipos 
+    SET estado = 'enviado', documento_pdf = ? 
+    WHERE usuario_id = ?
+  `;
+
+  db.query(query, [pdfFile, usuario_id], (err, result) => {
     if (err) {
-      console.error('Error al actualizar estado del pitch:', err);
-      return res.status(500).json({ message: 'Error en el servidor' });
+      console.error("❌ Error al actualizar estado del pitch:", err);
+      return res.status(500).json({ message: "Error en el servidor" });
     }
-    res.status(200).json({ message: 'Pitch enviado definitivamente.' });
+
+    res.status(200).json({
+      message: "✅ Pitch enviado correctamente y PDF guardado.",
+      documento_pdf: pdfFile,
+    });
+
+    // 💌 Enviar correo (opcional)
+    setImmediate(() => {
+      try {
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+
+        db.query("SELECT nombre, correo FROM usuarios WHERE id = ?", [usuario_id], (err, rows) => {
+          if (err || rows.length === 0) return;
+          const usuario = rows[0];
+
+          const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: ["72848846@continental.edu.pe", usuario.correo],
+            subject: `🚀 Pitch enviado por ${usuario.nombre}`,
+            text: `El usuario ${usuario.nombre} ha enviado su pitch final.`,
+            attachments: pdfFile
+              ? [
+                  {
+                    filename: pdfFile,
+                    path: `uploads/${pdfFile}`,
+                  },
+                ]
+              : [],
+          };
+
+          transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.error("⚠️ Error al enviar correo:", error.message);
+            } else {
+              console.log("✅ Correo enviado correctamente:", info.response);
+            }
+          });
+        });
+      } catch (error) {
+        console.error("⚠️ Error interno al enviar correo:", error.message);
+      }
+    });
   });
 });
-
 
 
 

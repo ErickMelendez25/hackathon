@@ -982,6 +982,8 @@ const renderVendedorView = () => {
   const [innovacion, setInnovacion] = useState('');
   const [pitch, setPitch] = useState(null);
 
+
+  const [archivoPDF, setArchivoPDF] = useState(null);
   const [resultadosPublicados, setResultadosPublicados] = useState([]);
 
 useEffect(() => {
@@ -1310,6 +1312,9 @@ const renderEquiposAprobados = () => {
     ).values()
   );
 
+
+
+
   return (
     <div className="grid-aprobados">
       {aprobadosUnicos.map((solicitud, index) => (
@@ -1393,6 +1398,14 @@ const renderEquiposAprobados = () => {
         disabled={pitch?.estado === 'enviado'}
       />
 
+      <label>📄 Documento del proyecto (PDF):</label>
+      <input
+        type="file"
+        accept="application/pdf"
+        onChange={(e) => setArchivoPDF(e.target.files[0])}
+        disabled={pitch?.estado === 'enviado'}
+      />
+
 
       <label>📝 Resumen del proyecto (máx. 500 caracteres):</label>
       <textarea
@@ -1447,8 +1460,9 @@ const renderEquiposAprobados = () => {
   
 
 };
-
+// Guardar borrador del Pitch
 const guardarBorrador = async () => {
+  // Validación de campos obligatorios
   if (!enlacePitch || !resumen || !impacto || !modelo || !innovacion) {
     alert('⚠️ Completa todos los campos antes de guardar.');
     return;
@@ -1456,23 +1470,30 @@ const guardarBorrador = async () => {
 
   try {
     const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/pitch/subir`, {
-      solicitud_id: solicitudUsuario.id,
-      usuario_id: usuarioLocal.id,
-      enlace_pitch: enlacePitch,
-      resumen_proyecto: resumen,
-      impacto_social: impacto,
-      modelo_negocio: modelo,
-      innovacion: innovacion
+      solicitud_id: solicitudUsuario?.id,
+      usuario_id: usuarioLocal?.id,
+      enlace_pitch: enlacePitch.trim(),
+      resumen_proyecto: resumen.trim(),
+      impacto_social: impacto.trim(),
+      modelo_negocio: modelo.trim(),
+      innovacion: innovacion.trim(),
     });
 
     alert('✅ Pitch guardado correctamente.');
-    setPitch({ ...pitch, estado: 'borrador', id: res.data.id });
+
+    // Actualizamos el estado local con el ID devuelto desde el backend
+    setPitch({
+      ...pitch,
+      id: res.data?.id || pitch?.id,
+      estado: 'borrador',
+    });
   } catch (error) {
-    console.error(error);
-    alert(error.response?.data?.message || '❌ Error al guardar.');
+    console.error('Error al guardar Pitch:', error);
+    alert(error.response?.data?.message || '❌ Error al guardar el Pitch.');
   }
 };
 
+// Enviar definitivamente el Pitch
 const enviarDefinitivo = async () => {
   if (pitch?.estado === 'enviado') {
     alert('⚠️ Este formulario ya fue enviado definitivamente.');
@@ -1486,16 +1507,22 @@ const enviarDefinitivo = async () => {
 
   try {
     await axios.put(`${import.meta.env.VITE_API_URL}/api/pitch/enviar`, {
-      usuario_id: usuarioLocal.id
+      usuario_id: usuarioLocal?.id,
     });
-    alert('🚀 Enviado definitivamente. Ya no puedes editarlo.');
+
+    alert('🚀 Pitch enviado definitivamente. Ya no puedes editarlo.');
+    
+    // Actualizamos el estado del Pitch en el frontend
     setPitch({ ...pitch, estado: 'enviado' });
+
+    // Cerramos el modal del formulario
     setShowPitchForm(false);
   } catch (error) {
-    console.error(error);
-    alert(error.response?.data?.message || '❌ Error al enviar.');
+    console.error('Error al enviar Pitch:', error);
+    alert(error.response?.data?.message || '❌ Error al enviar el Pitch.');
   }
 };
+
 
 const [inscripcionesCerradas, setInscripcionesCerradas] = useState(false);
 
@@ -2023,10 +2050,12 @@ useEffect(() => {
             <th>Universidad</th>
             <th>Pitch</th>
             <th>Resumen</th>
+            <th>PDF</th> {/* <-- esta columna faltaba */}
             <th>Estado</th>
             <th>Acción</th>
           </tr>
         </thead>
+
         <tbody>
           {pitchs.length === 0 ? (
             <tr><td colSpan="6">No hay equipos disponibles.</td></tr>
@@ -2045,6 +2074,16 @@ useEffect(() => {
                     📘 Ver Proyecto
                   </button>
                 </td>
+                <td>
+                  {p.documento_pdf ? (
+                    <a href={`${import.meta.env.VITE_API_URL}/uploads/${p.documento_pdf}`} target="_blank" rel="noopener noreferrer">
+                      📄 Ver PDF
+                    </a>
+                  ) : (
+                    <span>—</span>
+                  )}
+                </td>
+
                 <td>
                   {evaluados.includes(p.pitch_id) ? (
                     <span className="estado-evaluado">✅ Evaluado</span>
