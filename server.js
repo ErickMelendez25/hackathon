@@ -158,6 +158,7 @@ const storage = multer.diskStorage({
 const upload = multer({ dest: 'uploads/pitchs' });
 
 app.use('/terrenos', express.static(terrenosDirectory)); // Servir archivos estáticos desde 'uploads'
+app.use('/uploads', express.static('uploads'));
 
 console.log("HOST:", process.env.DB_HOST);
 console.log("PORT:", process.env.DB_PORT);

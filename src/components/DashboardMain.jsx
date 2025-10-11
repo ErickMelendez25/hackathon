@@ -1434,6 +1434,20 @@ const renderEquiposAprobados = () => {
             />
 
             <label>📄 Documento PDF del proyecto:</label>
+
+            {pitch?.pitch_pdf ? (
+              <div>
+                <a 
+                  href={`${import.meta.env.VITE_API_URL}/uploads/${pitch.pitch_pdf}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  📎 Ver PDF subido
+                </a>
+                <p>Si quieres reemplazarlo, selecciona otro archivo:</p>
+              </div>
+            ) : null}
+
             <input
               type="file"
               accept="application/pdf"
