@@ -142,11 +142,11 @@ if (!fs.existsSync(terrenosDirectory)) {
 // Configuración de multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, 'uploads'));
+    cb(null, path.join(__dirname, 'uploads')); // carpeta donde se guarda
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname); // conserva la extensión .pdf
-    cb(null, `${file.fieldname}_${Date.now()}${ext}`);
+    const ext = path.extname(file.originalname); // toma la extensión del archivo
+    cb(null, `${file.fieldname}_${Date.now()}${ext}`); // ej: pdf_1697032654321.pdf
   }
 });
 
@@ -154,7 +154,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 
-const upload = multer({ dest: 'uploads' });
+const upload = multer({ storage });
 
 app.use('/terrenos', express.static(terrenosDirectory)); // Servir archivos estáticos desde 'uploads'
 
