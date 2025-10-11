@@ -1503,7 +1503,9 @@ const guardarBorrador = async () => {
       ...pitch,
       id: res.data?.id || pitch?.id,
       estado: 'borrador',
+      pitch_pdf: res.data?.pitch_pdf, // <--- agregamos el PDF recibido del backend
     });
+
   } catch (error) {
     console.error(error);
     alert(error.response?.data?.message || '❌ Error al guardar.');
