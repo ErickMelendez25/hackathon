@@ -1056,7 +1056,7 @@ app.post('/api/pitch/subir', upload.single('pitch_pdf'), async (req, res) => {
     return res.status(403).json({ message: 'El plazo para subir el pitch ha finalizado.' });
   }
 
-  const { solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion } = req.body;
+  const { solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, publicado } = req.body;
 
   if (!solicitud_id || !usuario_id || !enlace_pitch?.trim() || !resumen_proyecto?.trim() ||
       !impacto_social?.trim() || !modelo_negocio?.trim() || !innovacion?.trim()) {
@@ -1090,27 +1090,27 @@ app.post('/api/pitch/subir', upload.single('pitch_pdf'), async (req, res) => {
 
       const query = `
         INSERT INTO pitchs_equipos 
-        (solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pitch_pdf)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pitch_pdf, publicado)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       db.query(
         query,
-        [solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pdfUrl],
+        [solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pdfUrl, publicado === 'true' ? 1 : 0],
         (err, result) => {
           if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
           res.status(200).json({
             message: 'Pitch guardado correctamente',
             id: result.insertId,
-            pitch_pdf: pdfUrl
+            pitch_pdf: pdfUrl,
+            publicado: publicado === 'true'
           });
         }
       );
     }
   );
 });
-
 
 
 
