@@ -21,7 +21,6 @@ import "../styles/HackathonSchedule.css";
 
 import ProductosView from './ProductosView';
 
-import { toast } from "react-toastify";
 
 
 
