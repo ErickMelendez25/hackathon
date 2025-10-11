@@ -1315,13 +1315,6 @@ const renderEquiposAprobados = () => {
     ).values()
   );
 
-<<<<<<< HEAD
-
-=======
- 
->>>>>>> 8087fb2 (agregandO BOTN PDF)
-
-
   return (
     <div className="grid-aprobados">
       {aprobadosUnicos.map((solicitud, index) => (
@@ -1381,98 +1374,85 @@ const renderEquiposAprobados = () => {
           </div>
         </div>
       ))}
+      {/* Modal para formulario del Pitch */}
+      {showPitchForm && (
+        <div className="modal-backdrop">
+          <div className="modal-formulario">
+            <h3>Formulario del Proyecto</h3>
+            {pitch?.estado === 'enviado' && (
+              <div className="alerta-enviado">
+                ⚠️ Este formulario fue enviado definitivamente. Solo lectura.
+              </div>
+            )}
 
-    {/* Modal para formulario del Pitch */}
-{/* Modal para formulario del Pitch */}
-{showPitchForm && (
-  <div className="modal-backdrop">
-    <div className="modal-formulario">
-      <h3>Formulario del Proyecto</h3>
-      {pitch?.estado === 'enviado' && (
-        <div className="alerta-enviado">
-          ⚠️ Este formulario fue enviado definitivamente. Solo lectura.
+            <label>🎥 Enlace del Pitch (YouTube o Drive):</label>
+            <input
+              type="text"
+              placeholder="https://drive.google.com/..."
+              value={enlacePitch}
+              onChange={(e) => setEnlacePitch(e.target.value)}
+              maxLength={200}
+              required
+              disabled={pitch?.estado === 'enviado'}
+            />
+
+
+            <label>📝 Resumen del proyecto (máx. 500 caracteres):</label>
+            <textarea
+              value={resumen}
+              onChange={(e) => setResumen(e.target.value)}
+              maxLength={500}
+              required
+              disabled={pitch?.estado === 'enviado'}
+            />
+
+            <label>🌍 Impacto social (máx. 400 caracteres):</label>
+            <textarea
+              value={impacto}
+              onChange={(e) => setImpacto(e.target.value)}
+              maxLength={400}
+              required
+              disabled={pitch?.estado === 'enviado'}
+            />
+
+            <label>💼 Modelo de negocio (máx. 400 caracteres):</label>
+            <textarea
+              value={modelo}
+              onChange={(e) => setModelo(e.target.value)}
+              maxLength={400}
+              required
+              disabled={pitch?.estado === 'enviado'}
+            />
+
+            <label>💡 Innovación (máx. 300 caracteres):</label>
+            <textarea
+              value={innovacion}
+              onChange={(e) => setInnovacion(e.target.value)}
+              maxLength={300}
+              required
+              disabled={pitch?.estado === 'enviado'}
+            />
+
+            <label>📄 Documento PDF del proyecto:</label>
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => setPdfFile(e.target.files[0])}
+              disabled={pitch?.estado === 'enviado'}
+            />
+
+            <div className="botones-formulario">
+              {pitch?.estado !== 'enviado' && (
+                <>
+                  <button onClick={guardarBorrador} className="btn-guardar">💾 Guardar Cambios</button>
+                  <button onClick={enviarDefinitivo} className="btn-enviar">🚀 Enviar Definitivamente</button>
+                </>
+              )}
+              <button onClick={() => setShowPitchForm(false)} className="btn-cerrar">Cerrar</button>
+            </div>
+          </div>
         </div>
       )}
-
-      <label>🎥 Enlace del Pitch (YouTube o Drive):</label>
-      <input
-        type="text"
-        placeholder="https://drive.google.com/..."
-        value={enlacePitch}
-        onChange={(e) => setEnlacePitch(e.target.value)}
-        maxLength={200}
-        required
-        disabled={pitch?.estado === 'enviado'}
-      />
-
-<<<<<<< HEAD
-      <label>📄 Documento del proyecto (PDF):</label>
-      <input
-        type="file"
-        accept="application/pdf"
-        onChange={(e) => setArchivoPDF(e.target.files[0])}
-        disabled={pitch?.estado === 'enviado'}
-      />
-
-
-=======
->>>>>>> 8087fb2 (agregandO BOTN PDF)
-      <label>📝 Resumen del proyecto (máx. 500 caracteres):</label>
-      <textarea
-        value={resumen}
-        onChange={(e) => setResumen(e.target.value)}
-        maxLength={500}
-        required
-        disabled={pitch?.estado === 'enviado'}
-      />
-
-      <label>🌍 Impacto social (máx. 400 caracteres):</label>
-      <textarea
-        value={impacto}
-        onChange={(e) => setImpacto(e.target.value)}
-        maxLength={400}
-        required
-        disabled={pitch?.estado === 'enviado'}
-      />
-
-      <label>💼 Modelo de negocio (máx. 400 caracteres):</label>
-      <textarea
-        value={modelo}
-        onChange={(e) => setModelo(e.target.value)}
-        maxLength={400}
-        required
-        disabled={pitch?.estado === 'enviado'}
-      />
-
-      <label>💡 Innovación (máx. 300 caracteres):</label>
-      <textarea
-        value={innovacion}
-        onChange={(e) => setInnovacion(e.target.value)}
-        maxLength={300}
-        required
-        disabled={pitch?.estado === 'enviado'}
-      />
-
-      <label>📄 Documento PDF del proyecto:</label>
-      <input
-        type="file"
-        accept="application/pdf"
-        onChange={(e) => setPdfFile(e.target.files[0])}
-        disabled={pitch?.estado === 'enviado'}
-      />
-
-      <div className="botones-formulario">
-        {pitch?.estado !== 'enviado' && (
-          <>
-            <button onClick={guardarBorrador} className="btn-guardar">💾 Guardar Cambios</button>
-            <button onClick={enviarDefinitivo} className="btn-enviar">🚀 Enviar Definitivamente</button>
-          </>
-        )}
-        <button onClick={() => setShowPitchForm(false)} className="btn-cerrar">Cerrar</button>
-      </div>
-    </div>
-  </div>
-)}
 
     </div>
   );
@@ -1481,56 +1461,20 @@ const renderEquiposAprobados = () => {
 };
 // Guardar borrador del Pitch
 const guardarBorrador = async () => {
-<<<<<<< HEAD
-  // Validación de campos obligatorios
   if (!enlacePitch || !resumen || !impacto || !modelo || !innovacion) {
-=======
-  if (!enlacePitch.trim() || !resumen.trim() || !impacto.trim() || !modelo.trim() || !innovacion.trim()) {
->>>>>>> 8087fb2 (agregandO BOTN PDF)
     alert('⚠️ Completa todos los campos antes de guardar.');
     return;
   }
 
-  if (!pdfFile) {
-    alert('⚠️ Debes subir el PDF del proyecto.');
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append('solicitud_id', solicitudUsuario.id.toString());
-  formData.append('usuario_id', usuarioLocal.id.toString());
-  formData.append('enlace_pitch', enlacePitch.trim());
-  formData.append('resumen_proyecto', resumen.trim());
-  formData.append('impacto_social', impacto.trim());
-  formData.append('modelo_negocio', modelo.trim());
-  formData.append('innovacion', innovacion.trim());
-  formData.append('pitch_pdf', pdfFile);
-
-  // 🔹 Debug: imprimir todo lo que tiene FormData
-  console.log('--- Contenido FormData ---');
-  for (let [key, value] of formData.entries()) {
-    // Si es un archivo, imprime nombre y tipo
-    if (value instanceof File) {
-      console.log(key, value.name, value.type, value.size + ' bytes');
-    } else {
-      console.log(key, value);
-    }
-  }
-
   try {
-<<<<<<< HEAD
     const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/pitch/subir`, {
-      solicitud_id: solicitudUsuario?.id,
-      usuario_id: usuarioLocal?.id,
-      enlace_pitch: enlacePitch.trim(),
-      resumen_proyecto: resumen.trim(),
-      impacto_social: impacto.trim(),
-      modelo_negocio: modelo.trim(),
-      innovacion: innovacion.trim(),
-=======
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/pitch/subir`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
->>>>>>> 8087fb2 (agregandO BOTN PDF)
+      solicitud_id: solicitudUsuario.id,
+      usuario_id: usuarioLocal.id,
+      enlace_pitch: enlacePitch,
+      resumen_proyecto: resumen,
+      impacto_social: impacto,
+      modelo_negocio: modelo,
+      innovacion: innovacion
     });
 
     alert('✅ Pitch guardado correctamente.');
@@ -1542,22 +1486,14 @@ const guardarBorrador = async () => {
       estado: 'borrador',
     });
   } catch (error) {
-<<<<<<< HEAD
-    console.error('Error al guardar Pitch:', error);
-    alert(error.response?.data?.message || '❌ Error al guardar el Pitch.');
-  }
-};
-
-// Enviar definitivamente el Pitch
-=======
-    console.error('Axios error:', error.response?.data || error.message);
+    console.error(error);
     alert(error.response?.data?.message || '❌ Error al guardar.');
   }
 };
 
 
 
->>>>>>> 8087fb2 (agregandO BOTN PDF)
+// Enviar definitivamente el Pitch
 const enviarDefinitivo = async () => {
   if (pitch?.estado === 'enviado') {
     alert('⚠️ Este formulario ya fue enviado definitivamente.');
@@ -2114,11 +2050,6 @@ useEffect(() => {
             <th>Universidad</th>
             <th>Pitch</th>
             <th>Resumen</th>
-<<<<<<< HEAD
-            <th>PDF</th> {/* <-- esta columna faltaba */}
-=======
-            <th>Documento PDF</th>
->>>>>>> 8087fb2 (agregandO BOTN PDF)
             <th>Estado</th>
             <th>Acción</th>
           </tr>
@@ -2142,31 +2073,6 @@ useEffect(() => {
                     📘 Ver Proyecto
                   </button>
                 </td>
-                <td>
-<<<<<<< HEAD
-                  {p.documento_pdf ? (
-                    <a href={`${import.meta.env.VITE_API_URL}/uploads/${p.documento_pdf}`} target="_blank" rel="noopener noreferrer">
-                      📄 Ver PDF
-                    </a>
-                  ) : (
-                    <span>—</span>
-                  )}
-                </td>
-=======
-                {p.pitch_pdf ? (
-                  <a
-                    href={`${import.meta.env.VITE_API_URL}/uploads/pitchs/${p.pitch_pdf}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    📄 Ver PDF
-                  </a>
-                ) : (
-                  'No enviado'
-                )}
-              </td>
->>>>>>> 8087fb2 (agregandO BOTN PDF)
-
                 <td>
                   {evaluados.includes(p.pitch_id) ? (
                     <span className="estado-evaluado">✅ Evaluado</span>
