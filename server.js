@@ -8,7 +8,10 @@ import path from 'path';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import bodyParser from 'body-parser';
+import { v2 as cloudinary } from 'cloudinary';
 import dotenv from 'dotenv';
+import { Readable } from 'stream';
+
 
 import http from 'http';
 import { Server } from 'socket.io';
@@ -17,6 +20,12 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
 dotenv.config(); // Carga las variables de entorno desde el archivo .env
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const app = express();
 
@@ -140,21 +149,33 @@ if (!fs.existsSync(terrenosDirectory)) {
 
 // Configuración de Multer
 // Configuración de multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, 'uploads')); // carpeta donde se guarda
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname); // toma la extensión del archivo
-    cb(null, `${file.fieldname}_${Date.now()}${ext}`); // ej: pdf_1697032654321.pdf
-  }
-});
+// Multer in-memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// Función para subir a Cloudinary desde buffer
+const uploadToCloudinary = (fileBuffer, folder = 'pitchs') => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+
+    const bufferStream = new Readable();
+    bufferStream.push(fileBuffer);
+    bufferStream.push(null);
+    bufferStream.pipe(stream);
+  });
+};
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 
-const upload = multer({ storage });
+
 
 app.use('/terrenos', express.static(terrenosDirectory)); // Servir archivos estáticos desde 'uploads'
 
@@ -1027,59 +1048,46 @@ app.put('/api/resultados/publicar', (req, res) => {
 
 const FECHA_LIMITE = new Date('2025-11-05T23:59:59');
 
-app.post('/api/pitch/subir', upload.single('pitch_pdf'), (req, res) => {
+app.post('/api/pitch/subir', upload.single('pitch_pdf'), async (req, res) => {
   console.error('--- NUEVA PETICIÓN /api/pitch/subir ---');
   console.error('Fecha actual:', new Date());
 
   if (new Date() > FECHA_LIMITE) {
-    console.error('⚠️ Plazo finalizado');
     return res.status(403).json({ message: 'El plazo para subir el pitch ha finalizado.' });
   }
 
-  const {
-    solicitud_id,
-    usuario_id,
-    enlace_pitch,
-    resumen_proyecto,
-    impacto_social,
-    modelo_negocio,
-    innovacion
-  } = req.body;
+  const { solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion } = req.body;
 
-  // Validación: todos los campos obligatorios (PDF solo si no existe uno)
-  if (
-    !solicitud_id || !usuario_id ||
-    !enlace_pitch?.trim() || !resumen_proyecto?.trim() ||
-    !impacto_social?.trim() || !modelo_negocio?.trim() ||
-    !innovacion?.trim()
-  ) {
-    console.error('⚠️ Todos los campos obligatorios incompletos');
+  if (!solicitud_id || !usuario_id || !enlace_pitch?.trim() || !resumen_proyecto?.trim() ||
+      !impacto_social?.trim() || !modelo_negocio?.trim() || !innovacion?.trim()) {
     return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
   }
 
-  // Verificar si ya existe un PDF para este usuario
   db.query(
     'SELECT pitch_pdf FROM pitchs_equipos WHERE usuario_id = ? ORDER BY fecha_creacion DESC LIMIT 1',
     [usuario_id],
-    (err, results) => {
-      if (err) {
-        console.error('❌ Error al consultar pitch existente:', err);
-        return res.status(500).json({ message: 'Error en el servidor' });
-      }
+    async (err, results) => {
+      if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
       const pdfExistente = results[0]?.pitch_pdf;
 
-      // PDF obligatorio solo si no hay uno existente
       if (!req.file && !pdfExistente) {
-        console.error('⚠️ Debes subir un PDF porque aún no existe');
         return res.status(400).json({ message: 'Debes subir un PDF si aún no existe.' });
       }
 
-      // Usar PDF nuevo si se subió, sino conservar el existente
-      const pdfPath = req.file ? req.file.filename : pdfExistente;
-      console.error('✅ PDF a usar:', pdfPath);
+      let pdfUrl = pdfExistente;
 
-      // Insertar nuevo registro (puedes cambiar a UPDATE si quieres reemplazar en caso de nuevo PDF)
+      if (req.file) {
+        try {
+          const result = await uploadToCloudinary(req.file.buffer, 'pitchs');
+          pdfUrl = result.secure_url;
+          console.error('✅ PDF subido a Cloudinary:', pdfUrl);
+        } catch (error) {
+          console.error('❌ Error al subir a Cloudinary:', error);
+          return res.status(500).json({ message: 'Error al subir el PDF' });
+        }
+      }
+
       const query = `
         INSERT INTO pitchs_equipos 
         (solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pitch_pdf)
@@ -1088,24 +1096,21 @@ app.post('/api/pitch/subir', upload.single('pitch_pdf'), (req, res) => {
 
       db.query(
         query,
-        [solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pdfPath],
+        [solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pdfUrl],
         (err, result) => {
-          if (err) {
-            console.error('❌ Error al guardar pitch en BD:', err);
-            return res.status(500).json({ message: 'Error en el servidor' });
-          }
+          if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
-          console.log('✅ Pitch guardado en BD con ID:', result.insertId);
           res.status(200).json({
             message: 'Pitch guardado correctamente',
             id: result.insertId,
-            pitch_pdf: pdfPath
+            pitch_pdf: pdfUrl
           });
         }
       );
     }
   );
 });
+
 
 
 
