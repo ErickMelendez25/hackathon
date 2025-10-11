@@ -144,16 +144,18 @@ if (!fs.existsSync(terrenosDirectory)) {
 }
 
 // Configuración de Multer
+// Configuración de multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'terrenos/');
+    cb(null, './uploads/pitchs'); // Carpeta donde se guardan PDFs
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
+    const ext = path.extname(file.originalname);
+    cb(null, `pitch_${Date.now()}${ext}`);
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ dest: 'uploads/pitchs' });
 
 app.use('/terrenos', express.static(terrenosDirectory)); // Servir archivos estáticos desde 'uploads'
 
@@ -1025,11 +1027,20 @@ app.put('/api/resultados/publicar', (req, res) => {
 
 const FECHA_LIMITE = new Date('2025-11-05T23:59:59');
 ////////PITCH Y PROYECTO DE LOS ESTUDIANTES
-app.post('/api/pitch/subir', (req, res) => {
-
+// Ruta para subir pitch
+app.post('/api/pitch/subir', upload.single('pitch_pdf'), (req, res) => {
+  console.error('--- NUEVA PETICIÓN /api/pitch/subir ---');
+  console.error('Fecha actual:', new Date());
+  
   if (new Date() > FECHA_LIMITE) {
+    console.error('⚠️ Plazo finalizado');
     return res.status(403).json({ message: 'El plazo para subir el pitch ha finalizado.' });
   }
+
+  // Mostrar body completo y archivo recibido
+  console.error('--- req.body ---', req.body);
+  console.error('--- req.file ---', req.file);
+
   const {
     solicitud_id,
     usuario_id,
@@ -1040,33 +1051,47 @@ app.post('/api/pitch/subir', (req, res) => {
     innovacion
   } = req.body;
 
+  // Validación: todos los campos + PDF obligatorio
   if (
     !solicitud_id || !usuario_id ||
-    !enlace_pitch?.trim() ||
-    !resumen_proyecto?.trim() ||
-    !impacto_social?.trim() ||
-    !modelo_negocio?.trim() ||
-    !innovacion?.trim()
+    !enlace_pitch?.trim() || !resumen_proyecto?.trim() ||
+    !impacto_social?.trim() || !modelo_negocio?.trim() ||
+    !innovacion?.trim() || !req.file
   ) {
-    return res.status(400).json({ message: '⚠️ Todos los campos del pitch son obligatorios.' });
+    console.error('⚠️ Datos incompletos o PDF no enviado');
+    console.error('solicitud_id:', solicitud_id);
+    console.error('usuario_id:', usuario_id);
+    console.error('enlace_pitch:', enlace_pitch);
+    console.error('resumen_proyecto:', resumen_proyecto);
+    console.error('impacto_social:', impacto_social);
+    console.error('modelo_negocio:', modelo_negocio);
+    console.error('innovacion:', innovacion);
+    console.error('req.file:', req.file);
+    return res.status(400).json({ message: '⚠️ Todos los campos son obligatorios y el PDF debe ser enviado.' });
   }
+
+  const pdfPath = req.file.filename;
+  console.error('✅ PDF recibido:', pdfPath);
 
   const query = `
     INSERT INTO pitchs_equipos 
-    (solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    (solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pitch_pdf)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-  db.query(query, [solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion],
+  db.query(
+    query,
+    [solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pdfPath],
     (err, result) => {
       if (err) {
-        console.error('Error al guardar pitch:', err);
+        console.error('❌ Error al guardar pitch en BD:', err);
         return res.status(500).json({ message: 'Error en el servidor' });
       }
-      res.status(200).json({ message: 'Pitch guardado correctamente', id: result.insertId });
-    });
+      console.error('✅ Pitch guardado en BD con ID:', result.insertId);
+      res.status(200).json({ message: '✅ Pitch guardado correctamente', id: result.insertId, pitch_pdf: pdfPath });
+    }
+  );
 });
-
 
 
 app.get('/api/pitch/ver/:usuario_id', (req, res) => {
