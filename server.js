@@ -647,13 +647,12 @@ app.put('/UpdateTerreno/:id',
 
 
 app.post('/api/solicitud', (req, res) => {
-  console.log('Datos recibidos en el servidor:', req.body);
+  console.log('📩 Datos recibidos en el servidor:', req.body);
 
   const {
     usuario_id,
     nombre_usuario,
     correo_usuario,
-
     nombre_equipo,
     nombre_representante,
     correo_contacto,
@@ -671,7 +670,7 @@ app.post('/api/solicitud', (req, res) => {
     participantes
   } = req.body;
 
-  // Validación básica
+  // ✅ Validación básica
   if (
     !usuario_id || !nombre_usuario || !correo_usuario ||
     !nombre_equipo || !nombre_representante || !correo_contacto ||
@@ -683,7 +682,7 @@ app.post('/api/solicitud', (req, res) => {
     return res.status(400).json({ message: 'Faltan datos obligatorios o el formato es incorrecto.' });
   }
 
-  // Insertar datos principales en tabla `inscripciones`
+  // ✅ Insertar en la tabla principal
   const insertQuery = `
     INSERT INTO solicitudes_vendedor (
       usuario_id, nombre_usuario, correo_usuario,
@@ -702,18 +701,18 @@ app.post('/api/solicitud', (req, res) => {
       nombre_equipo, nombre_representante, correo_contacto,
       tipo_documento, numero_documento, universidad,
       departamento, provincia, distrito, cantidad_integrantes,
-      JSON.stringify(tecnologias_usadas), // se guarda como string JSON
+      JSON.stringify(tecnologias_usadas),
       nombre_proyecto, descripcion_proyecto, acepta_terminos
     ],
     (err, result) => {
       if (err) {
-        console.error('Error al registrar inscripción:', err);
-        return res.status(500).json({ message: 'Error en el servidor', error: err.message });
+        console.error('❌ Error al registrar inscripción:', err);
+        return res.status(500).json({ message: 'Error en el servidor al registrar inscripción.', error: err.message });
       }
 
       const inscripcionId = result.insertId;
 
-      // Insertar participantes en tabla relacionada `participantes`
+      // ✅ Insertar participantes
       const participantesQuery = `
         INSERT INTO participantes (solicitud_id, nombre, dni)
         VALUES ?
@@ -722,25 +721,29 @@ app.post('/api/solicitud', (req, res) => {
 
       db.query(participantesQuery, [participantesValues], (err2) => {
         if (err2) {
-          console.error('Error al registrar participantes:', err2);
-          return res.status(500).json({ message: 'Error al registrar participantes', error: err2.message });
+          console.error('❌ Error al registrar participantes:', err2);
+          return res.status(500).json({ message: 'Error al registrar participantes.', error: err2.message });
         }
 
-        // Enviar correo de confirmación
-        try {
-          const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-              user: process.env.EMAIL_USER,
-              pass: process.env.EMAIL_PASS,
-            }
-          });
+        // ✅ Responder inmediatamente al cliente (no esperar envío del correo)
+        res.status(200).json({ message: 'Inscripción registrada correctamente.' });
 
-          const mailOptions = {
-            from: correo_usuario,
-            to: ['72848846@continental.edu.pe', correo_contacto],
-            subject: `📩 Nueva Inscripción de equipo: ${nombre_equipo}`,
-            text: `
+        // 💌 Enviar correo en segundo plano (no bloquea la respuesta)
+        setImmediate(() => {
+          try {
+            const transporter = nodemailer.createTransport({
+              service: 'gmail',
+              auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+              },
+            });
+
+            const mailOptions = {
+              from: process.env.EMAIL_USER,
+              to: ['72848846@continental.edu.pe', correo_contacto],
+              subject: `📩 Nueva Inscripción de equipo: ${nombre_equipo}`,
+              text: `
 📝 *Inscripción al Hackatón*
 
 👥 *Nombre del equipo:* ${nombre_equipo}
@@ -758,28 +761,36 @@ app.post('/api/solicitud', (req, res) => {
 👥 *Participantes:*
 ${participantes.map((p, i) => `${i + 1}. ${p.nombre} - DNI: ${p.dni}`).join('\n')}
 
-🔗 *Ver en plataforma:* http://localhost:5173/dashboard/inscripciones
-            `
-          };
+🔗 *Ver en plataforma:* https://tu-dominio.vercel.app/dashboard/inscripciones
+              `
+            };
 
-          transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-              console.error('Error al enviar el correo:', error);
-              return res.status(500).json({ message: 'Inscripción registrada, pero no se pudo enviar el correo.', error: error.message });
-            }
+            transporter.sendMail(mailOptions, (error, info) => {
+              if (error) {
+                console.error('⚠️ Error al enviar el correo:', error.message);
+              } else {
+                console.log('✅ Correo enviado correctamente:', info.response);
+                // Notificar a los administradores en tiempo real
+                io.emit('nuevaSolicitud', {
+                  usuario_id,
+                  nombre_equipo,
+                  nombre_representante,
+                  universidad,
+                  proyecto: nombre_proyecto,
+                  fecha: new Date()
+                });
+              }
+            });
 
-            console.log('Correo enviado correctamente:', info.response);
-            res.status(200).json({ message: 'Inscripción registrada y correo enviado correctamente.' });
-          });
-
-        } catch (error) {
-          console.error('Error al enviar el correo:', error);
-          res.status(500).json({ message: 'Inscripción registrada, pero no se pudo enviar el correo.', error: error.message });
-        }
+          } catch (error) {
+            console.error('⚠️ Error interno al enviar correo:', error.message);
+          }
+        });
       });
     }
   );
 });
+
 
 
   app.get('/api/solicitudes', (req, res) => {
