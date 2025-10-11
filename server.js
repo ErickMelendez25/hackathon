@@ -153,11 +153,13 @@ if (!fs.existsSync(terrenosDirectory)) {
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Función para subir a Cloudinary desde buffer
 const uploadToCloudinary = (fileBuffer, folder = 'pitchs') => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder },
+      {
+        folder,
+        resource_type: 'raw' // 👈 importante para PDFs
+      },
       (error, result) => {
         if (error) reject(error);
         else resolve(result);
@@ -170,7 +172,6 @@ const uploadToCloudinary = (fileBuffer, folder = 'pitchs') => {
     bufferStream.pipe(stream);
   });
 };
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
