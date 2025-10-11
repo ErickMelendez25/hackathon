@@ -21,6 +21,9 @@ import "../styles/HackathonSchedule.css";
 
 import ProductosView from './ProductosView';
 
+import { toast } from "react-toastify";
+
+
 
 import {
   FaBars,
@@ -523,19 +526,15 @@ useEffect(() => {
   
 
 
-
 const handleSubmit = async (e) => {
   e.preventDefault();
 
   if (!usuarioLocal) {
-    alert("Usuario no identificado.");
+    toast.error("❌ Usuario no identificado.");
     return;
   }
 
-  // Verifica los valores del formulario antes de enviarlos
-  console.log("Datos del formulario:", formData);
-
-  // Combina los datos del usuario logueado con los del formulario
+  // Combinar datos del formulario
   const formToSend = {
     usuario_id: usuarioLocal.id,
     nombre_usuario: usuarioLocal.nombre,
@@ -551,30 +550,15 @@ const handleSubmit = async (e) => {
     provincia: formData.provincia,
     distrito: formData.distrito,
     cantidad_integrantes: parseInt(formData.cantidadIntegrantes),
-    tecnologias_usadas: formData.tecnologiasUsadas, // array
+    tecnologias_usadas: formData.tecnologiasUsadas,
     nombre_proyecto: formData.nombreProyecto,
     descripcion_proyecto: formData.descripcionProyecto,
     acepta_terminos: formData.aceptaTerminos,
-
-    // Participantes es un array de objetos { dni, nombre }
     participantes: formData.participantes
   };
 
-  // Verifica campos requeridos
-  for (const key in formToSend) {
-    if (
-      formToSend[key] === "" ||
-      formToSend[key] === null ||
-      formToSend[key] === undefined ||
-      (Array.isArray(formToSend[key]) && formToSend[key].length === 0)
-    ) {
-      console.warn(`Falta el campo: ${key}`);
-    }
-  }
-
   try {
     const token = localStorage.getItem("authToken");
-
     console.log("Token:", token);
     console.log("Formulario a enviar:", formToSend);
 
@@ -582,12 +566,53 @@ const handleSubmit = async (e) => {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    console.log("Respuesta del servidor:", response.data);
-    alert("Inscripción enviada con éxito.");
-    // Opcional: limpiar formulario o redireccionar
+    console.log("✅ Respuesta del servidor:", response.data);
+
+    // ✅ Mostrar toast
+    toast.success("✅ Inscripción enviada. Espera la revisión del administrador.");
+
+    // ✅ Actualizar el estado local sin recargar la página
+    const nuevaSolicitud = {
+      id: response.data.id || Date.now(), // si el backend no devuelve ID
+      usuario_id: usuarioLocal?.id,
+      estado: "pendiente",
+      nombre_equipo: formData.nombreEquipo,
+      nombre_representante: formData.nombreRepresentante,
+      universidad: formData.universidad,
+      cantidad_integrantes: formData.cantidadIntegrantes,
+      tecnologias_usadas: JSON.stringify(formData.tecnologiasUsadas),
+      participantes: formData.participantes,
+      fecha_registro: new Date().toISOString(),
+    };
+
+    // 🔹 Agrega la nueva solicitud al estado local
+    setSolicitudes((prev) => [...prev, nuevaSolicitud]);
+
+    // 🔹 Limpia el formulario
+    setFormData({
+      nombreEquipo: "",
+      nombreRepresentante: "",
+      correo: "",
+      tipoDocumento: "DNI",
+      numeroDocumento: "",
+      universidad: "",
+      departamento: "",
+      provincia: "",
+      distrito: "",
+      cantidadIntegrantes: 1,
+      tecnologiasUsadas: [],
+      nombreProyecto: "",
+      descripcionProyecto: "",
+      aceptaTerminos: false,
+      participantes: [],
+    });
+
+    // 🔹 Oculta el formulario si usas modal
+    setShowForm(false);
+
   } catch (err) {
-    console.error("Error al enviar inscripción:", err.response ? err.response.data : err);
-    alert("Ocurrió un error al enviar la inscripción.");
+    console.error("❌ Error al enviar inscripción:", err.response ? err.response.data : err);
+    toast.error("❌ Ocurrió un error al enviar la inscripción.");
   }
 };
 
