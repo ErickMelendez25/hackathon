@@ -155,6 +155,9 @@ const storage = multer.diskStorage({
   }
 });
 
+app.use('/uploads/pitchs', express.static(path.join(__dirname, 'uploads/pitchs')));
+
+
 const upload = multer({ dest: 'uploads/pitchs' });
 
 app.use('/terrenos', express.static(terrenosDirectory)); // Servir archivos estáticos desde 'uploads'

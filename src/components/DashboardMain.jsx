@@ -984,6 +984,16 @@ const renderVendedorView = () => {
   // Estado para el PDF del pitch
   const [pdfFile, setPdfFile] = useState(null);
 
+    // Función para abrir PDF
+  const abrirPDF = (pitch) => {
+    if (pitch?.pitch_pdf) {
+      window.open(`${import.meta.env.VITE_API_URL}/uploads/${pitch.pitch_pdf}`, '_blank');
+    } else {
+      alert('No hay PDF disponible');
+    }
+  };
+
+
 
 
   const [archivoPDF, setArchivoPDF] = useState(null);
@@ -1451,21 +1461,20 @@ const renderEquiposAprobados = () => {
               required
               disabled={pitch?.estado === 'enviado'}
             />
-
             <label>📄 Documento PDF del proyecto:</label>
 
             {pitch?.pitch_pdf ? (
               <div>
-                <a 
-                  href={`${import.meta.env.VITE_API_URL}/uploads/${pitch.pitch_pdf}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
+                <button 
+                  type="button" 
+                  onClick={() => abrirPDF(pitch)}
                 >
                   📎 Ver PDF subido
-                </a>
+                </button>
                 <p>Si quieres reemplazarlo, selecciona otro archivo:</p>
               </div>
             ) : null}
+
 
             <input
               type="file"
