@@ -265,6 +265,8 @@ const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
   const [terrenos, setTerrenos] = useState([]);
+
+  
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     estado: 'todos',
@@ -428,6 +430,24 @@ const socket = io(import.meta.env.VITE_API_URL, {
     console.log("🔁 Recibiendo actualización de solicitudes...");
     if (categoria === 'preseleccion') {
       fetchSolicitudes(); // no fetchTerrenos
+    }
+  });
+
+  return () => socket.disconnect();
+}, [categoria]);
+
+
+useEffect(() => {
+  const socket = io(import.meta.env.VITE_API_URL, {
+    auth: { token: localStorage.getItem("authToken") },
+    transports: ["websocket"],
+    withCredentials: true,
+  });
+
+  socket.on("solicitudes-actualizadas", () => {
+    console.log("🔁 Solicitudes actualizadas...");
+    if (categoria === "inscripciones") {
+      fetchSolicitudes(); // ⚡ Actualiza automáticamente la lista de solicitudes
     }
   });
 
@@ -967,25 +987,45 @@ useEffect(() => {
 
 
   // Render de los círculos de fases
-  const renderFases = () => (
-    <div className="fases-container">
-      {/* Fase 1: Inscripción */}
-      <div className={`fase ${!estado || estado === 'pendiente' ? 'activa' : ''}`}>
-        <div className="circulo">1</div>
-        <p>Inscripción</p>
+  const renderFases = () => {
+    if (categoria !== "inscripciones") return null;
+
+    const solicitudUsuario = solicitudes.find(
+      (s) => s.usuario_id === usuarioLocal?.id
+    );
+    const estado = solicitudUsuario?.estado || "pendiente";
+
+    return (
+      <div className="fases-container">
+        {/* Fase 1: Inscripción */}
+        <div className={`fase ${estado === "pendiente" || estado === "aprobada" ? "activa" : ""}`}>
+          <div className="circulo">1</div>
+          <p>Inscripción</p>
+        </div>
+
+        {/* Fase 2: Preselección */}
+        <div className={`fase ${estado === "aprobada" || estado === "finalista" ? "activa" : ""}`}>
+          <div className="circulo">2</div>
+          <p>Preselección</p>
+        </div>
+
+        {/* Fase 3: Final */}
+        <div className={`fase ${estado === "finalista" ? "activa" : ""}`}>
+          <div className="circulo">3</div>
+          <p>Final</p>
+        </div>
+
+        {/* Rechazo */}
+        {estado === "rechazada" && (
+          <div className="fase rechazada">
+            <div className="circulo">✖</div>
+            <p>Rechazado</p>
+          </div>
+        )}
       </div>
-      {/* Fase 2: Preselección solo activa si aprobado */}
-      <div className={`fase ${estado === 'aprobada' ? 'activa' : ''}`}>
-        <div className="circulo">2</div>
-        <p>Preselección</p>
-      </div>
-      {/* Fase Rechazo solo activa si rechazado */}
-      <div className={`fase ${estado === 'rechazada' ? 'activa' : ''}`}>
-        <div className="circulo">✖</div>
-        <p>Rechazado</p>
-      </div>
-    </div>
-  );
+    );
+  };
+
 
 
   const renderResultadosPublicados = () => (
