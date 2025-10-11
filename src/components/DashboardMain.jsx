@@ -1339,16 +1339,33 @@ const renderEquiposAprobados = () => {
 
               <button
                 className="btn-formulario"
-                onClick={() => {
+                onClick={async () => {
                   if (pitch?.estado === 'enviado') {
                     alert('⚠️ Este formulario ya fue enviado definitivamente y no puede editarse.');
                     return;
                   }
+
+                  // Traer pitch actualizado desde el backend
+                  try {
+                    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/pitch/ver/${usuarioLocal.id}`);
+                    if (res.data) {
+                      setPitch(res.data);
+                      setEnlacePitch(res.data.enlace_pitch || '');
+                      setResumen(res.data.resumen_proyecto || '');
+                      setImpacto(res.data.impacto_social || '');
+                      setModelo(res.data.modelo_negocio || '');
+                      setInnovacion(res.data.innovacion || '');
+                    }
+                  } catch (err) {
+                    console.error('Error al obtener pitch al abrir modal:', err);
+                  }
+
                   setShowPitchForm(true);
                 }}
               >
                 📝 Completar Formulario
               </button>
+
 
 
               {pitch?.estado === 'enviado' ? (
@@ -1475,7 +1492,8 @@ const renderEquiposAprobados = () => {
 };
 // Guardar borrador del Pitch
 const guardarBorrador = async () => {
-  if (!enlacePitch || !resumen || !impacto || !modelo || !innovacion || !pdfFile) {
+  // Validación: si no hay PDF en el backend y no se seleccionó uno nuevo, da error
+  if (!enlacePitch || !resumen || !impacto || !modelo || !innovacion || (!pdfFile && !pitch?.pitch_pdf)) {
     alert('⚠️ Completa todos los campos y selecciona un PDF antes de guardar.');
     return;
   }
@@ -1489,7 +1507,11 @@ const guardarBorrador = async () => {
     formData.append('impacto_social', impacto);
     formData.append('modelo_negocio', modelo);
     formData.append('innovacion', innovacion);
-    formData.append('pitch_pdf', pdfFile); // <-- aquí va el PDF
+
+    // Solo agregar PDF si seleccionaron uno nuevo
+    if (pdfFile) {
+      formData.append('pitch_pdf', pdfFile);
+    }
 
     const res = await axios.post(
       `${import.meta.env.VITE_API_URL}/api/pitch/subir`,
@@ -1499,11 +1521,12 @@ const guardarBorrador = async () => {
 
     alert('✅ Pitch guardado correctamente.');
 
+    // Actualizar estado del pitch con los nuevos datos
     setPitch({
       ...pitch,
       id: res.data?.id || pitch?.id,
       estado: 'borrador',
-      pitch_pdf: res.data?.pitch_pdf, // <--- agregamos el PDF recibido del backend
+      pitch_pdf: res.data?.pitch_pdf || pitch?.pitch_pdf, // si no subieron PDF nuevo, se mantiene el anterior
     });
 
   } catch (error) {
@@ -1511,7 +1534,6 @@ const guardarBorrador = async () => {
     alert(error.response?.data?.message || '❌ Error al guardar.');
   }
 };
-
 
 
 
