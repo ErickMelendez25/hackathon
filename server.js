@@ -955,7 +955,7 @@ app.get('/api/resultados', (req, res) => {
       ROUND((AVG(e.puntaje_innovacion) + AVG(e.puntaje_impacto) + AVG(e.puntaje_modelo)) / 3, 2) AS prom_total
     FROM evaluaciones_jurado e
     JOIN pitchs_equipos p ON e.pitch_id = p.id
-    JOIN solicitudes s ON p.solicitud_id = s.id
+    JOIN solicitudes_vendedor s ON p.solicitud_id = s.id
     WHERE e.estado = 'evaluado'
     GROUP BY p.id, s.nombre_equipo, s.universidad
     ORDER BY prom_total DESC;
