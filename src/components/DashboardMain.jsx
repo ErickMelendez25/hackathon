@@ -1494,7 +1494,7 @@ const renderEquiposAprobados = () => {
 };
 // Guardar borrador del Pitch
 const guardarBorrador = async () => {
-  // Validación: si no hay PDF en el backend y no se seleccionó uno nuevo, da error
+  // Validación
   if (!enlacePitch || !resumen || !impacto || !modelo || !innovacion || (!pdfFile && !pitch?.pitch_pdf)) {
     alert('⚠️ Completa todos los campos y selecciona un PDF antes de guardar.');
     return;
@@ -1510,7 +1510,7 @@ const guardarBorrador = async () => {
     formData.append('modelo_negocio', modelo);
     formData.append('innovacion', innovacion);
 
-    // Solo agregar PDF si seleccionaron uno nuevo
+    // Solo agregar PDF si se seleccionó uno nuevo
     if (pdfFile) {
       formData.append('pitch_pdf', pdfFile);
     }
@@ -1521,21 +1521,21 @@ const guardarBorrador = async () => {
       { headers: { 'Content-Type': 'multipart/form-data' } }
     );
 
-    alert('✅ Pitch guardado correctamente.');
-
-    // Actualizar estado del pitch con los nuevos datos
+    // Actualizamos el estado
     setPitch({
       ...pitch,
       id: res.data?.id || pitch?.id,
       estado: 'borrador',
-      pitch_pdf: res.data?.pitch_pdf || pitch?.pitch_pdf, // si no subieron PDF nuevo, se mantiene el anterior
+      pitch_pdf: res.data?.pitch_pdf || pitch?.pitch_pdf, // <-- conserva el PDF existente si no hay nuevo
     });
 
+    alert('✅ Pitch guardado correctamente.');
   } catch (error) {
     console.error(error);
     alert(error.response?.data?.message || '❌ Error al guardar.');
   }
 };
+
 
 
 

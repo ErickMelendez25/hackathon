@@ -1027,20 +1027,15 @@ app.put('/api/resultados/publicar', (req, res) => {
 
 
 const FECHA_LIMITE = new Date('2025-11-05T23:59:59');
-////////PITCH Y PROYECTO DE LOS ESTUDIANTES
-// Ruta para subir pitch
+
 app.post('/api/pitch/subir', upload.single('pitch_pdf'), (req, res) => {
   console.error('--- NUEVA PETICIÓN /api/pitch/subir ---');
   console.error('Fecha actual:', new Date());
-  
+
   if (new Date() > FECHA_LIMITE) {
     console.error('⚠️ Plazo finalizado');
     return res.status(403).json({ message: 'El plazo para subir el pitch ha finalizado.' });
   }
-
-  // Mostrar body completo y archivo recibido
-  console.error('--- req.body ---', req.body);
-  console.error('--- req.file ---', req.file);
 
   const {
     solicitud_id,
@@ -1052,47 +1047,67 @@ app.post('/api/pitch/subir', upload.single('pitch_pdf'), (req, res) => {
     innovacion
   } = req.body;
 
-  // Validación: todos los campos + PDF obligatorio
+  // Validación: todos los campos obligatorios (PDF solo si no existe uno)
   if (
     !solicitud_id || !usuario_id ||
     !enlace_pitch?.trim() || !resumen_proyecto?.trim() ||
     !impacto_social?.trim() || !modelo_negocio?.trim() ||
-    !innovacion?.trim() || !req.file
+    !innovacion?.trim()
   ) {
-    console.error('⚠️ Datos incompletos o PDF no enviado');
-    console.error('solicitud_id:', solicitud_id);
-    console.error('usuario_id:', usuario_id);
-    console.error('enlace_pitch:', enlace_pitch);
-    console.error('resumen_proyecto:', resumen_proyecto);
-    console.error('impacto_social:', impacto_social);
-    console.error('modelo_negocio:', modelo_negocio);
-    console.error('innovacion:', innovacion);
-    console.error('req.file:', req.file);
-    return res.status(400).json({ message: '⚠️ Todos los campos son obligatorios y el PDF debe ser enviado.' });
+    console.error('⚠️ Todos los campos obligatorios incompletos');
+    return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
   }
 
-  const pdfPath = req.file.filename;
-  console.error('✅ PDF recibido:', pdfPath);
-
-  const query = `
-    INSERT INTO pitchs_equipos 
-    (solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pitch_pdf)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
+  // Verificar si ya existe un PDF para este usuario
   db.query(
-    query,
-    [solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pdfPath],
-    (err, result) => {
+    'SELECT pitch_pdf FROM pitchs_equipos WHERE usuario_id = ? ORDER BY fecha_creacion DESC LIMIT 1',
+    [usuario_id],
+    (err, results) => {
       if (err) {
-        console.error('❌ Error al guardar pitch en BD:', err);
+        console.error('❌ Error al consultar pitch existente:', err);
         return res.status(500).json({ message: 'Error en el servidor' });
       }
-      console.error('✅ Pitch guardado en BD con ID:', result.insertId);
-      res.status(200).json({ message: '✅ Pitch guardado correctamente', id: result.insertId, pitch_pdf: pdfPath });
+
+      const pdfExistente = results[0]?.pitch_pdf;
+
+      // PDF obligatorio solo si no hay uno existente
+      if (!req.file && !pdfExistente) {
+        console.error('⚠️ Debes subir un PDF porque aún no existe');
+        return res.status(400).json({ message: 'Debes subir un PDF si aún no existe.' });
+      }
+
+      // Usar PDF nuevo si se subió, sino conservar el existente
+      const pdfPath = req.file ? req.file.filename : pdfExistente;
+      console.error('✅ PDF a usar:', pdfPath);
+
+      // Insertar nuevo registro (puedes cambiar a UPDATE si quieres reemplazar en caso de nuevo PDF)
+      const query = `
+        INSERT INTO pitchs_equipos 
+        (solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pitch_pdf)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      db.query(
+        query,
+        [solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pdfPath],
+        (err, result) => {
+          if (err) {
+            console.error('❌ Error al guardar pitch en BD:', err);
+            return res.status(500).json({ message: 'Error en el servidor' });
+          }
+
+          console.log('✅ Pitch guardado en BD con ID:', result.insertId);
+          res.status(200).json({
+            message: 'Pitch guardado correctamente',
+            id: result.insertId,
+            pitch_pdf: pdfPath
+          });
+        }
+      );
     }
   );
 });
+
 
 
 app.get('/api/pitch/ver/:usuario_id', (req, res) => {
