@@ -987,11 +987,13 @@ const renderVendedorView = () => {
     // Función para abrir PDF
   const abrirPDF = (pitch) => {
     if (pitch?.pitch_pdf) {
-      window.open(`${import.meta.env.VITE_API_URL}/uploads/${pitch.pitch_pdf}`, '_blank');
+      // Abrir directamente la URL de Cloudinary
+      window.open(pitch.pitch_pdf, '_blank');
     } else {
       alert('No hay PDF disponible');
     }
   };
+
 
 
 
