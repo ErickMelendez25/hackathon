@@ -1,8 +1,8 @@
 // CountdownTimer.jsx
-import React, { useEffect, useState } from 'react';
-import "../styles/CountdownTimer.css"; // Recuerda importar los estilos
+import React, { useEffect, useState } from "react";
+import "../styles/CountdownTimer.css";
 
-const CountdownTimer = () => {
+const CountdownTimer = ({ onExpire }) => {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -11,8 +11,7 @@ const CountdownTimer = () => {
   });
 
   useEffect(() => {
-    const targetDate = new Date('2025-06-20T23:59:59');
-
+    const targetDate = new Date("2025-10-10T23:00:50");
 
     const updateCountdown = () => {
       const now = new Date();
@@ -20,6 +19,7 @@ const CountdownTimer = () => {
 
       if (difference <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        if (onExpire) onExpire(); // 👈 Notifica que terminó
         return;
       }
 
@@ -34,7 +34,7 @@ const CountdownTimer = () => {
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [onExpire]);
 
   return (
     <div className="countdown-timer">

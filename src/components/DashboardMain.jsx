@@ -939,6 +939,9 @@ const rechazarSolicitud = async (id) => {
     setLoading(false);
   }
 };
+
+
+
   
   
 
@@ -956,6 +959,15 @@ const renderVendedorView = () => {
   const solicitudUsuario = solicitudes.find(
     (s) => s.usuario_id === usuarioLocal?.id
   );
+
+
+  useEffect(() => {
+  if (categoria === 'inscripciones' && !solicitudUsuario) {
+    setShowForm(true);
+  } else {
+    setShowForm(false);
+  }
+}, [categoria, solicitudUsuario]);
 
   // Estado de la solicitud: 'pendiente', 'aprobada', 'rechazada', o undefined si no hay
   const estado = solicitudUsuario?.estado;
@@ -1485,6 +1497,7 @@ const enviarDefinitivo = async () => {
   }
 };
 
+const [inscripcionesCerradas, setInscripcionesCerradas] = useState(false);
 
 
 
@@ -1513,25 +1526,17 @@ return (
       <div className="categories">
 
         {/* INSCRIPCIONES con subniveles */}
+        {/* INSCRIPCIONES sin subniveles, muestra directamente las fases */}
         <div className="category">
           <button
             className={`category-btn ${categoria === 'inscripciones' ? 'active' : ''}`}
-            onClick={() => setOpenSub(prev => ({ ...prev, inscripciones: !prev.inscripciones }))}
+            onClick={() => changeCategory('inscripciones')}
           >
             <FaUserPlus className="icon" />
             {!sidebarCollapsed && <span>Inscripciones</span>}
           </button>
-          {openSub.inscripciones && !sidebarCollapsed && (
-            <div className="sublevel">
-              <button onClick={() => { changeCategory('inscripciones'); setShowForm(true); }}>
-                ➤ Nueva inscripción
-              </button>
-              <button onClick={() => changeCategory('listado-inscripciones')}>
-                ➤ Listado
-              </button>
-            </div>
-          )}
         </div>
+
 
         {/* PRESELECCIÓN */}
         <button
@@ -1551,7 +1556,7 @@ return (
           {!sidebarCollapsed && <span>Resultados</span>}
         </button>
 
-        {/*{/* Carrusel de patrocinadores 
+        {/* Carrusel de patrocinadores */}
         {!sidebarCollapsed && (
           <div className="sponsor-carousel-container">
             <div className="sponsor-carousel">
@@ -1565,16 +1570,9 @@ return (
               </div>
             </div>
           </div>
-        )}*/}
+        )}
 
-        {/* PRODUCTOS */}
-        <button
-          className={`category-btn ${categoria === 'productos' ? 'active' : ''}`}
-          onClick={() => changeCategory('productos')}
-        >
-          <FaBox className="icon" />
-          {!sidebarCollapsed && <span>Productos</span>}
-        </button>
+
       </div>
     </div>
 
@@ -1583,7 +1581,8 @@ return (
         {/* Vista bienvenida si no hay categoría seleccionada */}
         {(!categoria || categoria === '') && (
           <div className="welcome-message">
-            <CountdownTimer />
+            <CountdownTimer onExpire={() => setInscripcionesCerradas(true)} />
+
            
             {/* Bloque de premios */}
             <div className="premios-container">
@@ -1625,15 +1624,24 @@ return (
 
         {/* INSCRIPCIONES */}
         {categoria === 'inscripciones' && (
-           
           <>
-          <CountdownTimer />
+            <CountdownTimer onExpire={() => setInscripcionesCerradas(true)} />
+
             {/* Fases circulares arriba */}
             {renderFases()}
 
             {/* Contenido según estado de solicitud */}
-            {/* Si no hay solicitud aún: mostrar formulario */}
-            {!solicitudUsuario && showForm && renderFaseInscripcion()}
+
+            {/* Si no hay solicitud aún y aún hay tiempo: mostrar formulario */}
+            {!solicitudUsuario && showForm && !inscripcionesCerradas && renderFaseInscripcion()}
+
+            {/* Si las inscripciones se cerraron */}
+            {inscripcionesCerradas && (
+              <div className="fase-container">
+                <h2 className="fase-titulo">🚫 Inscripciones Cerradas</h2>
+                <p>El tiempo límite ha finalizado. Ya no se pueden enviar inscripciones.</p>
+              </div>
+            )}
 
             {/* Si ya envió y está pendiente: mensaje en espera */}
             {solicitudUsuario && estado === 'pendiente' && (
@@ -1651,10 +1659,9 @@ return (
           </>
         )}
 
+        {/* Otras categorías (fuera del bloque de inscripciones) */}
         {categoria === 'preseleccion' && renderEquiposAprobados()}
-
         {categoria === 'resultados' && renderResultadosPublicados()}
-
 
         <div className="contenido-dinamico">
           {categoria === 'productos' && <ProductosView />}
@@ -1780,7 +1787,7 @@ const renderAdminView = () => (
       {categoria === undefined || categoria === '' ? (
         <div className="welcome-message">
           <h2>Vista Admin</h2>
-          <CountdownTimer />
+          
           <p>Bienvenido al panel de administración.</p>
         </div>
       ) : (
