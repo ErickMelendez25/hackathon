@@ -2032,6 +2032,8 @@ const renderJuradoView = () => {
   const [evaluados, setEvaluados] = useState([]); // equipos ya evaluados
   const [loading, setLoading] = useState(false);
 
+
+
 useEffect(() => {
   const fetchPitchs = async () => {
     try {
@@ -2048,6 +2050,16 @@ useEffect(() => {
       console.error('Error al obtener pitchs o evaluaciones:', err);
     }
   };
+
+
+    const abrirPDF = (pitch) => {
+      if (pitch?.pitch_pdf) {
+        window.open(pitch.pitch_pdf, "_blank");
+      } else {
+        alert("No hay PDF disponible");
+      }
+    };
+
 
   fetchPitchs();
 }, []);
@@ -2104,8 +2116,12 @@ useEffect(() => {
             <th>Universidad</th>
             <th>Pitch</th>
             <th>Resumen</th>
+            <th>PDF</th>
             <th>Estado</th>
             <th>Acción</th>
+            
+
+            
           </tr>
         </thead>
 
@@ -2127,6 +2143,12 @@ useEffect(() => {
                     📘 Ver Proyecto
                   </button>
                 </td>
+                <td>
+                  <button onClick={() => abrirPDF(p)} className="btn-pdf">
+                    📎 Ver PDF
+                  </button>
+                </td>
+
                 <td>
                   {evaluados.includes(p.pitch_id) ? (
                     <span className="estado-evaluado">✅ Evaluado</span>

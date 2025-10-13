@@ -2136,3 +2136,18 @@ C27.8,17.3,32,13.3,32,8.4C32,3.8,28.2,0,23.6,0z'/>\
 .estado-pendiente {
   color: orange;
 }
+
+
+.btn-pdf {
+  background-color: #6c63ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-pdf:hover {
+  background-color: #5848d3;
+}
