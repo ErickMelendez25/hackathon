@@ -11,7 +11,7 @@ const CountdownTimer = ({ onExpire }) => {
   });
 
   useEffect(() => {
-    const targetDate = new Date("2025-10-11T00:32:50");
+    const targetDate = new Date("2025-10-20T00:32:50");
 
     const updateCountdown = () => {
       const now = new Date();
