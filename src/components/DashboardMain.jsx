@@ -2025,20 +2025,22 @@ const renderAdminView = () => (
   </div>
 );
 
+
+const abrirPDF = (pitch) => {
+  if (pitch?.pitch_pdf) {
+    window.open(pitch.pitch_pdf, "_blank");
+  } else {
+    alert("No hay PDF disponible");
+  }
+};
+
+
 const renderJuradoView = () => {
   const [pitchs, setPitchs] = useState([]);
   const [evaluacion, setEvaluacion] = useState({});
   const [selectedPitch, setSelectedPitch] = useState(null);
   const [evaluados, setEvaluados] = useState([]); // equipos ya evaluados
   const [loading, setLoading] = useState(false);
-
-  const abrirPDF = (pitch) => {
-    if (pitch?.pitch_pdf) {
-      window.open(pitch.pitch_pdf, "_blank");
-    } else {
-      alert("No hay PDF disponible");
-    }
-  };
 
 
 
