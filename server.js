@@ -956,7 +956,7 @@ app.get('/api/pitch/listar', (req, res) => {
       p.modelo_negocio,
       p.innovacion,
       p.estado,
-      p.documento_pdf,
+      p.pitch_pdf,
       p.fecha_creacion,
       s.nombre_equipo,
       s.universidad,
