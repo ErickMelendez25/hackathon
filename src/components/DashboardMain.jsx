@@ -987,11 +987,12 @@ const renderVendedorView = () => {
     // Función para abrir PDF
   const abrirPDF = (pitch) => {
     if (pitch?.pitch_pdf) {
-      window.open(pitch.pitch_pdf, '_blank'); // 👈 abre en nueva pestaña
+      window.open(pitch.pitch_pdf, '_blank');
     } else {
       alert('No hay PDF disponible');
     }
   };
+
 
 
 
@@ -1466,9 +1467,9 @@ const renderEquiposAprobados = () => {
 
             {pitch?.pitch_pdf ? (
               <div>
-                <button onClick={() => abrirPDF(pitch)}>
-                  📎 Ver PDF subido
-                </button>
+              <button onClick={() => abrirPDF(pitch)}>
+                📎 Ver PDF subido
+              </button>
                 <p>Si quieres reemplazarlo, selecciona otro archivo:</p>
               </div>
             ) : null}

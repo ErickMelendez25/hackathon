@@ -1050,18 +1050,16 @@ app.put('/api/resultados/publicar', (req, res) => {
 
 
 
-const FECHA_LIMITE = new Date('2025-11-05T23:59:59-05:00'); // 👈 Asegura hora Perú
+const FECHA_LIMITE = new Date('2025-11-05T23:59:59-05:00');
 
 app.post('/api/pitch/subir', upload.single('pitch_pdf'), async (req, res) => {
   console.log('--- NUEVA PETICIÓN /api/pitch/subir ---');
   console.log('Fecha actual:', new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' }));
 
-  // 🔹 Verificar fecha límite
   if (new Date() > FECHA_LIMITE) {
     return res.status(403).json({ message: 'El plazo para subir el pitch ha finalizado.' });
   }
 
-  // 🔹 Obtener campos del body
   const {
     solicitud_id,
     usuario_id,
@@ -1086,14 +1084,12 @@ app.post('/api/pitch/subir', upload.single('pitch_pdf'), async (req, res) => {
   }
 
   try {
-    // 🔹 Verificar si ya existe un pitch previo para este usuario
     const [rows] = await db
       .promise()
       .query('SELECT id, pitch_pdf FROM pitchs_equipos WHERE usuario_id = ? ORDER BY fecha_creacion DESC LIMIT 1', [usuario_id]);
 
     let pdfUrl = rows[0]?.pitch_pdf || null;
 
-    // 🔹 Si subió un nuevo archivo, subirlo a Cloudinary
     if (req.file) {
       try {
         const result = await uploadToCloudinary(req.file.buffer, 'pitchs');
@@ -1108,7 +1104,6 @@ app.post('/api/pitch/subir', upload.single('pitch_pdf'), async (req, res) => {
     }
 
     if (rows.length > 0) {
-      // 🔹 Ya existe → actualizar
       const updateQuery = `
         UPDATE pitchs_equipos
         SET enlace_pitch = ?, resumen_proyecto = ?, impacto_social = ?, 
@@ -1133,7 +1128,6 @@ app.post('/api/pitch/subir', upload.single('pitch_pdf'), async (req, res) => {
         publicado: publicado === 'true'
       });
     } else {
-      // 🔹 No existe → crear nuevo registro
       const insertQuery = `
         INSERT INTO pitchs_equipos 
         (solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, 
@@ -1165,7 +1159,6 @@ app.post('/api/pitch/subir', upload.single('pitch_pdf'), async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor', error: error.message });
   }
 });
-
 
 
 
