@@ -987,8 +987,7 @@ const renderVendedorView = () => {
     // Función para abrir PDF
   const abrirPDF = (pitch) => {
     if (pitch?.pitch_pdf) {
-      // Abrir directamente la URL de Cloudinary
-      window.open(pitch.pitch_pdf, '_blank');
+      window.open(pitch.pitch_pdf, '_blank'); // 👈 abre en nueva pestaña
     } else {
       alert('No hay PDF disponible');
     }
@@ -1467,10 +1466,7 @@ const renderEquiposAprobados = () => {
 
             {pitch?.pitch_pdf ? (
               <div>
-                <button 
-                  type="button" 
-                  onClick={() => abrirPDF(pitch)}
-                >
+                <button onClick={() => abrirPDF(pitch)}>
                   📎 Ver PDF subido
                 </button>
                 <p>Si quieres reemplazarlo, selecciona otro archivo:</p>

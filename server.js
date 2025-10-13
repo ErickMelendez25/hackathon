@@ -178,6 +178,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 
+
 app.use('/terrenos', express.static(terrenosDirectory)); // Servir archivos estáticos desde 'uploads'
 
 
@@ -432,6 +433,8 @@ app.get('/api/usuarios', async (req, res) => {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 });
+
+
 
 
 app.get('/api/terrenos', async (req, res) => {
@@ -1047,71 +1050,122 @@ app.put('/api/resultados/publicar', (req, res) => {
 
 
 
-const FECHA_LIMITE = new Date('2025-11-05T23:59:59');
+const FECHA_LIMITE = new Date('2025-11-05T23:59:59-05:00'); // 👈 Asegura hora Perú
 
 app.post('/api/pitch/subir', upload.single('pitch_pdf'), async (req, res) => {
-  console.error('--- NUEVA PETICIÓN /api/pitch/subir ---');
-  console.error('Fecha actual:', new Date());
+  console.log('--- NUEVA PETICIÓN /api/pitch/subir ---');
+  console.log('Fecha actual:', new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' }));
 
+  // 🔹 Verificar fecha límite
   if (new Date() > FECHA_LIMITE) {
     return res.status(403).json({ message: 'El plazo para subir el pitch ha finalizado.' });
   }
 
-  const { solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, publicado } = req.body;
+  // 🔹 Obtener campos del body
+  const {
+    solicitud_id,
+    usuario_id,
+    enlace_pitch,
+    resumen_proyecto,
+    impacto_social,
+    modelo_negocio,
+    innovacion,
+    publicado
+  } = req.body;
 
-  if (!solicitud_id || !usuario_id || !enlace_pitch?.trim() || !resumen_proyecto?.trim() ||
-      !impacto_social?.trim() || !modelo_negocio?.trim() || !innovacion?.trim()) {
+  if (
+    !solicitud_id ||
+    !usuario_id ||
+    !enlace_pitch?.trim() ||
+    !resumen_proyecto?.trim() ||
+    !impacto_social?.trim() ||
+    !modelo_negocio?.trim() ||
+    !innovacion?.trim()
+  ) {
     return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
   }
 
-  db.query(
-    'SELECT pitch_pdf FROM pitchs_equipos WHERE usuario_id = ? ORDER BY fecha_creacion DESC LIMIT 1',
-    [usuario_id],
-    async (err, results) => {
-      if (err) return res.status(500).json({ message: 'Error en el servidor' });
+  try {
+    // 🔹 Verificar si ya existe un pitch previo para este usuario
+    const [rows] = await db
+      .promise()
+      .query('SELECT id, pitch_pdf FROM pitchs_equipos WHERE usuario_id = ? ORDER BY fecha_creacion DESC LIMIT 1', [usuario_id]);
 
-      const pdfExistente = results[0]?.pitch_pdf;
+    let pdfUrl = rows[0]?.pitch_pdf || null;
 
-      if (!req.file && !pdfExistente) {
-        return res.status(400).json({ message: 'Debes subir un PDF si aún no existe.' });
+    // 🔹 Si subió un nuevo archivo, subirlo a Cloudinary
+    if (req.file) {
+      try {
+        const result = await uploadToCloudinary(req.file.buffer, 'pitchs');
+        pdfUrl = result.secure_url;
+        console.log('✅ PDF subido a Cloudinary:', pdfUrl);
+      } catch (error) {
+        console.error('❌ Error al subir a Cloudinary:', error);
+        return res.status(500).json({ message: 'Error al subir el PDF' });
       }
+    } else if (!pdfUrl) {
+      return res.status(400).json({ message: 'Debes subir un PDF si aún no existe.' });
+    }
 
-      let pdfUrl = pdfExistente;
+    if (rows.length > 0) {
+      // 🔹 Ya existe → actualizar
+      const updateQuery = `
+        UPDATE pitchs_equipos
+        SET enlace_pitch = ?, resumen_proyecto = ?, impacto_social = ?, 
+            modelo_negocio = ?, innovacion = ?, pitch_pdf = ?, publicado = ?
+        WHERE id = ?
+      `;
 
-      if (req.file) {
-        try {
-          const result = await uploadToCloudinary(req.file.buffer, 'pitchs');
-          pdfUrl = result.secure_url;
-          console.error('✅ PDF subido a Cloudinary:', pdfUrl);
-        } catch (error) {
-          console.error('❌ Error al subir a Cloudinary:', error);
-          return res.status(500).json({ message: 'Error al subir el PDF' });
-        }
-      }
+      await db.promise().query(updateQuery, [
+        enlace_pitch,
+        resumen_proyecto,
+        impacto_social,
+        modelo_negocio,
+        innovacion,
+        pdfUrl,
+        publicado === 'true' ? 1 : 0,
+        rows[0].id
+      ]);
 
-      const query = `
+      return res.status(200).json({
+        message: 'Pitch actualizado correctamente',
+        pitch_pdf: pdfUrl,
+        publicado: publicado === 'true'
+      });
+    } else {
+      // 🔹 No existe → crear nuevo registro
+      const insertQuery = `
         INSERT INTO pitchs_equipos 
-        (solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pitch_pdf, publicado)
+        (solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, 
+         modelo_negocio, innovacion, pitch_pdf, publicado)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-      db.query(
-        query,
-        [solicitud_id, usuario_id, enlace_pitch, resumen_proyecto, impacto_social, modelo_negocio, innovacion, pdfUrl, publicado === 'true' ? 1 : 0],
-        (err, result) => {
-          if (err) return res.status(500).json({ message: 'Error en el servidor' });
+      const [insertResult] = await db.promise().query(insertQuery, [
+        solicitud_id,
+        usuario_id,
+        enlace_pitch,
+        resumen_proyecto,
+        impacto_social,
+        modelo_negocio,
+        innovacion,
+        pdfUrl,
+        publicado === 'true' ? 1 : 0
+      ]);
 
-          res.status(200).json({
-            message: 'Pitch guardado correctamente',
-            id: result.insertId,
-            pitch_pdf: pdfUrl,
-            publicado: publicado === 'true'
-          });
-        }
-      );
+      return res.status(200).json({
+        message: 'Pitch guardado correctamente',
+        id: insertResult.insertId,
+        pitch_pdf: pdfUrl,
+        publicado: publicado === 'true'
+      });
     }
-  );
+  } catch (error) {
+    console.error('❌ Error general en /api/pitch/subir:', error);
+    res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+  }
 });
+
 
 
 
