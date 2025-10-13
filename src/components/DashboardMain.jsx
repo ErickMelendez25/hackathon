@@ -2032,6 +2032,14 @@ const renderJuradoView = () => {
   const [evaluados, setEvaluados] = useState([]); // equipos ya evaluados
   const [loading, setLoading] = useState(false);
 
+  const abrirPDF = (pitch) => {
+    if (pitch?.pitch_pdf) {
+      window.open(pitch.pitch_pdf, "_blank");
+    } else {
+      alert("No hay PDF disponible");
+    }
+  };
+
 
 
 useEffect(() => {
@@ -2052,13 +2060,7 @@ useEffect(() => {
   };
 
 
-    const abrirPDF = (pitch) => {
-      if (pitch?.pitch_pdf) {
-        window.open(pitch.pitch_pdf, "_blank");
-      } else {
-        alert("No hay PDF disponible");
-      }
-    };
+
 
 
   fetchPitchs();
