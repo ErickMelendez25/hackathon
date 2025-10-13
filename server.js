@@ -159,9 +159,12 @@ async function uploadToCloudinary(buffer, folder) {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder,
-        resource_type: 'raw', // 👈 usa 'raw' para archivos PDF
+        resource_type: 'raw', // 👈 sigue siendo raw
         public_id: `pitch_${Date.now()}`,
-        format: 'pdf'
+        format: 'pdf',
+        type: 'upload',
+        use_filename: true,
+        flags: 'attachment:false' // 👈 evita que lo fuerce a descarga
       },
       (error, result) => {
         if (error) reject(error);
@@ -171,6 +174,7 @@ async function uploadToCloudinary(buffer, folder) {
     stream.end(buffer);
   });
 }
+
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
