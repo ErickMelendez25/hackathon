@@ -159,9 +159,9 @@ async function uploadToCloudinary(buffer, folder) {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder,
-        resource_type: 'auto', // 👈 permite PDF, imágenes, videos, etc.
-        format: 'pdf',         // 👈 asegura que lo guarde como PDF
-        public_id: `pitch_${Date.now()}` // 👈 nombre único
+        resource_type: 'raw', // 👈 usa 'raw' para archivos PDF
+        public_id: `pitch_${Date.now()}`,
+        format: 'pdf'
       },
       (error, result) => {
         if (error) reject(error);
