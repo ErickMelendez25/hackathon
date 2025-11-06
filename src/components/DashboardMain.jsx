@@ -1320,7 +1320,7 @@ useEffect(() => {
   );
 
   //RENDER PARA EQUIPO APROBADOS PARA EL CONCURSO
-const renderEquiposAprobados = () => {
+const renderEquiposAprobadosUser  = () => {
   const aprobadosUnicos = Array.from(
     new Map(
       solicitudes
@@ -1741,7 +1741,7 @@ return (
         )}
 
         {/* Otras categorías (fuera del bloque de inscripciones) */}
-        {categoria === 'preseleccion' && renderEquiposAprobados()}
+        {categoria === 'preseleccion' && renderEquiposAprobadosUser()}
         {categoria === 'resultados' && renderResultadosPublicados()}
 
         <div className="contenido-dinamico">
@@ -1760,7 +1760,7 @@ return (
 };
 
 // RENDER PARA EQUIPOS APROBADOS PARA EL CONCURSO
-const renderEquiposAprobados = () => {
+const renderEquiposAprobadosAdmin = () => {
   const aprobadosUnicos = Array.from(
     new Map(
       solicitudes
@@ -1937,7 +1937,7 @@ const renderAdminView = () => (
           {categoria === 'preseleccion' && (
             <div className="equipos-aprobados-container">
               <h3>Equipos Aprobados</h3>
-              {loading ? <p>Cargando...</p> : renderEquiposAprobados()}
+              {loading ? <p>Cargando...</p> : renderEquiposAprobadosAdmin()}
             </div>
           )}
 
