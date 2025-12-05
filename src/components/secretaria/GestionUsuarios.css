@@ -1,0 +1,12 @@
+.gestion-wrap{max-width:1100px;margin:18px auto;padding:14px}
+.top-row input{width:60%;padding:10px;border-radius:8px;border:1px solid #eef2ff}
+.two-column{display:flex;gap:18px;margin-top:12px}
+.list{flex:1;background:#fff;padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(30,20,80,0.04)}
+.list ul{list-style:none;padding:0;margin:0}
+.list li{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #f4f5fa}
+.form{width:360px;background:#fff;padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(30,20,80,0.04)}
+.form input, .form select{width:100%;padding:10px;border-radius:8px;border:1px solid #eef0fa;margin-top:8px}
+.primary{background:#512DA8;color:#fff;padding:10px;border-radius:8px;border:none;cursor:pointer}
+.danger{background:#fff;border:1px solid #ff7a7a;padding:8px;border-radius:8px}
+.form-actions{margin-top:12px;display:flex;gap:8px;justify-content:flex-end}
+@media (max-width:900px){ .two-column{flex-direction:column} }

@@ -1,0 +1,5 @@
+.reg-pago-card{max-width:520px;margin:16px auto;padding:16px;border-radius:10px;background:#fff;box-shadow:0 8px 24px rgba(40,32,100,0.04)}
+.reg-pago-card h2{margin-bottom:12px}
+.reg-pago-card input{width:100%;padding:10px;border-radius:8px;border:1px solid #eef0f8;margin-top:8px}
+.primary{margin-top:12px;background:#512DA8;color:#fff;padding:10px;border-radius:8px;border:none;cursor:pointer;width:100%}
+.reg-actions{text-align:right}

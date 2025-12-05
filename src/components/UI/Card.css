@@ -1,0 +1,3 @@
+/* src/components/ui/Card.css */
+.q-card { background:white; border-radius:8px; padding:16px; box-shadow:0 6px 16px rgba(0,0,0,0.06); }
+.q-card-title { margin:0 0 8px 0; font-size:16px; }

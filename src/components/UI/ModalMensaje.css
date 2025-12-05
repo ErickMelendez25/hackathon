@@ -1,0 +1,39 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+  z-index: 2000;
+}
+
+.modal-box {
+  background: #ffffff;
+  color: #2b1462;
+  padding: 20px 26px;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  animation: slideUp 0.32s ease;
+  text-align: center;
+  min-width: 260px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

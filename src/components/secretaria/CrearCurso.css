@@ -1,0 +1,485 @@
+:root{
+  --bg:#fbfbff;
+  --card:#ffffff;
+  --accent:#512DA8;
+  --muted:#666;
+  --success:#e6fff2;
+  --error:#fff0f0;
+  --info:#f5f7ff;
+}
+
+*{box-sizing:border-box}
+
+body{
+  background:var(--bg);
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,"Helvetica Neue",Arial;
+}
+
+/* ============================
+    CONTENEDOR GENERAL
+=============================== */
+
+.panel-container{
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
+  padding:20px;
+  max-width:1400px;
+  margin:18px auto;
+}
+
+/* ============================
+      LISTADO DE CURSOS
+=============================== */
+
+.side-list{
+  width:300px;
+  background:linear-gradient(180deg,var(--card),#fafafa);
+  border-radius:12px;
+  padding:14px;
+  box-shadow:0 10px 30px rgba(81,45,168,0.06);
+  height:calc(100vh - 120px);
+  overflow-y:auto;
+}
+
+.side-list::-webkit-scrollbar{
+  width:7px;
+}
+.side-list::-webkit-scrollbar-thumb{
+  background:#c8c4ff;
+  border-radius:10px;
+}
+
+.side-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+.side-header h3{
+  margin:0;
+  font-size:18px;
+}
+
+.small-btn{
+  background:#f3f3ff;
+  border:0;
+  padding:6px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.curso-list{
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+
+.curso-item{
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:8px;
+  cursor:pointer;
+  border:1px solid transparent;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.curso-item:hover{
+  background:#faf7ff;
+}
+.curso-item.activo{
+  border-color:rgba(81,45,168,0.12);
+  box-shadow:0 4px 14px rgba(81,45,168,0.06);
+}
+
+.curso-title{
+  font-weight:700;
+}
+.curso-meta{
+  font-size:13px;
+  color:var(--muted);
+  display:flex;
+  gap:8px;
+}
+
+/* ============================
+          PANEL PRINCIPAL
+=============================== */
+
+.main-panel{
+  display:grid;
+  grid-template-columns:500px 1fr;
+  gap:20px;
+  flex:1;
+}
+
+/* ============================
+        CREAR CURSO CARD
+=============================== */
+
+.crear-curso-card{
+  background:linear-gradient(180deg,var(--card),#fff);
+  padding:18px;
+  border-radius:12px;
+  box-shadow:0 8px 26px rgba(80,64,160,0.06);
+  height:fit-content;
+}
+
+.crear-curso-card h2{
+  margin-top:0;
+  margin-bottom:10px;
+}
+
+.crear-curso-card label{
+  display:block;
+  font-weight:700;
+  margin-top:10px;
+  color:#222;
+}
+
+.crear-curso-card input,
+.crear-curso-card textarea,
+.crear-curso-card select{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ececf6;
+  margin-top:6px;
+  font-size:14px;
+  background:#fff;
+}
+
+.crear-curso-card textarea{
+  min-height:100px;
+  resize:vertical;
+}
+
+.two-cols{
+  display:flex;
+  gap:12px;
+  margin-top:6px;
+}
+.two-cols > div{
+  flex:1;
+}
+
+.primary{
+  margin-top:14px;
+  background:var(--accent);
+  color:#fff;
+  padding:12px;
+  border-radius:12px;
+  border:none;
+  width:100%;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 8px 18px rgba(81,45,168,0.12);
+}
+.primary:disabled{
+  opacity:0.6;
+  cursor:not-allowed;
+}
+
+/* ============================
+        SECCIONES CREACIÓN
+=============================== */
+
+.secciones-block{
+  margin-top:14px;
+}
+
+.secciones-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+}
+
+.link-btn{
+  background:transparent;
+  border:0;
+  color:var(--accent);
+  cursor:pointer;
+  font-weight:700;
+}
+
+.seccion-row{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr 120px 80px;
+  gap:8px;
+  margin-bottom:8px;
+}
+
+.seccion-row input,
+.seccion-row select{
+  padding:8px;
+  border-radius:8px;
+}
+
+.danger{
+  background:#ffecec;
+  border:1px solid #ffbdbd;
+  color:#9a0202;
+  padding:6px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.danger.small{
+  padding:6px 8px;
+}
+
+/* ============================
+          MENSAJES
+=============================== */
+
+.mensaje{
+  margin-top:12px;
+  padding:10px;
+  border-radius:10px;
+}
+.mensaje.success{
+  background:var(--success);
+  border:1px solid #bfeed1;
+  color:#024b21;
+}
+.mensaje.error{
+  background:var(--error);
+  border:1px solid #f2b3b3;
+  color:#7a1111;
+}
+.mensaje.warning{
+  background:#fff7e6;
+  border:1px solid #ffe6b3;
+  color:#7a5300;
+}
+.mensaje.info{
+  background:var(--info);
+  border:1px solid #e6eaff;
+  color:#2b2b6b;
+}
+
+/* ============================
+      DETALLE DE CURSO
+=============================== */
+
+.detalle-curso-card{
+  background:linear-gradient(180deg,#fff,#fcfcff);
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 8px 26px rgba(80,64,160,0.04);
+  height:calc(100vh - 120px);
+  overflow-y:auto;
+}
+
+.detalle-curso-card::-webkit-scrollbar{
+  width:7px;
+}
+.detalle-curso-card::-webkit-scrollbar-thumb{
+  background:#c8c4ff;
+  border-radius:10px;
+}
+
+.detalle-curso-card h3{
+  margin-top:0;
+}
+
+.muted{
+  color:var(--muted);
+  margin-bottom:10px;
+}
+
+/* TITULITOS */
+.detalle-curso-card h4{
+  margin-top:20px;
+  margin-bottom:10px;
+}
+
+/* ============================
+      LISTA SECCIONES
+=============================== */
+
+.secciones-list{
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+
+.seccion-item{
+  padding:12px;
+  background:#f9f7ff;
+  border-radius:10px;
+  margin-bottom:10px;
+  cursor:pointer;
+  border:1px solid transparent;
+}
+.seccion-item:hover{
+  background:#f3eeff;
+}
+.seccion-activa{
+  border-color:var(--accent);
+  box-shadow:0 4px 14px rgba(81,45,168,0.06);
+}
+
+/* ============================
+       TABLA DE MATRICULADOS
+=============================== */
+
+.matriculados-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+  font-size:14px;
+}
+
+.matriculados-table th{
+  background:#ecebfd;
+  padding:10px;
+  text-align:left;
+}
+
+.matriculados-table td{
+  padding:10px;
+  border-bottom:1px solid #f0efff;
+}
+
+.matriculados-table tr:hover{
+  background:#faf8ff;
+}
+
+/* BUSCADORES */
+.search-input{
+  width:100%;
+  padding:10px;
+  margin:10px 0;
+  border-radius:10px;
+  border:1px solid #e0e0ff;
+  background:#fff;
+}
+
+
+
+/* FONDO (no centra nada, solo oscurece) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 999;
+}
+
+/* MODAL — arriba a la izquierda, SIN espacio sobrante */
+.modal-seccion {
+  position: absolute;
+  
+  top: 10px;       /* más pegado aún */
+  left: 10px;      /* más pegado */
+  height: min-content;
+  
+  width: max-content;   /* OJO: se ajusta SOLO al contenido */
+  max-width: 600px;
+
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px 20px;  /* Menos padding para que no se vea grande */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+  animation: fadeIn .25s ease;
+  
+  margin: 0;  /* evita espacios arriba */
+}
+
+/* TÍTULO */
+.modal-title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 15px 0;  /* menos espacio */
+  padding: 0;
+  color: #333;
+}
+
+/* MATRIZ 2x2 */
+.grid-seccion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 18px;   /* menos espacio */
+}
+
+/* SELECT DOCENTE ocupa 2 columnas */
+.field-full {
+  grid-column: span 2;
+}
+
+/* CAMPOS */
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 0px;
+  color: #333;
+}
+
+.field input,
+.field select {
+  margin-top: auto;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #aaa;
+  border-radius: 8px;
+  background: white;
+  width: 100%;
+}
+
+.input-readonly {
+  background: #f2f2f2;
+  cursor: not-allowed;
+}
+
+/* BOTONES — compactos */
+.modal-buttons {  
+  margin-left: 10px;
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* BOTONES */
+.btn-primary,
+.btn-secondary {
+  padding: 10px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background: #4a57e8;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #3e48cc;
+}
+
+.btn-secondary {
+  background: #ddd;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background: #ccc;
+}
+
+/* ANIMACIÓN */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}

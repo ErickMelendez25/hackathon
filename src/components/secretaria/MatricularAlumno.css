@@ -1,0 +1,43 @@
+.matricula-wrap{max-width:1100px;margin:18px auto;padding:16px;font-family:Inter, system-ui}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.search-box input{padding:10px;border-radius:8px;border:1px solid #eee;width:320px}
+.grid{display:grid;grid-template-columns:320px 1fr;gap:16px;margin-top:12px}
+.panel{background:#fff;border-radius:12px;padding:12px;box-shadow:0 6px 20px rgba(15,15,20,0.04)}
+.panel-head{display:flex;justify-content:space-between;align-items:center}
+.lista-estudiantes{list-style:none;padding:0;margin:8px 0;max-height:420px;overflow:auto}
+.lista-estudiantes li{padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid #f0f0f6;cursor:pointer}
+.lista-estudiantes li.selected{background:linear-gradient(90deg,#f6f5ff,#fff);border-color:#e1d7ff}
+.lista-estudiantes li .meta{font-size:12px;color:#666;margin-top:6px}
+.panel.detalle label{display:block;margin-top:12px;font-weight:600}
+.panel.detalle select,input{width:100%;padding:10px;border-radius:8px;border:1px solid #eee;margin-top:6px}
+.card{background:#fbfbff;padding:12px;border-radius:8px;margin-bottom:8px}
+.pago-row{display:flex;gap:12px;align-items:center;margin-top:8px}
+.actions{display:flex;gap:12px;margin-top:14px}
+.primary{background:#512DA8;color:#fff;padding:10px;border-radius:8px;border:none;cursor:pointer}
+.secondary{background:#f7f7fb;padding:10px;border-radius:8px;border:1px solid #eaeaf5;cursor:pointer}
+.mensaje{margin-top:10px;padding:10px;background:#faf8ff;border-radius:8px}
+.empty{padding:20px;color:#888;text-align:center}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:60}
+.modal-card{background:#fff;padding:18px;border-radius:10px;min-width:320px;max-width:520px}
+.modal-card h3{margin:0 0 8px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.small{background:#ffffff;border:1px solid #e6e6f2;padding:6px 10px;border-radius:8px;cursor:pointer}
+@media (max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .search-box input{width:100%}
+}
+
+.input-error {
+  border: 2px solid #ff4d4f !important;
+  background: #fff1f0;
+}
+
+.error-text {
+  color: #ff4d4f;
+  font-size: 0.8rem;
+  margin-top: -1px;
+  margin-bottom: 10px;
+  display: block;
+}

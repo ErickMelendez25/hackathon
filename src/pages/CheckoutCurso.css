@@ -1,0 +1,85 @@
+.checkout {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.checkout h2 {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #2b1462;
+}
+
+.card {
+  background: #ffffff;
+  padding: 18px 20px;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.card .precio {
+  margin-top: 10px;
+  font-size: 26px;
+  font-weight: bold;
+  color: #2b1462;
+}
+
+.form {
+  max-width: 480px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form input {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  transition: 0.2s;
+}
+
+.form input:focus {
+  border-color: #2b1462;
+  box-shadow: 0 0 3px rgba(43,20,98,0.3);
+}
+
+.btn {
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.25s;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.btn.mp {
+  background: #2b1462;
+  color: white;
+}
+
+.btn.yape {
+  background: #7e16ff;
+  color: white;
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+}

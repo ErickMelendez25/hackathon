@@ -1,0 +1,10 @@
+/* src/components/estudiante/EstadosPagos.css */
+.lista-facturas { list-style:none; padding:0; margin:0; }
+.lista-facturas li { padding:8px 0; border-bottom:1px solid #f0f0f0; }
+.factura-item.pagado {
+  background-color: #d4edda;
+}
+
+.factura-item.no-pagado {
+  background-color: #f8d7da;
+}
